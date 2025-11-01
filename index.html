@@ -441,7 +441,574 @@
                     <div class="lg:col-span-2">
                         <div class="bg-white p-6 rounded-lg shadow-lg">
                             <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                                <h2 class="text-2xl font-semibold">Relatório de Dízimos</h2>
+                                <h2 class="text-2xl font-semibold">Relatório de Ofertas e Outras Entradas</h2>
+                                <div class="flex gap-4">
+                                    <select id="filtro-oferta-mes"
+                                        class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <!-- Opções de mês -->
+                                    </select>
+                                    <select id="filtro-oferta-ano"
+                                        class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <!-- Opções de ano -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Data</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Tipo</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Descrição</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Valor (R$)</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lista-ofertas" class="bg-white divide-y divide-gray-200">
+                                        <!-- Linhas de ofertas serão inseridas aqui -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- (ABA) Financeiro (Caixa) -->
+            <div id="financeiro" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Coluna de Registro -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white p-6 rounded-lg shadow-lg">
+                            <h2 class="text-2xl font-semibold mb-6">Registar Saída (Caixa)</h2>
+                            <form id="form-financeiro">
+                                <div class="mb-4">
+                                    <label for="fin-descricao"
+                                        class="block text-sm font-medium text-gray-700">Descrição da Saída</label>
+                                    <input type="text" id="fin-descricao"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Ex: Conta de luz, material de limpeza" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="fin-valor"
+                                        class="block text-sm font-medium text-gray-700">Valor (R$)</label>
+                                    <input type="number" id="fin-valor" step="0.01" min="0.01"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Digite o valor da saída" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="fin-data"
+                                        class="block text-sm font-medium text-gray-700">Data</label>
+                                    <input type="date" id="fin-data"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        required>
+                                </div>
+                                <div class="mt-6">
+                                    <button type="submit" id="financeiro-submit-btn"
+                                        class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150">
+                                        Registar Saída
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Coluna de Relatório -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white p-6 rounded-lg shadow-lg">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-2xl font-semibold">Extrato do Caixa</h2>
+                                <div class="text-right">
+                                    <h3 class="text-lg font-medium text-gray-600">Saldo Atual:</h3>
+                                    <p id="saldo-total-financeiro"
+                                        class="text-2xl font-bold text-blue-700">R$ 0,00</p>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Data</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Descrição</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Valor (R$)</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lista-financeiro" class="bg-white divide-y divide-gray-200">
+                                        <!-- Linhas do financeiro serão inseridas aqui -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </main>
+    </div>
+
+    <!-- Modal: Detalhes do Membro -->
+    <div id="membro-detalhes-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-membro-modal">&times;</span>
+            <h2 class="text-2xl font-semibold mb-6">Detalhes do Membro</h2>
+            <div class="space-y-3">
+                <p><strong>Nome:</strong> <span id="modal-nome"></span></p>
+                <p><strong>Função:</strong> <span id="modal-funcao"></span></p>
+                <p><strong>Email:</strong> <span id="modal-email"></span></p>
+                <p><strong>Telefone:</strong> <span id="modal-telefone"></span></p>
+                <p><strong>Data de Nascimento:</strong> <span id="modal-data-nascimento"></span></p>
+                <p><strong>Endereço:</strong> <span id="modal-endereco"
+                        class="block whitespace-pre-wrap"></span></p>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button id="show-edit-membro-btn"
+                    class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 mr-2">
+                    Editar
+                </button>
+                <button id="show-delete-membro-btn"
+                    class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150">
+                    Excluir Membro
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Membro -->
+    <div id="membro-edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-membro-edit-modal">&times;</span>
+            <h2 class="text-2xl font-semibold mb-6">Editar Membro</h2>
+            <form id="form-edit-membro">
+                <div class="space-y-4">
+                    <div>
+                        <label for="edit-nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
+                        <input type="text" id="edit-nome"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="edit-email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="edit-email"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="edit-telefone" class="block text-sm font-medium text-gray-700">Telefone</label>
+                        <input type="tel" id="edit-telefone"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="edit-data-nascimento" class="block text-sm font-medium text-gray-700">Data de
+                            Nascimento</label>
+                        <input type="date" id="edit-data-nascimento"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="edit-funcao" class="block text-sm font-medium text-gray-700">Função /
+                            Ministério</label>
+                        <input type="text" id="edit-funcao"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="edit-endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
+                        <textarea id="edit-endereco" rows="3"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                    
+                    <hr class="my-6">
+                    
+                    <!-- Confirmação de Senha para Edição -->
+                    <div>
+                         <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Confirme sua senha para salvar:</label>
+                        <input type="password" id="edit-membro-password"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required>
+                        <p id="edit-membro-error" class="text-red-500 text-sm mt-2"></p>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-end">
+                     <button type="button" id="cancel-edit-membro-btn"
+                        class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150 mr-2">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="edit-membro-submit-btn"
+                        class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modal: Confirmação de Exclusão (Universal) -->
+    <div id="delete-confirm-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-delete-modal">&times;</span>
+            <h2 class="text-xl font-semibold mb-4 text-red-600">Confirmar Exclusão</h2>
+            <p class="mb-4">Tem certeza que deseja excluir este registo? Esta ação é irreversível.</p>
+            <p id="delete-cascade-warning" class="text-yellow-700 font-medium mb-4"></p>
+            <p class="mb-4">Para confirmar, digite sua senha de login:</p>
+            <form id="delete-confirm-form">
+                <label for="delete-password" class="block text-sm font-medium text-gray-700">Senha:</label>
+                <input type="password" id="delete-password"
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500"
+                    required>
+                <p id="delete-error-message" class="text-red-500 text-sm mt-2"></p>
+                <div class="mt-6 flex justify-end">
+                    <button type="button" id="cancel-delete-btn"
+                        class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150 mr-2">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="delete-submit-btn"
+                        class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150">
+                        Excluir Permanentemente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Firebase -->
+    <script type="module">
+        // Importações do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            EmailAuthProvider,
+            reauthenticateWithCredential
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            setDoc,
+            doc,
+            addDoc,
+            collection,
+            onSnapshot,
+            query,
+            deleteDoc,
+            Timestamp,
+            getDocs,
+            where,
+            writeBatch,
+            updateDoc
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ============================================
+        // SISTEMA DE NOTIFICAÇÕES (TOAST)
+        // ============================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            // Remove automaticamente após 5 segundos
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 5000);
+        }
+
+        // ============================================
+        // SISTEMA DE LOADING NOS BOTÕES
+        // ============================================
+        function setButtonLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            if (!button) return;
+            
+            if (isLoading) {
+                button.disabled = true;
+                button.innerHTML = '<span class="spinner"></span> Processando...';
+            } else {
+                button.disabled = false;
+                // Restaura o texto original do botão
+                const originalTexts = {
+                    'login-submit-btn': 'Entrar',
+                    'register-submit-btn': 'Cadastrar',
+                    'membro-submit-btn': 'Salvar Membro',
+                    'dizimo-submit-btn': 'Registar Dízimo',
+                    'oferta-submit-btn': 'Registar Entrada',
+                    'financeiro-submit-btn': 'Registar Saída',
+                    'edit-membro-submit-btn': 'Salvar Alterações',
+                    'delete-submit-btn': 'Excluir Permanentemente'
+                };
+                button.innerHTML = originalTexts[buttonId] || 'Submeter';
+            }
+        }
+
+        // ============================================
+        // CONFIGURAÇÃO E INICIALIZAÇÃO DO FIREBASE
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyA59Apn8I_8uT7XBrMIS_zD1RdtHgJCzOA",
+            authDomain: "gestao-capoeira.firebaseapp.com",
+            projectId: "gestao-capoeira",
+            storageBucket: "gestao-capoeira.firebasestorage.app",
+            messagingSenderId: "907559288919",
+            appId: "1:907559288919:web:a4afdb4ed23e9d11196312"
+        };
+
+        // Inicialização do Firebase com tratamento de erro
+        let app, auth, db, userId;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log("✅ Firebase inicializado com sucesso.");
+        } catch (error) {
+            console.error("❌ Erro ao inicializar o Firebase:", error);
+            document.body.innerHTML = `
+                <div class="min-h-screen flex items-center justify-center bg-red-50">
+                    <div class="bg-white p-8 rounded-lg shadow-lg max-w-md">
+                        <h2 class="text-2xl font-bold text-red-600 mb-4">Erro Crítico</h2>
+                        <p class="text-gray-700 mb-4">Não foi possível conectar ao banco de dados.</p>
+                        <p class="text-sm text-gray-600">Por favor, verifique sua conexão com a internet e recarregue a página.</p>
+                        <button onclick="location.reload()" class="mt-4 bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">
+                            Recarregar Página
+                        </button>
+                    </div>
+                </div>
+            `;
+            throw error; // Para o script
+        }
+
+        // Variáveis de estado global
+        let localMembros = [];
+        let localDizimos = [];
+        let localOfertas = [];
+        let localFinanceiro = [];
+        let unsubMembros, unsubDizimos, unsubOfertas, unsubFinanceiro;
+
+        // Objeto para guardar os dados da exclusão
+        let itemParaExcluir = {
+            id: null,
+            tipo: null // 'financeiro', 'dizimo', 'oferta', 'membro'
+        };
+
+        // ID do membro a ser editado
+        let membroParaEditarId = null;
+
+        // ============================================
+        // CONTROLE DE AUTENTICAÇÃO
+        // ============================================
+
+        const authScreen = document.getElementById("auth-screen");
+        const appContent = document.getElementById("app-content");
+        const loginForm = document.getElementById("login-form");
+        const registerForm = document.getElementById("register-form");
+        const loginError = document.getElementById("login-error");
+        const registerError = document.getElementById("register-error");
+        const userEmailDisplay = document.getElementById("user-email-display");
+        const logoutButton = document.getElementById("logout-button");
+
+        const loginTabButton = document.getElementById("login-tab-button");
+        const registerTabButton = document.getElementById("register-tab-button");
+        const loginTab = document.getElementById("login-tab");
+        const registerTab = document.getElementById("register-tab");
+
+        // Abas de Autenticação
+        loginTabButton.addEventListener("click", () => {
+            loginTabButton.classList.add("active");
+            registerTabButton.classList.remove("active");
+            loginTab.classList.add("active");
+            registerTab.classList.remove("active");
+            loginError.textContent = "";
+            registerError.textContent = "";
+        });
+
+        registerTabButton.addEventListener("click", () => {
+            registerTabButton.classList.add("active");
+            loginTabButton.classList.remove("active");
+            registerTab.classList.add("active");
+            loginTab.classList.remove("active");
+            loginError.textContent = "";
+            registerError.textContent = "";
+        });
+
+        // Processar Cadastro com tratamento de erro melhorado
+        registerForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            registerError.textContent = "";
+            
+            const email = document.getElementById("register-email").value.trim();
+            const password = document.getElementById("register-password").value;
+
+            // Validações básicas
+            if (!email || !password) {
+                registerError.textContent = "Por favor, preencha todos os campos.";
+                return;
+            }
+
+            if (password.length < 6) {
+                registerError.textContent = "A senha deve ter no mínimo 6 caracteres.";
+                return;
+            }
+
+            setButtonLoading('register-submit-btn', true);
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                showToast('Conta criada com sucesso!', 'success');
+                // O onAuthStateChanged vai tratar de mostrar o app
+            } catch (error) {
+                console.error("❌ Erro no cadastro:", error.code, error.message);
+                
+                // Mensagens de erro específicas
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        registerError.textContent = "Este email já está cadastrado. Tente fazer login.";
+                        break;
+                    case 'auth/invalid-email':
+                        registerError.textContent = "Email inválido. Verifique o formato do email.";
+                        break;
+                    case 'auth/weak-password':
+                        registerError.textContent = "Senha fraca. A senha deve ter no mínimo 6 caracteres.";
+                        break;
+                    case 'auth/network-request-failed':
+                        registerError.textContent = "Erro de conexão. Verifique sua internet e tente novamente.";
+                        break;
+                    default:
+                        registerError.textContent = "Erro ao cadastrar. Tente novamente mais tarde.";
+                }
+                showToast('Erro ao criar conta', 'error');
+            } finally {
+                setButtonLoading('register-submit-btn', false);
+            }
+        });
+
+        // Processar Login com tratamento de erro melhorado
+        loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            loginError.textContent = "";
+            
+            const email = document.getElementById("login-email").value.trim();
+            const password = document.getElementById("login-password").value;
+
+            if (!email || !password) {
+                loginError.textContent = "Por favor, preencha todos os campos.";
+                return;
+            }
+
+            setButtonLoading('login-submit-btn', true);
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showToast('Login realizado com sucesso!', 'success');
+                // O onAuthStateChanged vai tratar de mostrar o app
+            } catch (error) {
+                console.error("❌ Erro no login:", error.code, error.message);
+                
+                // Mensagens de erro específicas
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                    case 'auth/invalid-credential':
+                        loginError.textContent = "Email ou senha inválidos.";
+                        break;
+                    case 'auth/invalid-email':
+                        loginError.textContent = "Email inválido. Verifique o formato do email.";
+                        break;
+                    case 'auth/user-disabled':
+                        loginError.textContent = "Esta conta foi desativada. Entre em contato com o suporte.";
+                        break;
+                    case 'auth/network-request-failed':
+                        loginError.textContent = "Erro de conexão. Verifique sua internet e tente novamente.";
+                        break;
+                    default:
+                        loginError.textContent = "Erro ao fazer login. Tente novamente mais tarde.";
+                }
+                showToast('Erro ao fazer login', 'error');
+            } finally {
+                setButtonLoading('login-submit-btn', false);
+            }
+        });
+
+        // Processar Logout
+        logoutButton.addEventListener("click", async () => {
+            try {
+                await signOut(auth);
+                showToast('Logout realizado com sucesso', 'success');
+                // O onAuthStateChanged vai tratar de esconder o app
+            } catch (error) {
+                console.error("❌ Erro ao sair:", error);
+                showToast('Erro ao sair. Tente novamente.', 'error');
+            }
+        });
+
+        // Observador do estado de autenticação (principal)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Usuário está logado
+                userId = user.uid;
+                userEmailDisplay.textContent = user.email;
+                authScreen.style.display = "none";
+                appContent.style.display = "block";
+                loadAllData(userId); // Carrega os dados do usuário
+                console.log("✅ Usuário autenticado:", user.email);
+            } else {
+                // Usuário está deslogado
+                userId = null;
+                authScreen.style.display = "flex";
+                appContent.style.display = "none";
+                clearAllTables(); // Limpa dados da tela
+                stopAllListeners(); // Para de ouvir dados
+                console.log("ℹ️ Usuário deslogado");
+            }
+        });
+
+        // ============================================
+        // FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO
+        // ============================================
+        
+        async function reauthenticate(password) {
+            const user = auth.currentUser;
+            
+            if (!user) {
+                throw new Error("Usuário não está logado.");
+            }
+            
+            if (!user.email) {
+                throw new Error("Usuário não tem email associado.");
+            }
+
+            if (!password) {
+                throw new Error("Senha é obrigatória.2xl font-semibold">Relatório de Dízimos</h2>
                                 <div class="flex gap-4">
                                     <select id="filtro-dizimo-mes"
                                         class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
