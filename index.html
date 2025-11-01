@@ -1008,7 +1008,723 @@
             }
 
             if (!password) {
-                throw new Error("Senha é obrigatória.2xl font-semibold">Relatório de Dízimos</h2>
+                throw new Error("Senha é obrigatória.");
+            }
+
+            try {
+                const credential = EmailAuthProvider.credential(user.email, password);
+                await reauthenticateWithCredential(user, credential);
+                return true; // Reautenticação bem-sucedida
+            } catch (error) {
+                console.error("❌ Erro ao reautenticar:", error.code);
+                
+                switch (error.code) {
+                    case 'auth/wrong-password':
+                    case 'auth/invalid-credential':
+                        throw new Error("Senha incorreta.");
+                    case 'auth/network-request-failed':
+                        throw new Error("Erro de conexão. Verifique sua internet.");
+                    case 'auth/too-many-requests':
+                        throw new Error("Muitas tentativas. Tente novamente mais tarde.");
+                    default:
+                        throw new Error("Erro de autenticação. Tente novamente.");
+                }
+            }
+        }
+
+
+        // ============================================
+        // CONTROLE DE NAVEGAÇÃO POR ABAS (APP)
+        // ============================================
+
+        const tabButtons = document.querySelectorAll(".tab-button:not(#login-tab-button):not(#register-tab-button)");
+        const tabContents = document.querySelectorAll(".tab-content:not(#login-tab):not(#register-tab)");
+
+        tabButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                const targetTab = button.dataset.tab;
+
+                // Desativa todos
+                tabButtons.forEach(btn => btn.classList.remove("active"));
+                tabContents.forEach(content => content.classList.remove("active"));
+
+                // Ativa o clicado
+                button.classList.add("active");
+                document.getElementById(targetTab).classList.add("active");
+
+                // Atualiza dados se a aba for o dashboard
+                if (targetTab === 'dashboard') {
+                    updateDashboard();
+                }
+                // Atualiza ícones quando muda de aba
+                lucide.createIcons();
+            });
+        });
+
+        // ============================================
+        // FORMULÁRIO DE MEMBROS (CADASTRO)
+        // ============================================
+
+        const formMembro = document.getElementById("form-membro");
+
+        formMembro.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            if (!userId) {
+                showToast('Você precisa estar logado para cadastrar membros', 'error');
+                return;
+            }
+
+            const nome = document.getElementById("nome").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const telefone = document.getElementById("telefone").value.trim();
+            const dataNascimento = document.getElementById("data-nascimento").value;
+            const funcao = document.getElementById("funcao").value.trim();
+            const endereco = document.getElementById("endereco").value.trim();
+
+            // Validação básica
+            if (!nome) {
+                showToast('O nome é obrigatório', 'error');
+                return;
+            }
+
+            setButtonLoading('membro-submit-btn', true);
+
+            try {
+                const docRef = collection(db, "users", userId, "membros");
+                await addDoc(docRef, {
+                    nome: nome,
+                    email: email,
+                    telefone: telefone,
+                    dataNascimento: dataNascimento,
+                    funcao: funcao,
+                    endereco: endereco,
+                    criadoEm: Timestamp.now()
+                });
+
+                formMembro.reset();
+                showToast('Membro cadastrado com sucesso!', 'success');
+            } catch (error) {
+                console.error("❌ Erro ao salvar membro:", error);
+                
+                if (error.code === 'permission-denied') {
+                    showToast('Você não tem permissão para realizar esta operação', 'error');
+                } else if (error.code === 'unavailable') {
+                    showToast('Serviço temporariamente indisponível. Tente novamente.', 'error');
+                } else {
+                    showToast('Erro ao salvar membro. Tente novamente.', 'error');
+                }
+            } finally {
+                setButtonLoading('membro-submit-btn', false);
+            }
+        });
+        
+        // ============================================
+        // FORMULÁRIO DE MEMBROS (EDIÇÃO)
+        // ============================================
+        
+        const formEditMembro = document.getElementById("form-edit-membro");
+        const editMembroError = document.getElementById("edit-membro-error");
+        
+        formEditMembro.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            if (!userId || !membroParaEditarId) {
+                showToast('Erro ao identificar o membro para edição', 'error');
+                return;
+            }
+            
+            const password = document.getElementById("edit-membro-password").value;
+            editMembroError.textContent = "";
+
+            if (!password) {
+                editMembroError.textContent = "A senha é obrigatória para salvar.";
+                return;
+            }
+
+            setButtonLoading('edit-membro-submit-btn', true);
+
+            // 1. Reautenticar
+            try {
+                await reauthenticate(password);
+            } catch (error) {
+                console.error("❌", error);
+                editMembroError.textContent = error.message;
+                setButtonLoading('edit-membro-submit-btn', false);
+                return;
+            }
+            
+            // 2. Coletar dados do formulário
+            const dadosAtualizados = {
+                nome: document.getElementById("edit-nome").value.trim(),
+                email: document.getElementById("edit-email").value.trim(),
+                telefone: document.getElementById("edit-telefone").value.trim(),
+                dataNascimento: document.getElementById("edit-data-nascimento").value,
+                funcao: document.getElementById("edit-funcao").value.trim(),
+                endereco: document.getElementById("edit-endereco").value.trim(),
+                atualizadoEm: Timestamp.now()
+            };
+
+            // Validação
+            if (!dadosAtualizados.nome) {
+                editMembroError.textContent = "O nome é obrigatório.";
+                setButtonLoading('edit-membro-submit-btn', false);
+                return;
+            }
+            
+            // 3. Atualizar no Firebase
+            try {
+                const docRef = doc(db, "users", userId, "membros", membroParaEditarId);
+                await updateDoc(docRef, dadosAtualizados);
+                
+                // Sucesso
+                doCloseMembroEditModal();
+                showToast('Membro atualizado com sucesso!', 'success');
+            
+            } catch (error) {
+                console.error("❌ Erro ao atualizar membro:", error);
+                
+                if (error.code === 'not-found') {
+                    editMembroError.textContent = "Membro não encontrado.";
+                } else if (error.code === 'permission-denied') {
+                    editMembroError.textContent = "Você não tem permissão para esta operação.";
+                } else {
+                    editMembroError.textContent = "Erro ao salvar os dados. Tente novamente.";
+                }
+            } finally {
+                setButtonLoading('edit-membro-submit-btn', false);
+            }
+        });
+
+
+        // ============================================
+        // FORMULÁRIO DE DÍZIMOS
+        // ============================================
+
+        const formDizimo = document.getElementById("form-dizimo");
+
+        formDizimo.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            if (!userId) {
+                showToast('Você precisa estar logado', 'error');
+                return;
+            }
+
+            const membroSelect = document.getElementById("dizimo-membro");
+            const membroId = membroSelect.value;
+            const membroNome = membroSelect.options[membroSelect.selectedIndex].text;
+            const valorInput = document.getElementById("dizimo-valor").value;
+            const valor = parseFloat(valorInput);
+            const data = document.getElementById("dizimo-data").value;
+
+            // Validações
+            if (!membroId) {
+                showToast('Selecione um membro', 'error');
+                return;
+            }
+
+            if (!valorInput || isNaN(valor) || valor <= 0) {
+                showToast('Digite um valor válido maior que zero', 'error');
+                return;
+            }
+
+            if (!data) {
+                showToast('Selecione uma data', 'error');
+                return;
+            }
+
+            setButtonLoading('dizimo-submit-btn', true);
+
+            try {
+                // Usar um "batch" para garantir que as duas operações ocorram
+                const batch = writeBatch(db);
+
+                // 1. Cria o documento de dízimo
+                const dizimoDocRef = doc(collection(db, "users", userId, "dizimos"));
+                batch.set(dizimoDocRef, {
+                    membroId: membroId,
+                    membroNome: membroNome,
+                    valor: valor,
+                    data: data,
+                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
+                    financeiroId: null,
+                    criadoEm: Timestamp.now()
+                });
+
+                // 2. Cria o documento financeiro
+                const financeiroDocRef = doc(collection(db, "users", userId, "financeiro"));
+                batch.set(financeiroDocRef, {
+                    tipo: "entrada",
+                    descricao: `Dízimo - ${membroNome}`,
+                    valor: valor,
+                    data: data,
+                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
+                    origemId: dizimoDocRef.id,
+                    origemTipo: "dizimo",
+                    criadoEm: Timestamp.now()
+                });
+
+                // 3. Atualiza o dízimo com o ID do financeiro
+                batch.update(dizimoDocRef, { financeiroId: financeiroDocRef.id });
+
+                // 4. Executa o batch
+                await batch.commit();
+
+                formDizimo.reset();
+                showToast('Dízimo registrado com sucesso!', 'success');
+            } catch (error) {
+                console.error("❌ Erro ao salvar dízimo:", error);
+                
+                if (error.code === 'permission-denied') {
+                    showToast('Você não tem permissão para realizar esta operação', 'error');
+                } else {
+                    showToast('Erro ao registrar dízimo. Tente novamente.', 'error');
+                }
+            } finally {
+                setButtonLoading('dizimo-submit-btn', false);
+            }
+        });
+
+        // ============================================
+        // FORMULÁRIO DE OFERTAS / OUTRAS ENTRADAS
+        // ============================================
+
+        const formOferta = document.getElementById("form-oferta");
+
+        formOferta.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            if (!userId) {
+                showToast('Você precisa estar logado', 'error');
+                return;
+            }
+
+            const tipo = document.getElementById("oferta-tipo").value;
+            const descricao = document.getElementById("oferta-descricao").value.trim();
+            const valorInput = document.getElementById("oferta-valor").value;
+            const valor = parseFloat(valorInput);
+            const data = document.getElementById("oferta-data").value;
+
+            // Validações
+            if (!descricao) {
+                showToast('Digite uma descrição', 'error');
+                return;
+            }
+
+            if (!valorInput || isNaN(valor) || valor <= 0) {
+                showToast('Digite um valor válido maior que zero', 'error');
+                return;
+            }
+
+            if (!data) {
+                showToast('Selecione uma data', 'error');
+                return;
+            }
+
+            setButtonLoading('oferta-submit-btn', true);
+
+            try {
+                // Usar um "batch"
+                const batch = writeBatch(db);
+
+                // 1. Cria o documento de oferta
+                const ofertaDocRef = doc(collection(db, "users", userId, "ofertas"));
+                batch.set(ofertaDocRef, {
+                    tipo: tipo,
+                    descricao: descricao,
+                    valor: valor,
+                    data: data,
+                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
+                    financeiroId: null,
+                    criadoEm: Timestamp.now()
+                });
+
+                // 2. Cria o documento financeiro
+                const financeiroDocRef = doc(collection(db, "users", userId, "financeiro"));
+                batch.set(financeiroDocRef, {
+                    tipo: "entrada",
+                    descricao: `${tipo} - ${descricao}`,
+                    valor: valor,
+                    data: data,
+                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
+                    origemId: ofertaDocRef.id,
+                    origemTipo: "oferta",
+                    criadoEm: Timestamp.now()
+                });
+
+                // 3. Atualiza a oferta com o ID do financeiro
+                batch.update(ofertaDocRef, { financeiroId: financeiroDocRef.id });
+
+                // 4. Executa
+                await batch.commit();
+
+                formOferta.reset();
+                showToast('Entrada registrada com sucesso!', 'success');
+            } catch (error) {
+                console.error("❌ Erro ao salvar oferta:", error);
+                
+                if (error.code === 'permission-denied') {
+                    showToast('Você não tem permissão para realizar esta operação', 'error');
+                } else {
+                    showToast('Erro ao registrar entrada. Tente novamente.', 'error');
+                }
+            } finally {
+                setButtonLoading('oferta-submit-btn', false);
+            }
+        });
+
+
+        // ============================================
+        // FORMULÁRIO FINANCEIRO (SAÍDAS)
+        // ============================================
+
+        const formFinanceiro = document.getElementById("form-financeiro");
+
+        formFinanceiro.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            if (!userId) {
+                showToast('Você precisa estar logado', 'error');
+                return;
+            }
+
+            const descricao = document.getElementById("fin-descricao").value.trim();
+            const valorInput = document.getElementById("fin-valor").value;
+            const valor = parseFloat(valorInput);
+            const data = document.getElementById("fin-data").value;
+
+            // Validações
+            if (!descricao) {
+                showToast('Digite uma descrição', 'error');
+                return;
+            }
+
+            if (!valorInput || isNaN(valor) || valor <= 0) {
+                showToast('Digite um valor válido maior que zero', 'error');
+                return;
+            }
+
+            if (!data) {
+                showToast('Selecione uma data', 'error');
+                return;
+            }
+
+            setButtonLoading('financeiro-submit-btn', true);
+
+            try {
+                const colRef = collection(db, "users", userId, "financeiro");
+                await addDoc(colRef, {
+                    tipo: "saida",
+                    descricao: descricao,
+                    valor: valor * -1, // Salva saídas como valor negativo
+                    data: data,
+                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
+                    origemId: null,
+                    origemTipo: null,
+                    criadoEm: Timestamp.now()
+                });
+
+                formFinanceiro.reset();
+                showToast('Saída registrada com sucesso!', 'success');
+            } catch (error) {
+                console.error("❌ Erro ao salvar saída:", error);
+                
+                if (error.code === 'permission-denied') {
+                    showToast('Você não tem permissão para realizar esta operação', 'error');
+                } else {
+                    showToast('Erro ao registrar saída. Tente novamente.', 'error');
+                }
+            } finally {
+                setButtonLoading('financeiro-submit-btn', false);
+            }
+        });
+
+
+        // ============================================
+        // CARREGAMENTO E RENDERIZAÇÃO DE DADOS
+        // ============================================
+
+        // Função principal para carregar dados
+        function loadAllData(currentUserId) {
+            if (!currentUserId) {
+                console.error("❌ userId inválido para carregar dados");
+                return;
+            }
+            
+            console.log("📊 Carregando dados para o usuário:", currentUserId);
+
+            // Parar listeners antigos se existirem
+            stopAllListeners();
+
+            // Ouvir Membros
+            try {
+                const qMembros = query(collection(db, "users", currentUserId, "membros"));
+                unsubMembros = onSnapshot(qMembros, (snapshot) => {
+                    localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    localMembros.sort((a, b) => a.nome.localeCompare(b.nome));
+                    renderMembros(localMembros);
+                    populateMembrosSelect(localMembros);
+                    updateDashboard();
+                    console.log(`✅ ${localMembros.length} membros carregados`);
+                }, (error) => {
+                    console.error("❌ Erro ao ouvir membros:", error.message);
+                    showToast('Erro ao carregar membros', 'error');
+                });
+            } catch (e) { 
+                console.error("❌ Erro ao criar query de membros:", e);
+                showToast('Erro ao configurar carregamento de membros', 'error');
+            }
+
+            // Ouvir Dízimos
+            try {
+                const qDizimos = query(collection(db, "users", currentUserId, "dizimos"));
+                unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
+                    localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderFiltroDizimos();
+                    updateDashboard();
+                    console.log(`✅ ${localDizimos.length} dízimos carregados`);
+                }, (error) => {
+                    console.error("❌ Erro ao ouvir dízimos:", error.message);
+                    showToast('Erro ao carregar dízimos', 'error');
+                });
+            } catch (e) { 
+                console.error("❌ Erro ao criar query de dízimos:", e);
+            }
+
+            // Ouvir Ofertas
+            try {
+                const qOfertas = query(collection(db, "users", currentUserId, "ofertas"));
+                unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
+                    localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderFiltroOfertas();
+                    updateDashboard();
+                    console.log(`✅ ${localOfertas.length} ofertas carregadas`);
+                }, (error) => {
+                    console.error("❌ Erro ao ouvir ofertas:", error.message);
+                    showToast('Erro ao carregar ofertas', 'error');
+                });
+            } catch (e) { 
+                console.error("❌ Erro ao criar query de ofertas:", e);
+            }
+
+            // Ouvir Financeiro
+            try {
+                const qFinanceiro = query(collection(db, "users", currentUserId, "financeiro"));
+                unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
+                    localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    localFinanceiro.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
+                    renderFinanceiro(localFinanceiro);
+                    updateDashboard();
+                    console.log(`✅ ${localFinanceiro.length} transações financeiras carregadas`);
+                }, (error) => {
+                    console.error("❌ Erro ao ouvir financeiro:", error.message);
+                    showToast('Erro ao carregar dados financeiros', 'error');
+                });
+            } catch (e) { 
+                console.error("❌ Erro ao criar query de financeiro:", e);
+            }
+
+        }
+
+        // Parar todos os listeners
+        function stopAllListeners() {
+            if (unsubMembros) unsubMembros();
+            if (unsubDizimos) unsubDizimos();
+            if (unsubOfertas) unsubOfertas();
+            if (unsubFinanceiro) unsubFinanceiro();
+            console.log("🛑 Listeners interrompidos");
+        }
+
+        // Limpar tabelas ao deslogar
+        function clearAllTables() {
+            document.getElementById("lista-membros").innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum membro cadastrado</td></tr>';
+            document.getElementById("lista-dizimos").innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registrado</td></tr>';
+            document.getElementById("lista-ofertas").innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhuma oferta registrada</td></tr>';
+            document.getElementById("lista-financeiro").innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhuma transação</td></tr>';
+            document.getElementById("dizimo-membro").innerHTML = '<option value="">Selecione o Membro</option>';
+            document.getElementById("saldo-total-financeiro").textContent = "R$ 0,00";
+            document.getElementById("saldo-total-dashboard").textContent = "R$ 0,00";
+            document.getElementById("entradas-mes-dashboard").textContent = "R$ 0,00";
+            document.getElementById("saidas-mes-dashboard").textContent = "R$ 0,00";
+            document.getElementById("total-membros-dashboard").textContent = "0";
+            
+            localMembros = [];
+            localDizimos = [];
+            localOfertas = [];
+            localFinanceiro = [];
+        }
+
+
+        // ============================================
+        // RENDERIZAR TABELA DE MEMBROS
+        // ============================================
+        
+        const listaMembros = document.getElementById("lista-membros");
+        const filtroMembros = document.getElementById("filtro-membros");
+        
+        filtroMembros.addEventListener("input", (e) => {
+            const termo = e.target.value.toLowerCase();
+            const membrosFiltrados = localMembros.filter(m => m.nome.toLowerCase().includes(termo));
+            renderMembros(membrosFiltrados);
+        });
+
+        function renderMembros(membros) {
+            listaMembros.innerHTML = "";
+            
+            if (membros.length === 0) {
+                listaMembros.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum membro encontrado.</td></tr>';
+                return;
+            }
+            
+            membros.forEach(membro => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-gray-50 cursor-pointer";
+                tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <a href="#" class="text-blue-600 hover:text-blue-800 font-medium" data-id="${membro.id}">${membro.nome}</a>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.funcao || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.telefone || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.email || '-'}</td>
+            `;
+                tr.querySelector("a").addEventListener("click", (e) => {
+                    e.preventDefault();
+                    showMembroDetalhesModal(membro.id);
+                });
+                listaMembros.appendChild(tr);
+            });
+        }
+
+        // Popular Select de Membros
+        const dizimoMembroSelect = document.getElementById("dizimo-membro");
+        
+        function populateMembrosSelect(membros) {
+            dizimoMembroSelect.innerHTML = '<option value="">Selecione o Membro</option>';
+            
+            if (membros.length === 0) {
+                const option = document.createElement("option");
+                option.value = "";
+                option.textContent = "Nenhum membro cadastrado";
+                option.disabled = true;
+                dizimoMembroSelect.appendChild(option);
+                return;
+            }
+            
+            membros.forEach(membro => {
+                const option = document.createElement("option");
+                option.value = membro.id;
+                option.textContent = membro.nome;
+                dizimoMembroSelect.appendChild(option);
+            });
+        }
+
+        // ============================================
+        // RENDERIZAR TABELA FINANCEIRO (EXTRATO)
+        // ============================================
+        
+        const listaFinanceiro = document.getElementById("lista-financeiro");
+        const saldoTotalFinanceiro = document.getElementById("saldo-total-financeiro");
+
+        function renderFinanceiro(transacoes) {
+            listaFinanceiro.innerHTML = "";
+            let saldo = 0;
+
+            if (transacoes.length === 0) {
+                listaFinanceiro.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum lançamento no caixa.</td></tr>';
+                saldoTotalFinanceiro.textContent = "R$ 0,00";
+                saldoTotalFinanceiro.className = "text-2xl font-bold text-blue-700";
+                return;
+            }
+
+            transacoes.forEach(transacao => {
+                const valor = transacao.valor || 0;
+                saldo += valor;
+                const corValor = valor > 0 ? "text-green-600" : "text-red-600";
+                const sinal = valor > 0 ? "+" : "";
+
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-gray-50";
+                tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatarData(transacao.data)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${transacao.descricao || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${corValor}">
+                    ${sinal} R$ ${Math.abs(valor).toFixed(2).replace(".", ",")}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <button data-id="${transacao.id}" class="delete-btn text-red-500 hover:text-red-700 p-1" data-tipo="financeiro" title="Excluir">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </td>
+            `;
+                listaFinanceiro.appendChild(tr);
+            });
+
+            // Adiciona listeners aos botões de excluir
+            adicionarListenersExcluir();
+
+            // Atualiza saldo total
+            const corSaldo = saldo >= 0 ? "text-blue-700" : "text-red-700";
+            saldoTotalFinanceiro.className = `text-2xl font-bold ${corSaldo}`;
+            saldoTotalFinanceiro.textContent = `R$ ${saldo.toFixed(2).replace(".", ",")}`;
+
+            // Atualiza ícones Lucide
+            lucide.createIcons();
+        }
+
+        // ============================================
+        // FILTROS E RENDERIZAÇÃO DE DÍZIMOS E OFERTAS
+        // ============================================
+
+        const filtroDizimoMes = document.getElementById("filtro-dizimo-mes");
+        const filtroDizimoAno = document.getElementById("filtro-dizimo-ano");
+        const listaDizimos = document.getElementById("lista-dizimos");
+        const filtroOfertaMes = document.getElementById("filtro-oferta-mes");
+        const filtroOfertaAno = document.getElementById("filtro-oferta-ano");
+        const listaOfertas = document.getElementById("lista-ofertas");
+
+        const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        const hoje = new Date();
+        const mesAtual = hoje.getMonth();
+        const anoAtual = hoje.getFullYear();
+
+        function popularFiltros(selectMes, selectAno) {
+            // Meses
+            selectMes.innerHTML = "";
+            meses.forEach((mes, index) => {
+                const option = document.createElement("option");
+                option.value = index;
+                option.textContent = mes;
+                if (index === mesAtual) option.selected = true;
+                selectMes.appendChild(option);
+            });
+
+            // Anos (Ano atual + 2 anteriores)
+            selectAno.innerHTML = "";
+            for (let i = 0; i < 3; i++) {
+                const ano = anoAtual - i;
+                const option = document.createElement("option");
+                option.value = ano;
+                option.textContent = ano;
+                if (ano === anoAtual) option.selected = true;
+                selectAno.appendChild(option);
+            }
+        }
+
+        popularFiltros(filtroDizimoMes, filtroDizimoAno);
+        popularFiltros(filtroOfertaMes, filtroOfertaAno);
+
+        filtroDizimoMes.addEventListener("change", renderFiltroDizimos);
+        filtroDizimoAno.addEventListener("change", renderFiltroDizimos);
+        filtroOfertaMes.addEventListener("change", renderFiltroOfertas);
+        filtroOfertaAno.addEventListener("change", renderFiltroOfertas);
+
+        function renderFiltroDizimos() {
+            const mes = parseInt(filtroDizimoMes.value);
+            const ano = parseInt(filtroDizimoAno.value);
+
+            const dadosFiltrados = localDizimos.filter(d => {
+                const data = get2xl font-semibold">Relatório de Dízimos</h2>
                                 <div class="flex gap-4">
                                     <select id="filtro-dizimo-mes"
                                         class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
