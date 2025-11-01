@@ -232,6 +232,18 @@
                     </div>
                 </div>
 
+                <!-- Botão de Relatório -->
+                <div class="mt-8 bg-white p-6 rounded-lg shadow-lg text-center">
+                    <h3 class="text-xl font-semibold mb-4">Relatório Geral</h3>
+                    <p class="text-gray-600 mb-4">Gere um relatório completo de todas as finanças e membros para
+                        impressão.</p>
+                    <button id="gerar-relatorio-btn"
+                        class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
+                        <i data-lucide="printer" class="inline-block w-4 h-4 mr-2"></i>
+                        Gerar Relatório Completo
+                    </button>
+                </div>
+
                 <!-- Aviso de Carregamento -->
                 <p id="dashboard-loading" class="text-gray-500 mt-4">Calculando dados...</p>
             </div>
@@ -334,7 +346,7 @@
                     <!-- Coluna de Registro -->
                     <div class="lg:col-span-1">
                         <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <h2 class="text-2xl font-semibold mb-6">Registrar Dízimo</h2>
+                            <h2 class="text-2xl font-semibold mb-6">Registar Dízimo</h2>
                             <form id="form-dizimo">
                                 <div class="mb-4">
                                     <label for="dizimo-membro"
@@ -363,7 +375,7 @@
                                 <div class="mt-6">
                                     <button type="submit"
                                         class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
-                                        Registrar Dízimo
+                                        Registar Dízimo
                                     </button>
                                 </div>
                                 <p id="dizimo-success" class="text-green-600 mt-4"></p>
@@ -417,7 +429,7 @@
                     <!-- Coluna de Registro -->
                     <div class="lg:col-span-1">
                         <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <h2 class="text-2xl font-semibold mb-6">Registrar Oferta / Outra Entrada</h2>
+                            <h2 class="text-2xl font-semibold mb-6">Registar Oferta / Outra Entrada</h2>
                             <form id="form-oferta">
                                 <div class="mb-4">
                                     <label for="oferta-tipo"
@@ -455,7 +467,7 @@
                                 <div class="mt-6">
                                     <button type="submit"
                                         class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
-                                        Registrar Entrada
+                                        Registar Entrada
                                     </button>
                                 </div>
                                 <p id="oferta-success" class="text-green-600 mt-4"></p>
@@ -513,7 +525,7 @@
                     <!-- Coluna de Registro -->
                     <div class="lg:col-span-1">
                         <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <h2 class="text-2xl font-semibold mb-6">Registrar Saída (Caixa)</h2>
+                            <h2 class="text-2xl font-semibold mb-6">Registar Saída (Caixa)</h2>
                             <form id="form-financeiro">
                                 <div class="mb-4">
                                     <label for="fin-descricao"
@@ -539,7 +551,7 @@
                                 <div class="mt-6">
                                     <button type="submit"
                                         class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150">
-                                        Registrar Saída
+                                        Registar Saída
                                     </button>
                                 </div>
                                 <p id="financeiro-success" class="text-green-600 mt-4"></p>
@@ -618,6 +630,7 @@
             <span class="close-button" id="close-delete-modal">&times;</span>
             <h2 class="text-xl font-semibold mb-4 text-red-600">Confirmar Exclusão</h2>
             <p class="mb-4">Tem certeza que deseja excluir este lançamento? Esta ação é irreversível.</p>
+            <p class="mb-2" id="delete-cascade-warning" class="text-yellow-700 font-medium"></p>
             <p class="mb-4">Para confirmar, digite sua senha de login:</p>
             <form id="delete-confirm-form">
                 <label for="delete-password" class="block text-sm font-medium text-gray-700">Senha:</label>
@@ -682,7 +695,8 @@
             auth = getAuth(app);
             db = getFirestore(app);
             console.log("Firebase inicializado com sucesso.");
-        } catch (error) {
+        } catch (error)
+        {
             console.error("Erro ao inicializar o Firebase:", error);
             document.body.innerHTML = "<p>Erro crítico ao conectar ao banco de dados. Verifique a configuração do Firebase.</p>";
         }
@@ -693,7 +707,7 @@
         let localOfertas = [];
         let localFinanceiro = [];
         let unsubMembros, unsubDizimos, unsubOfertas, unsubFinanceiro;
-        let docIdParaExcluir = null;
+        let docFinanceiroParaExcluir = null; // Armazena o OBJETO financeiro
         let docIdMembroParaExcluir = null;
 
         // --- CONTROLE DE AUTENTICAÇÃO ---
@@ -819,6 +833,8 @@
                 if (targetTab === 'dashboard') {
                     updateDashboard();
                 }
+                // Atualiza ícones quando muda de aba
+                lucide.createIcons();
             });
         });
 
@@ -881,9 +897,9 @@
             }
 
             try {
-                // Salva na coleção de dízimos
+                // 1. Salva na coleção de dízimos
                 const dizimoColRef = collection(db, "users", userId, "dizimos");
-                await addDoc(dizimoColRef, {
+                const dizimoDocRef = await addDoc(dizimoColRef, {
                     membroId: membroId,
                     membroNome: membroNome,
                     valor: valor,
@@ -891,22 +907,24 @@
                     timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)) // Adiciona hora para evitar timezone
                 });
 
-                // Adiciona ao financeiro (Entrada)
+                // 2. Adiciona ao financeiro (Entrada) com ID de origem
                 const financeiroColRef = collection(db, "users", userId, "financeiro");
                 await addDoc(financeiroColRef, {
                     tipo: "entrada",
                     descricao: `Dízimo - ${membroNome}`,
                     valor: valor,
                     data: data,
-                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`))
+                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
+                    origemId: dizimoDocRef.id, // ID do dízimo original
+                    origemTipo: "dizimo"      // Tipo da origem
                 });
 
                 formDizimo.reset();
-                dizimoSuccess.textContent = "Dízimo registrado com sucesso!";
+                dizimoSuccess.textContent = "Dízimo registado com sucesso!";
                 setTimeout(() => dizimoSuccess.textContent = "", 3000);
             } catch (error) {
                 console.error("Erro ao salvar dízimo: ", error);
-                dizimoSuccess.textContent = "Erro ao registrar dízimo.";
+                dizimoSuccess.textContent = "Erro ao registar dízimo.";
                 setTimeout(() => dizimoSuccess.textContent = "", 3000);
             }
         });
@@ -932,9 +950,9 @@
             }
 
             try {
-                // Salva na coleção de ofertas
+                // 1. Salva na coleção de ofertas
                 const ofertaColRef = collection(db, "users", userId, "ofertas");
-                await addDoc(ofertaColRef, {
+                const ofertaDocRef = await addDoc(ofertaColRef, {
                     tipo: tipo,
                     descricao: descricao,
                     valor: valor,
@@ -942,22 +960,24 @@
                     timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`))
                 });
 
-                // Adiciona ao financeiro (Entrada)
+                // 2. Adiciona ao financeiro (Entrada) com ID de origem
                 const financeiroColRef = collection(db, "users", userId, "financeiro");
                 await addDoc(financeiroColRef, {
                     tipo: "entrada",
                     descricao: `${tipo} - ${descricao}`,
                     valor: valor,
                     data: data,
-                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`))
+                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
+                    origemId: ofertaDocRef.id, // ID da oferta original
+                    origemTipo: "oferta"      // Tipo da origem
                 });
 
                 formOferta.reset();
-                ofertaSuccess.textContent = "Entrada registrada com sucesso!";
+                ofertaSuccess.textContent = "Entrada registada com sucesso!";
                 setTimeout(() => ofertaSuccess.textContent = "", 3000);
             } catch (error) {
                 console.error("Erro ao salvar oferta: ", error);
-                ofertaSuccess.textContent = "Erro ao registrar entrada.";
+                ofertaSuccess.textContent = "Erro ao registar entrada.";
                 setTimeout(() => ofertaSuccess.textContent = "", 3000);
             }
         });
@@ -989,15 +1009,17 @@
                     descricao: descricao,
                     valor: valor * -1, // Salva saídas como valor negativo
                     data: data,
-                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`))
+                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
+                    origemId: null, // Saídas não têm origem em dízimo/oferta
+                    origemTipo: null
                 });
 
                 formFinanceiro.reset();
-                financeiroSuccess.textContent = "Saída registrada com sucesso!";
+                financeiroSuccess.textContent = "Saída registada com sucesso!";
                 setTimeout(() => financeiroSuccess.textContent = "", 3000);
             } catch (error) {
                 console.error("Erro ao salvar saída: ", error);
-                financeiroSuccess.textContent = "Erro ao registrar saída.";
+                financeiroSuccess.textContent = "Erro ao registar saída.";
                 setTimeout(() => financeiroSuccess.textContent = "", 3000);
             }
         });
@@ -1051,7 +1073,8 @@
                 const qFinanceiro = query(collection(db, "users", currentUserId, "financeiro"));
                 unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
                     localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    localFinanceiro.sort((a, b) => new Date(b.data) - new Date(a.data)); // Ordena por data
+                    // Ordena por data (Timestamp)
+                    localFinanceiro.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
                     renderFinanceiro(localFinanceiro);
                     updateDashboard();
                 }, (error) => console.error("Erro ao ouvir financeiro:", error.message));
@@ -1162,7 +1185,9 @@
             // Adiciona listeners aos botões de excluir
             document.querySelectorAll(".delete-fin-btn").forEach(button => {
                 button.addEventListener("click", (e) => {
-                    docIdParaExcluir = e.currentTarget.dataset.id;
+                    const docId = e.currentTarget.dataset.id;
+                    // Encontra o objeto financeiro completo para verificar a origem
+                    docFinanceiroParaExcluir = localFinanceiro.find(t => t.id === docId);
                     showDeleteModal();
                 });
             });
@@ -1227,16 +1252,16 @@
             const ano = parseInt(filtroDizimoAno.value);
 
             const dadosFiltrados = localDizimos.filter(d => {
-                const data = new Date(`${d.data}T12:00:00`); // Corrige fuso horário
+                const data = new Date(getDateFromInput(d.data));
                 return data.getMonth() === mes && data.getFullYear() === ano;
             });
 
             // Ordena por data
-            dadosFiltrados.sort((a, b) => new Date(a.data) - new Date(b.data));
+            dadosFiltrados.sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
 
             listaDizimos.innerHTML = "";
             if (dadosFiltrados.length === 0) {
-                listaDizimos.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registrado para este mês/ano.</td></tr>';
+                listaDizimos.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registado para este mês/ano.</td></tr>';
                 return;
             }
 
@@ -1256,16 +1281,16 @@
             const ano = parseInt(filtroOfertaAno.value);
 
             const dadosFiltrados = localOfertas.filter(o => {
-                const data = new Date(`${o.data}T12:00:00`); // Corrige fuso horário
+                const data = new Date(getDateFromInput(o.data));
                 return data.getMonth() === mes && data.getFullYear() === ano;
             });
 
             // Ordena por data
-            dadosFiltrados.sort((a, b) => new Date(a.data) - new Date(b.data));
+            dadosFiltrados.sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
 
             listaOfertas.innerHTML = "";
             if (dadosFiltrados.length === 0) {
-                listaOfertas.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhuma entrada registrada para este mês/ano.</td></tr>';
+                listaOfertas.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhuma entrada registada para este mês/ano.</td></tr>';
                 return;
             }
 
@@ -1302,14 +1327,15 @@
             totalMembrosDashboard.textContent = localMembros.length;
 
             // 3. Entradas e Saídas do Mês Atual
-            const mesAtual = new Date().getMonth();
-            const anoAtual = new Date().getFullYear();
+            const hoje = new Date();
+            const mesAtual = hoje.getMonth();
+            const anoAtual = hoje.getFullYear();
 
             let entradasMes = 0;
             let saidasMes = 0;
 
             localFinanceiro.forEach(t => {
-                const data = new Date(`${t.data}T12:00:00`);
+                const data = getDateFromInput(t.data); // Usa a função auxiliar
                 if (data.getMonth() === mesAtual && data.getFullYear() === anoAtual) {
                     if (t.tipo === 'entrada') {
                         entradasMes += t.valor;
@@ -1378,16 +1404,27 @@
         const deleteForm = document.getElementById("delete-confirm-form");
         const deletePasswordInput = document.getElementById("delete-password");
         const deleteErrorMessage = document.getElementById("delete-error-message");
+        const deleteCascadeWarning = document.getElementById("delete-cascade-warning");
+
 
         function showDeleteModal() {
             deletePasswordInput.value = "";
             deleteErrorMessage.textContent = "";
+
+            // Mostra aviso de exclusão em cascata
+            if (docFinanceiroParaExcluir && docFinanceiroParaExcluir.origemId) {
+                deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o registro de origem (Dízimo ou Oferta).";
+                deleteCascadeWarning.style.display = "block";
+            } else {
+                deleteCascadeWarning.style.display = "none";
+            }
+
             deleteModal.style.display = "block";
         }
 
         function hideDeleteModal() {
             deleteModal.style.display = "none";
-            docIdParaExcluir = null;
+            docFinanceiroParaExcluir = null;
         }
 
         closeDeleteModal.onclick = hideDeleteModal;
@@ -1396,7 +1433,7 @@
         // Processar exclusão com reautenticação
         deleteForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            if (!docIdParaExcluir || !userId) return;
+            if (!docFinanceiroParaExcluir || !userId) return;
 
             const password = deletePasswordInput.value;
             const user = auth.currentUser;
@@ -1412,10 +1449,33 @@
                 await reauthenticateWithCredential(user, credential);
 
                 // 2. Senha correta, prosseguir com a exclusão
-                const docRef = doc(db, "users", userId, "financeiro", docIdParaExcluir);
+                
+                // 2a. Excluir a origem (dízimo ou oferta) se houver
+                if (docFinanceiroParaExcluir.origemId && docFinanceiroParaExcluir.origemTipo) {
+                    let origemCollection;
+                    if (docFinanceiroParaExcluir.origemTipo === 'dizimo') {
+                        origemCollection = "dizimos";
+                    } else if (docFinanceiroParaExcluir.origemTipo === 'oferta') {
+                        origemCollection = "ofertas";
+                    }
+
+                    if (origemCollection) {
+                        try {
+                            const origemDocRef = doc(db, "users", userId, origemCollection, docFinanceiroParaExcluir.origemId);
+                            await deleteDoc(origemDocRef);
+                            console.log("Registro de origem excluído:", docFinanceiroParaExcluir.origemId);
+                        } catch (err) {
+                            console.warn("Não foi possível excluir o registro de origem:", err.message);
+                            // Continua mesmo se falhar (pode já ter sido excluído)
+                        }
+                    }
+                }
+
+                // 2b. Excluir o lançamento financeiro
+                const docRef = doc(db, "users", userId, "financeiro", docFinanceiroParaExcluir.id);
                 await deleteDoc(docRef);
 
-                console.log("Lançamento excluído com sucesso.");
+                console.log("Lançamento financeiro excluído com sucesso.");
                 hideDeleteModal();
 
             } catch (error) {
@@ -1441,12 +1501,218 @@
             renderMembros(membrosFiltrados);
         });
 
+        // Converte input de data (string ou timestamp) para um objeto Date
+        // Usado nos filtros e dashboard
+        function getDateFromInput(dataInput) {
+            if (!dataInput) return new Date(); // Retorna agora se for nulo
+            
+            // Se for Timestamp
+            if (typeof dataInput === 'object' && dataInput.seconds) {
+                return dataInput.toDate();
+            }
+            // Se for string YYYY-MM-DD
+            if (typeof dataInput === 'string') {
+                return new Date(`${dataInput}T12:00:00`); // Evita fuso
+            }
+            return dataInput; // Se já for Date
+        }
+
         // Formatar Data (DD/MM/AAAA)
-        function formatarData(dataString) {
-            if (!dataString) return '';
-            const [ano, mes, dia] = dataString.split('-');
+        function formatarData(dataInput) {
+            if (!dataInput) return '';
+
+            let data;
+            // Verifica se é um objeto Timestamp do Firebase
+            if (typeof dataInput === 'object' && dataInput.seconds) {
+                data = dataInput.toDate();
+            }
+            // Verifica se é uma string (ex: YYYY-MM-DD)
+            else if (typeof dataInput === 'string') {
+                // Adiciona T12:00:00 para evitar problemas de fuso horário
+                // que podem mudar a data para o dia anterior.
+                data = new Date(`${dataInput}T12:00:00`);
+            }
+            // Verifica se é um objeto Date nativo
+            else if (dataInput instanceof Date) {
+                data = dataInput;
+            }
+            // Se não for um formato reconhecido, retorna vazio
+            else {
+                console.warn("Formato de data desconhecido:", dataInput);
+                return '';
+            }
+
+            // Agora que 'data' é um objeto Date, podemos formatá-lo com segurança.
+            // Usamos getUTCDate() para consistência, já que tratamos como T12:00:00
+            const dia = String(data.getUTCDate()).padStart(2, '0');
+            const mes = String(data.getUTCMonth() + 1).padStart(2, '0'); // Mês é 0-indexado
+            const ano = data.getUTCFullYear();
+
+            // Verifica se a data é válida
+            if (isNaN(dia) || isNaN(mes) || isNaN(ano)) return '';
+
             return `${dia}/${mes}/${ano}`;
         }
+
+        // --- GERAÇÃO DE RELATÓRIO ---
+
+        const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
+        gerarRelatorioBtn.addEventListener("click", gerarRelatorioCompleto);
+
+        function gerarRelatorioCompleto() {
+            // 1. Calcular dados atuais
+            const saldo = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
+            const totalMembros = localMembros.length;
+            const dataGeracao = new Date().toLocaleString("pt-BR", { dateStyle: 'long', timeStyle: 'short' });
+
+            // Ordenar dados para o relatório
+            const dizimosOrdenados = [...localDizimos].sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+            const ofertasOrdenadas = [...localOfertas].sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+            // Financeiro já está ordenado (mais novo primeiro), vamos inverter (mais antigo primeiro)
+            const financeiroOrdenado = [...localFinanceiro].reverse();
+
+            // 2. Criar HTML do Relatório
+            let htmlRelatorio = `
+                <html>
+                <head>
+                    <title>Relatório Completo da Igreja</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+                        h1 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; }
+                        h2 { color: #007bff; border-bottom: 1px solid #ccc; padding-bottom: 3px; margin-top: 30px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+                        th { background-color: #f2f2f2; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        .resumo { background-color: #e6f7ff; border: 1px solid #b3e0ff; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+                        .resumo p { margin: 5px 0; font-size: 16px; }
+                        .resumo strong { color: #0056b3; }
+                        .print-btn {
+                            display: block; width: 100px; margin: 20px auto; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;
+                        }
+                        .entrada { color: green; }
+                        .saida { color: red; }
+                        .valor { text-align: right; }
+
+                        @media print {
+                            .print-btn { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <button class="print-btn" onclick="window.print()">Imprimir</button>
+                    
+                    <h1>Relatório Completo da Igreja</h1>
+                    <p>Gerado em: ${dataGeracao}</p>
+
+                    <div class="resumo">
+                        <p><strong>Saldo Atual (Caixa):</strong> R$ ${saldo.toFixed(2).replace(".", ",")}</p>
+                        <p><strong>Total de Membros:</strong> ${totalMembros}</p>
+                    </div>
+
+                    <!-- Tabela de Membros -->
+                    <h2>Lista de Membros (${localMembros.length})</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Função</th>
+                                <th>Telefone</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${localMembros.map(m => `
+                                <tr>
+                                    <td>${m.nome}</td>
+                                    <td>${m.funcao || ''}</td>
+                                    <td>${m.telefone || ''}</td>
+                                    <td>${m.email || ''}</td>
+                                </tr>
+                            `).join('')}
+                            ${localMembros.length === 0 ? '<tr><td colspan="4">Nenhum membro cadastrado.</td></tr>' : ''}
+                        </tbody>
+                    </table>
+
+                    <!-- Tabela de Dízimos -->
+                    <h2>Registros de Dízimos (${dizimosOrdenados.length})</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Membro</th>
+                                <th class="valor">Valor (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${dizimosOrdenados.map(d => `
+                                <tr>
+                                    <td>${formatarData(d.data)}</td>
+                                    <td>${d.membroNome}</td>
+                                    <td class="entrada valor">R$ ${d.valor.toFixed(2).replace(".", ",")}</td>
+                                </tr>
+                            `).join('')}
+                            ${dizimosOrdenados.length === 0 ? '<tr><td colspan="3">Nenhum dízimo registrado.</td></tr>' : ''}
+                        </tbody>
+                    </table>
+
+                    <!-- Tabela de Ofertas -->
+                    <h2>Registros de Ofertas e Outras Entradas (${ofertasOrdenadas.length})</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                                <th class="valor">Valor (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${ofertasOrdenadas.map(o => `
+                                <tr>
+                                    <td>${formatarData(o.data)}</td>
+                                    <td>${o.tipo}</td>
+                                    <td>${o.descricao}</td>
+                                    <td class="entrada valor">R$ ${o.valor.toFixed(2).replace(".", ",")}</td>
+                                </tr>
+                            `).join('')}
+                            ${ofertasOrdenadas.length === 0 ? '<tr><td colspan="4">Nenhuma oferta registrada.</td></tr>' : ''}
+                        </tbody>
+                    </table>
+
+                    <!-- Tabela Financeiro -->
+                    <h2>Extrato Financeiro Completo (${financeiroOrdenado.length})</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th class="valor">Valor (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${financeiroOrdenado.map(f => `
+                                <tr class="${f.tipo === 'entrada' ? 'entrada' : 'saida'}">
+                                    <td>${formatarData(f.data)}</td>
+                                    <td>${f.descricao}</td>
+                                    <td class="valor">${f.tipo === 'entrada' ? '+' : ''} R$ ${f.valor.toFixed(2).replace(".", ",")}</td>
+                                img
+                            `).join('')}
+                            ${financeiroOrdenado.length === 0 ? '<tr><td colspan="3">Nenhum lançamento financeiro.</td></tr>' : ''}
+                        </tbody>
+                    </table>
+
+                    <button class="print-btn" onclick="window.print()">Imprimir</button>
+                </body>
+                </html>
+            `;
+
+            // 3. Abrir nova janela
+            const relatorioWindow = window.open("", "_blank");
+            relatorioWindow.document.write(htmlRelatorio);
+            relatorioWindow.document.close();
+        }
+
 
         // Fechar Modais clicando fora
         window.onclick = function (event) {
