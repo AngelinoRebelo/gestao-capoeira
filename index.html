@@ -9,123 +9,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        /* Estilo para abas ativas e inativas */
-        .tab-button.active {
-            border-bottom-color: #3b82f6;
-            color: #3b82f6;
-            font-weight: 600;
-        }
-
-        .tab-button {
-            border-bottom-width: 3px;
-            border-bottom-color: transparent;
-        }
-
-        /* Ocultar abas por padrão */
-        .tab-content {
-            display: none;
-        }
-
-        /* Mostrar aba ativa */
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Estilo para modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
-            padding-top: 60px;
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 8px;
-        }
-
-        .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .close-button:hover,
-        .close-button:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        /* Spinner de carregamento */
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 8px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Toast de notificação */
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            min-width: 300px;
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .toast-success {
-            background-color: #10b981;
-            color: white;
-        }
-
-        .toast-error {
-            background-color: #ef4444;
-            color: white;
-        }
-
-        .toast-warning {
-            background-color: #f59e0b;
-            color: white;
-        }
-    </style>
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="bg-gray-100 font-sans antialiased text-gray-800">
@@ -160,7 +45,7 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <button type="submit" id="login-submit-btn"
-                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150">
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 flex items-center justify-center disabled:opacity-50">
                         Entrar
                     </button>
                     <p id="login-error" class="text-red-500 text-sm mt-4 text-center"></p>
@@ -184,7 +69,7 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                     </div>
                     <button type="submit" id="register-submit-btn"
-                        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150">
+                        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150 flex items-center justify-center disabled:opacity-50">
                         Cadastrar
                     </button>
                     <p id="register-error" class="text-red-500 text-sm mt-4 text-center"></p>
@@ -351,7 +236,7 @@
 
                         <div class="mt-8 flex justify-end">
                             <button type="submit" id="membro-submit-btn"
-                                class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
+                                class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center disabled:opacity-50">
                                 Salvar Membro
                             </button>
                         </div>
@@ -430,8 +315,102 @@
                                 </div>
                                 <div class="mt-6">
                                     <button type="submit" id="dizimo-submit-btn"
-                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
+                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center disabled:opacity-50">
                                         Registar Dízimo
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Coluna de Relatório -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white p-6 rounded-lg shadow-lg">
+                            <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                                <h2 class="text-2xl font-semibold">Relatório de Dízimos</h2>
+                                <div class="flex gap-4">
+                                    <select id="filtro-dizimo-mes"
+                                        class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <!-- Opções de mês -->
+                                    </select>
+                                    <select id="filtro-dizimo-ano"
+                                        class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <!-- Opções de ano -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Data</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Membro</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Valor (R$)</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lista-dizimos" class="bg-white divide-y divide-gray-200">
+                                        <!-- Linhas de dízimos serão inseridas aqui -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- (ABA) Ofertas e Outras -->
+            <div id="ofertas" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Coluna de Registro -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white p-6 rounded-lg shadow-lg">
+                            <h2 class="text-2xl font-semibold mb-6">Registar Oferta / Outra Entrada</h2>
+                            <form id="form-oferta">
+                                <div class="mb-4">
+                                    <label for="oferta-tipo"
+                                        class="block text-sm font-medium text-gray-700">Tipo</label>
+                                    <select id="oferta-tipo"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        required>
+                                        <option value="Oferta">Oferta</option>
+                                        <option value="Oferta Alçada">Oferta Alçada</option>
+                                        <option value="Venda Evento">Venda Evento</option>
+                                        <option value="Outro">Outro</option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="oferta-descricao"
+                                        class="block text-sm font-medium text-gray-700">Descrição Breve</label>
+                                    <input type="text" id="oferta-descricao"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Ex: Oferta do culto de domingo" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="oferta-valor"
+                                        class="block text-sm font-medium text-gray-700">Valor (R$)</label>
+                                    <input type="number" id="oferta-valor" step="0.01" min="0.01"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="oferta-data"
+                                        class="block text-sm font-medium text-gray-700">Data</label>
+                                    <input type="date" id="oferta-data"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        required>
+                                </div>
+                                <div class="mt-6">
+                                    <button type="submit" id="oferta-submit-btn"
+                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center disabled:opacity-50">
+                                        Registar Entrada
                                     </button>
                                 </div>
                             </form>
@@ -516,7 +495,7 @@
                                 </div>
                                 <div class="mt-6">
                                     <button type="submit" id="financeiro-submit-btn"
-                                        class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150">
+                                        class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150 flex items-center justify-center disabled:opacity-50">
                                         Registar Saída
                                     </button>
                                 </div>
@@ -652,7 +631,7 @@
                         Cancelar
                     </button>
                     <button type="submit" id="edit-membro-submit-btn"
-                        class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
+                        class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center disabled:opacity-50">
                         Salvar Alterações
                     </button>
                 </div>
@@ -681,7 +660,7 @@
                         Cancelar
                     </button>
                     <button type="submit" id="delete-submit-btn"
-                        class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150">
+                        class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 flex items-center justify-center disabled:opacity-50">
                         Excluir Permanentemente
                     </button>
                 </div>
@@ -690,1132 +669,12 @@
     </div>
 
 
-    <!-- Firebase -->
-    <script type="module">
-        // Importações do Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import {
-            getAuth,
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword,
-            signOut,
-            onAuthStateChanged,
-            EmailAuthProvider,
-            reauthenticateWithCredential
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import {
-            getFirestore,
-            setDoc,
-            doc,
-            addDoc,
-            collection,
-            onSnapshot,
-            query,
-            deleteDoc,
-            Timestamp,
-            getDocs,
-            where,
-            writeBatch,
-            updateDoc
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- ============================================ -->
+    <!-- SCRIPT PRINCIPAL DA APLICAÇÃO -->
+    <!-- ============================================ -->
+    <script type="module" src="gestao-igje.js"></script>
+    
+</body>
+
+</html>
 
-        // ============================================
-        // SISTEMA DE NOTIFICAÇÕES (TOAST)
-        // ============================================
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <span>${message}</span>
-                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            `;
-            container.appendChild(toast);
-            lucide.createIcons();
-            
-            // Remove automaticamente após 5 segundos
-            setTimeout(() => {
-                if (toast.parentElement) {
-                    toast.remove();
-                }
-            }, 5000);
-        }
-
-        // ============================================
-        // SISTEMA DE LOADING NOS BOTÕES
-        // ============================================
-        function setButtonLoading(buttonId, isLoading) {
-            const button = document.getElementById(buttonId);
-            if (!button) return;
-            
-            if (isLoading) {
-                button.disabled = true;
-                button.innerHTML = '<span class="spinner"></span> Processando...';
-            } else {
-                button.disabled = false;
-                // Restaura o texto original do botão
-                const originalTexts = {
-                    'login-submit-btn': 'Entrar',
-                    'register-submit-btn': 'Cadastrar',
-                    'membro-submit-btn': 'Salvar Membro',
-                    'dizimo-submit-btn': 'Registar Dízimo',
-                    'oferta-submit-btn': 'Registar Entrada',
-                    'financeiro-submit-btn': 'Registar Saída',
-                    'edit-membro-submit-btn': 'Salvar Alterações',
-                    'delete-submit-btn': 'Excluir Permanentemente'
-                };
-                button.innerHTML = originalTexts[buttonId] || 'Submeter';
-            }
-        }
-
-        // ============================================
-        // CONFIGURAÇÃO E INICIALIZAÇÃO DO FIREBASE
-        // ============================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyA59Apn8I_8uT7XBrMIS_zD1RdtHgJCzOA",
-            authDomain: "gestao-capoeira.firebaseapp.com",
-            projectId: "gestao-capoeira",
-            storageBucket: "gestao-capoeira.firebasestorage.app",
-            messagingSenderId: "907559288919",
-            appId: "1:907559288919:web:a4afdb4ed23e9d11196312"
-        };
-
-        // Inicialização do Firebase com tratamento de erro
-        let app, auth, db, userId;
-        try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            console.log("✅ Firebase inicializado com sucesso.");
-        } catch (error) {
-            console.error("❌ Erro ao inicializar o Firebase:", error);
-            document.body.innerHTML = `
-                <div class="min-h-screen flex items-center justify-center bg-red-50">
-                    <div class="bg-white p-8 rounded-lg shadow-lg max-w-md">
-                        <h2 class="text-2xl font-bold text-red-600 mb-4">Erro Crítico</h2>
-                        <p class="text-gray-700 mb-4">Não foi possível conectar ao banco de dados.</p>
-                        <p class="text-sm text-gray-600">Por favor, verifique sua conexão com a internet e recarregue a página.</p>
-                        <button onclick="location.reload()" class="mt-4 bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">
-                            Recarregar Página
-                        </button>
-                    </div>
-                </div>
-            `;
-            throw error; // Para o script
-        }
-
-        // Variáveis de estado global
-        let localMembros = [];
-        let localDizimos = [];
-        let localOfertas = [];
-        let localFinanceiro = [];
-        let unsubMembros, unsubDizimos, unsubOfertas, unsubFinanceiro;
-
-        // Objeto para guardar os dados da exclusão
-        let itemParaExcluir = {
-            id: null,
-            tipo: null // 'financeiro', 'dizimo', 'oferta', 'membro'
-        };
-
-        // ID do membro a ser editado
-        let membroParaEditarId = null;
-
-        // ============================================
-        // CONTROLE DE AUTENTICAÇÃO
-        // ============================================
-
-        const authScreen = document.getElementById("auth-screen");
-        const appContent = document.getElementById("app-content");
-        const loginForm = document.getElementById("login-form");
-        const registerForm = document.getElementById("register-form");
-        const loginError = document.getElementById("login-error");
-        const registerError = document.getElementById("register-error");
-        const userEmailDisplay = document.getElementById("user-email-display");
-        const logoutButton = document.getElementById("logout-button");
-
-        const loginTabButton = document.getElementById("login-tab-button");
-        const registerTabButton = document.getElementById("register-tab-button");
-        const loginTab = document.getElementById("login-tab");
-        const registerTab = document.getElementById("register-tab");
-
-        // Abas de Autenticação
-        loginTabButton.addEventListener("click", () => {
-            loginTabButton.classList.add("active");
-            registerTabButton.classList.remove("active");
-            loginTab.classList.add("active");
-            registerTab.classList.remove("active");
-            loginError.textContent = "";
-            registerError.textContent = "";
-        });
-
-        registerTabButton.addEventListener("click", () => {
-            registerTabButton.classList.add("active");
-            loginTabButton.classList.remove("active");
-            registerTab.classList.add("active");
-            loginTab.classList.remove("active");
-            loginError.textContent = "";
-            registerError.textContent = "";
-        });
-
-        // Processar Cadastro com tratamento de erro melhorado
-        registerForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            registerError.textContent = "";
-            
-            const email = document.getElementById("register-email").value.trim();
-            const password = document.getElementById("register-password").value;
-
-            // Validações básicas
-            if (!email || !password) {
-                registerError.textContent = "Por favor, preencha todos os campos.";
-                return;
-            }
-
-            if (password.length < 6) {
-                registerError.textContent = "A senha deve ter no mínimo 6 caracteres.";
-                return;
-            }
-
-            setButtonLoading('register-submit-btn', true);
-
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                showToast('Conta criada com sucesso!', 'success');
-                // O onAuthStateChanged vai tratar de mostrar o app
-            } catch (error) {
-                console.error("❌ Erro no cadastro:", error.code, error.message);
-                
-                // Mensagens de erro específicas
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        registerError.textContent = "Este email já está cadastrado. Tente fazer login.";
-                        break;
-                    case 'auth/invalid-email':
-                        registerError.textContent = "Email inválido. Verifique o formato do email.";
-                        break;
-                    case 'auth/weak-password':
-                        registerError.textContent = "Senha fraca. A senha deve ter no mínimo 6 caracteres.";
-                        break;
-                    case 'auth/network-request-failed':
-                        registerError.textContent = "Erro de conexão. Verifique sua internet e tente novamente.";
-                        break;
-                    default:
-                        registerError.textContent = "Erro ao cadastrar. Tente novamente mais tarde.";
-                }
-                showToast('Erro ao criar conta', 'error');
-            } finally {
-                setButtonLoading('register-submit-btn', false);
-            }
-        });
-
-        // Processar Login com tratamento de erro melhorado
-        loginForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            loginError.textContent = "";
-            
-            const email = document.getElementById("login-email").value.trim();
-            const password = document.getElementById("login-password").value;
-
-            if (!email || !password) {
-                loginError.textContent = "Por favor, preencha todos os campos.";
-                return;
-            }
-
-            setButtonLoading('login-submit-btn', true);
-
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                showToast('Login realizado com sucesso!', 'success');
-                // O onAuthStateChanged vai tratar de mostrar o app
-            } catch (error) {
-                console.error("❌ Erro no login:", error.code, error.message);
-                
-                // Mensagens de erro específicas
-                switch (error.code) {
-                    case 'auth/user-not-found':
-                    case 'auth/wrong-password':
-                    case 'auth/invalid-credential':
-                        loginError.textContent = "Email ou senha inválidos.";
-                        break;
-                    case 'auth/invalid-email':
-                        loginError.textContent = "Email inválido. Verifique o formato do email.";
-                        break;
-                    case 'auth/user-disabled':
-                        loginError.textContent = "Esta conta foi desativada. Entre em contato com o suporte.";
-                        break;
-                    case 'auth/network-request-failed':
-                        loginError.textContent = "Erro de conexão. Verifique sua internet e tente novamente.";
-                        break;
-                    default:
-                        loginError.textContent = "Erro ao fazer login. Tente novamente mais tarde.";
-                }
-                showToast('Erro ao fazer login', 'error');
-            } finally {
-                setButtonLoading('login-submit-btn', false);
-            }
-        });
-
-        // Processar Logout
-        logoutButton.addEventListener("click", async () => {
-            try {
-                await signOut(auth);
-                showToast('Logout realizado com sucesso', 'success');
-                // O onAuthStateChanged vai tratar de esconder o app
-            } catch (error) {
-                console.error("❌ Erro ao sair:", error);
-                showToast('Erro ao sair. Tente novamente.', 'error');
-            }
-        });
-
-        // Observador do estado de autenticação (principal)
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Usuário está logado
-                userId = user.uid;
-                userEmailDisplay.textContent = user.email;
-                authScreen.style.display = "none";
-                appContent.style.display = "block";
-                loadAllData(userId); // Carrega os dados do usuário
-                console.log("✅ Usuário autenticado:", user.email);
-            } else {
-                // Usuário está deslogado
-                userId = null;
-                authScreen.style.display = "flex";
-                appContent.style.display = "none";
-                clearAllTables(); // Limpa dados da tela
-                stopAllListeners(); // Para de ouvir dados
-                console.log("ℹ️ Usuário deslogado");
-            }
-        });
-
-        // ============================================
-        // FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO
-        // ============================================
-        
-        async function reauthenticate(password) {
-            const user = auth.currentUser;
-            
-            if (!user) {
-                throw new Error("Usuário não está logado.");
-            }
-            
-            if (!user.email) {
-                throw new Error("Usuário não tem email associado.");
-            }
-
-            if (!password) {
-                throw new Error("Senha é obrigatória.");
-            }
-
-            try {
-                const credential = EmailAuthProvider.credential(user.email, password);
-                await reauthenticateWithCredential(user, credential);
-                return true; // Reautenticação bem-sucedida
-            } catch (error) {
-                console.error("❌ Erro ao reautenticar:", error.code);
-                
-                switch (error.code) {
-                    case 'auth/wrong-password':
-                    case 'auth/invalid-credential':
-                        throw new Error("Senha incorreta.");
-                    case 'auth/network-request-failed':
-                        throw new Error("Erro de conexão. Verifique sua internet.");
-                    case 'auth/too-many-requests':
-                        throw new Error("Muitas tentativas. Tente novamente mais tarde.");
-                    default:
-                        throw new Error("Erro de autenticação. Tente novamente.");
-                }
-            }
-        }
-
-
-        // ============================================
-        // CONTROLE DE NAVEGAÇÃO POR ABAS (APP)
-        // ============================================
-
-        const tabButtons = document.querySelectorAll(".tab-button:not(#login-tab-button):not(#register-tab-button)");
-        const tabContents = document.querySelectorAll(".tab-content:not(#login-tab):not(#register-tab)");
-
-        tabButtons.forEach(button => {
-            button.addEventListener("click", () => {
-                const targetTab = button.dataset.tab;
-
-                // Desativa todos
-                tabButtons.forEach(btn => btn.classList.remove("active"));
-                tabContents.forEach(content => content.classList.remove("active"));
-
-                // Ativa o clicado
-                button.classList.add("active");
-                document.getElementById(targetTab).classList.add("active");
-
-                // Atualiza dados se a aba for o dashboard
-                if (targetTab === 'dashboard') {
-                    updateDashboard();
-                }
-                // Atualiza ícones quando muda de aba
-                lucide.createIcons();
-            });
-        });
-
-        // ============================================
-        // FORMULÁRIO DE MEMBROS (CADASTRO)
-        // ============================================
-
-        const formMembro = document.getElementById("form-membro");
-
-        formMembro.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            
-            if (!userId) {
-                showToast('Você precisa estar logado para cadastrar membros', 'error');
-                return;
-            }
-
-            const nome = document.getElementById("nome").value.trim();
-            const email = document.getElementById("email").value.trim();
-            const telefone = document.getElementById("telefone").value.trim();
-            const dataNascimento = document.getElementById("data-nascimento").value;
-            const funcao = document.getElementById("funcao").value.trim();
-            const endereco = document.getElementById("endereco").value.trim();
-
-            // Validação básica
-            if (!nome) {
-                showToast('O nome é obrigatório', 'error');
-                return;
-            }
-
-            setButtonLoading('membro-submit-btn', true);
-
-            try {
-                const docRef = collection(db, "users", userId, "membros");
-                await addDoc(docRef, {
-                    nome: nome,
-                    email: email,
-                    telefone: telefone,
-                    dataNascimento: dataNascimento,
-                    funcao: funcao,
-                    endereco: endereco,
-                    criadoEm: Timestamp.now()
-                });
-
-                formMembro.reset();
-                showToast('Membro cadastrado com sucesso!', 'success');
-            } catch (error) {
-                console.error("❌ Erro ao salvar membro:", error);
-                
-                if (error.code === 'permission-denied') {
-                    showToast('Você não tem permissão para realizar esta operação', 'error');
-                } else if (error.code === 'unavailable') {
-                    showToast('Serviço temporariamente indisponível. Tente novamente.', 'error');
-                } else {
-                    showToast('Erro ao salvar membro. Tente novamente.', 'error');
-                }
-            } finally {
-                setButtonLoading('membro-submit-btn', false);
-            }
-        });
-        
-        // ============================================
-        // FORMULÁRIO DE MEMBROS (EDIÇÃO)
-        // ============================================
-        
-        const formEditMembro = document.getElementById("form-edit-membro");
-        const editMembroError = document.getElementById("edit-membro-error");
-        
-        formEditMembro.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            
-            if (!userId || !membroParaEditarId) {
-                showToast('Erro ao identificar o membro para edição', 'error');
-                return;
-            }
-            
-            const password = document.getElementById("edit-membro-password").value;
-            editMembroError.textContent = "";
-
-            if (!password) {
-                editMembroError.textContent = "A senha é obrigatória para salvar.";
-                return;
-            }
-
-            setButtonLoading('edit-membro-submit-btn', true);
-
-            // 1. Reautenticar
-            try {
-                await reauthenticate(password);
-            } catch (error) {
-                console.error("❌", error);
-                editMembroError.textContent = error.message;
-                setButtonLoading('edit-membro-submit-btn', false);
-                return;
-            }
-            
-            // 2. Coletar dados do formulário
-            const dadosAtualizados = {
-                nome: document.getElementById("edit-nome").value.trim(),
-                email: document.getElementById("edit-email").value.trim(),
-                telefone: document.getElementById("edit-telefone").value.trim(),
-                dataNascimento: document.getElementById("edit-data-nascimento").value,
-                funcao: document.getElementById("edit-funcao").value.trim(),
-                endereco: document.getElementById("edit-endereco").value.trim(),
-                atualizadoEm: Timestamp.now()
-            };
-
-            // Validação
-            if (!dadosAtualizados.nome) {
-                editMembroError.textContent = "O nome é obrigatório.";
-                setButtonLoading('edit-membro-submit-btn', false);
-                return;
-            }
-            
-            // 3. Atualizar no Firebase
-            try {
-                const docRef = doc(db, "users", userId, "membros", membroParaEditarId);
-                await updateDoc(docRef, dadosAtualizados);
-                
-                // Sucesso
-                doCloseMembroEditModal();
-                showToast('Membro atualizado com sucesso!', 'success');
-            
-            } catch (error) {
-                console.error("❌ Erro ao atualizar membro:", error);
-                
-                if (error.code === 'not-found') {
-                    editMembroError.textContent = "Membro não encontrado.";
-                } else if (error.code === 'permission-denied') {
-                    editMembroError.textContent = "Você não tem permissão para esta operação.";
-                } else {
-                    editMembroError.textContent = "Erro ao salvar os dados. Tente novamente.";
-                }
-            } finally {
-                setButtonLoading('edit-membro-submit-btn', false);
-            }
-        });
-
-
-        // ============================================
-        // FORMULÁRIO DE DÍZIMOS
-        // ============================================
-
-        const formDizimo = document.getElementById("form-dizimo");
-
-        formDizimo.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            
-            if (!userId) {
-                showToast('Você precisa estar logado', 'error');
-                return;
-            }
-
-            const membroSelect = document.getElementById("dizimo-membro");
-            const membroId = membroSelect.value;
-            const membroNome = membroSelect.options[membroSelect.selectedIndex].text;
-            const valorInput = document.getElementById("dizimo-valor").value;
-            const valor = parseFloat(valorInput);
-            const data = document.getElementById("dizimo-data").value;
-
-            // Validações
-            if (!membroId) {
-                showToast('Selecione um membro', 'error');
-                return;
-            }
-
-            if (!valorInput || isNaN(valor) || valor <= 0) {
-                showToast('Digite um valor válido maior que zero', 'error');
-                return;
-            }
-
-            if (!data) {
-                showToast('Selecione uma data', 'error');
-                return;
-            }
-
-            setButtonLoading('dizimo-submit-btn', true);
-
-            try {
-                // Usar um "batch" para garantir que as duas operações ocorram
-                const batch = writeBatch(db);
-
-                // 1. Cria o documento de dízimo
-                const dizimoDocRef = doc(collection(db, "users", userId, "dizimos"));
-                batch.set(dizimoDocRef, {
-                    membroId: membroId,
-                    membroNome: membroNome,
-                    valor: valor,
-                    data: data,
-                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-                    financeiroId: null,
-                    criadoEm: Timestamp.now()
-                });
-
-                // 2. Cria o documento financeiro
-                const financeiroDocRef = doc(collection(db, "users", userId, "financeiro"));
-                batch.set(financeiroDocRef, {
-                    tipo: "entrada",
-                    descricao: `Dízimo - ${membroNome}`,
-                    valor: valor,
-                    data: data,
-                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-                    origemId: dizimoDocRef.id,
-                    origemTipo: "dizimo",
-                    criadoEm: Timestamp.now()
-                });
-
-                // 3. Atualiza o dízimo com o ID do financeiro
-                batch.update(dizimoDocRef, { financeiroId: financeiroDocRef.id });
-
-                // 4. Executa o batch
-                await batch.commit();
-
-                formDizimo.reset();
-                showToast('Dízimo registrado com sucesso!', 'success');
-            } catch (error) {
-                console.error("❌ Erro ao salvar dízimo:", error);
-                
-                if (error.code === 'permission-denied') {
-                    showToast('Você não tem permissão para realizar esta operação', 'error');
-                } else {
-                    showToast('Erro ao registrar dízimo. Tente novamente.', 'error');
-                }
-            } finally {
-                setButtonLoading('dizimo-submit-btn', false);
-            }
-        });
-
-        // ============================================
-        // FORMULÁRIO DE OFERTAS / OUTRAS ENTRADAS
-        // ============================================
-
-        const formOferta = document.getElementById("form-oferta");
-
-        formOferta.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            
-            if (!userId) {
-                showToast('Você precisa estar logado', 'error');
-                return;
-            }
-
-            const tipo = document.getElementById("oferta-tipo").value;
-            const descricao = document.getElementById("oferta-descricao").value.trim();
-            const valorInput = document.getElementById("oferta-valor").value;
-            const valor = parseFloat(valorInput);
-            const data = document.getElementById("oferta-data").value;
-
-            // Validações
-            if (!descricao) {
-                showToast('Digite uma descrição', 'error');
-                return;
-            }
-
-            if (!valorInput || isNaN(valor) || valor <= 0) {
-                showToast('Digite um valor válido maior que zero', 'error');
-                return;
-            }
-
-            if (!data) {
-                showToast('Selecione uma data', 'error');
-                return;
-            }
-
-            setButtonLoading('oferta-submit-btn', true);
-
-            try {
-                // Usar um "batch"
-                const batch = writeBatch(db);
-
-                // 1. Cria o documento de oferta
-                const ofertaDocRef = doc(collection(db, "users", userId, "ofertas"));
-                batch.set(ofertaDocRef, {
-                    tipo: tipo,
-                    descricao: descricao,
-                    valor: valor,
-                    data: data,
-                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-                    financeiroId: null,
-                    criadoEm: Timestamp.now()
-                });
-
-                // 2. Cria o documento financeiro
-                const financeiroDocRef = doc(collection(db, "users", userId, "financeiro"));
-                batch.set(financeiroDocRef, {
-                    tipo: "entrada",
-                    descricao: `${tipo} - ${descricao}`,
-                    valor: valor,
-                    data: data,
-                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-                    origemId: ofertaDocRef.id,
-                    origemTipo: "oferta",
-                    criadoEm: Timestamp.now()
-                });
-
-                // 3. Atualiza a oferta com o ID do financeiro
-                batch.update(ofertaDocRef, { financeiroId: financeiroDocRef.id });
-
-                // 4. Executa
-                await batch.commit();
-
-                formOferta.reset();
-                showToast('Entrada registrada com sucesso!', 'success');
-            } catch (error) {
-                console.error("❌ Erro ao salvar oferta:", error);
-                
-                if (error.code === 'permission-denied') {
-                    showToast('Você não tem permissão para realizar esta operação', 'error');
-                } else {
-                    showToast('Erro ao registrar entrada. Tente novamente.', 'error');
-                }
-            } finally {
-                setButtonLoading('oferta-submit-btn', false);
-            }
-        });
-
-
-        // ============================================
-        // FORMULÁRIO FINANCEIRO (SAÍDAS)
-        // ============================================
-
-        const formFinanceiro = document.getElementById("form-financeiro");
-
-        formFinanceiro.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            
-            if (!userId) {
-                showToast('Você precisa estar logado', 'error');
-                return;
-            }
-
-            const descricao = document.getElementById("fin-descricao").value.trim();
-            const valorInput = document.getElementById("fin-valor").value;
-            const valor = parseFloat(valorInput);
-            const data = document.getElementById("fin-data").value;
-
-            // Validações
-            if (!descricao) {
-                showToast('Digite uma descrição', 'error');
-                return;
-            }
-
-            if (!valorInput || isNaN(valor) || valor <= 0) {
-                showToast('Digite um valor válido maior que zero', 'error');
-                return;
-            }
-
-            if (!data) {
-                showToast('Selecione uma data', 'error');
-                return;
-            }
-
-            setButtonLoading('financeiro-submit-btn', true);
-
-            try {
-                const colRef = collection(db, "users", userId, "financeiro");
-                await addDoc(colRef, {
-                    tipo: "saida",
-                    descricao: descricao,
-                    valor: valor * -1, // Salva saídas como valor negativo
-                    data: data,
-                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-                    origemId: null,
-                    origemTipo: null,
-                    criadoEm: Timestamp.now()
-                });
-
-                formFinanceiro.reset();
-                showToast('Saída registrada com sucesso!', 'success');
-            } catch (error) {
-                console.error("❌ Erro ao salvar saída:", error);
-                
-                if (error.code === 'permission-denied') {
-                    showToast('Você não tem permissão para realizar esta operação', 'error');
-                } else {
-                    showToast('Erro ao registrar saída. Tente novamente.', 'error');
-                }
-            } finally {
-                setButtonLoading('financeiro-submit-btn', false);
-            }
-        });
-
-
-        // ============================================
-        // CARREGAMENTO E RENDERIZAÇÃO DE DADOS
-        // ============================================
-
-        // Função principal para carregar dados
-        function loadAllData(currentUserId) {
-            if (!currentUserId) {
-                console.error("❌ userId inválido para carregar dados");
-                return;
-            }
-            
-            console.log("📊 Carregando dados para o usuário:", currentUserId);
-
-            // Parar listeners antigos se existirem
-            stopAllListeners();
-
-            // Ouvir Membros
-            try {
-                const qMembros = query(collection(db, "users", currentUserId, "membros"));
-                unsubMembros = onSnapshot(qMembros, (snapshot) => {
-                    localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    localMembros.sort((a, b) => a.nome.localeCompare(b.nome));
-                    renderMembros(localMembros);
-                    populateMembrosSelect(localMembros);
-                    updateDashboard();
-                    console.log(`✅ ${localMembros.length} membros carregados`);
-                }, (error) => {
-                    console.error("❌ Erro ao ouvir membros:", error.message);
-                    showToast('Erro ao carregar membros', 'error');
-                });
-            } catch (e) { 
-                console.error("❌ Erro ao criar query de membros:", e);
-                showToast('Erro ao configurar carregamento de membros', 'error');
-            }
-
-            // Ouvir Dízimos
-            try {
-                const qDizimos = query(collection(db, "users", currentUserId, "dizimos"));
-                unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
-                    localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderFiltroDizimos();
-                    updateDashboard();
-                    console.log(`✅ ${localDizimos.length} dízimos carregados`);
-                }, (error) => {
-                    console.error("❌ Erro ao ouvir dízimos:", error.message);
-                    showToast('Erro ao carregar dízimos', 'error');
-                });
-            } catch (e) { 
-                console.error("❌ Erro ao criar query de dízimos:", e);
-            }
-
-            // Ouvir Ofertas
-            try {
-                const qOfertas = query(collection(db, "users", currentUserId, "ofertas"));
-                unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
-                    localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderFiltroOfertas();
-                    updateDashboard();
-                    console.log(`✅ ${localOfertas.length} ofertas carregadas`);
-                }, (error) => {
-                    console.error("❌ Erro ao ouvir ofertas:", error.message);
-                    showToast('Erro ao carregar ofertas', 'error');
-                });
-            } catch (e) { 
-                console.error("❌ Erro ao criar query de ofertas:", e);
-            }
-
-            // Ouvir Financeiro
-            try {
-                const qFinanceiro = query(collection(db, "users", currentUserId, "financeiro"));
-                unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
-                    localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    localFinanceiro.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
-                    renderFinanceiro(localFinanceiro);
-                    updateDashboard();
-                    console.log(`✅ ${localFinanceiro.length} transações financeiras carregadas`);
-                }, (error) => {
-                    console.error("❌ Erro ao ouvir financeiro:", error.message);
-                    showToast('Erro ao carregar dados financeiros', 'error');
-                });
-            } catch (e) { 
-                console.error("❌ Erro ao criar query de financeiro:", e);
-            }
-
-        }
-
-        // Parar todos os listeners
-        function stopAllListeners() {
-            if (unsubMembros) unsubMembros();
-            if (unsubDizimos) unsubDizimos();
-            if (unsubOfertas) unsubOfertas();
-            if (unsubFinanceiro) unsubFinanceiro();
-            console.log("🛑 Listeners interrompidos");
-        }
-
-        // Limpar tabelas ao deslogar
-        function clearAllTables() {
-            document.getElementById("lista-membros").innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum membro cadastrado</td></tr>';
-            document.getElementById("lista-dizimos").innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registrado</td></tr>';
-            document.getElementById("lista-ofertas").innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhuma oferta registrada</td></tr>';
-            document.getElementById("lista-financeiro").innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhuma transação</td></tr>';
-            document.getElementById("dizimo-membro").innerHTML = '<option value="">Selecione o Membro</option>';
-            document.getElementById("saldo-total-financeiro").textContent = "R$ 0,00";
-            document.getElementById("saldo-total-dashboard").textContent = "R$ 0,00";
-            document.getElementById("entradas-mes-dashboard").textContent = "R$ 0,00";
-            document.getElementById("saidas-mes-dashboard").textContent = "R$ 0,00";
-            document.getElementById("total-membros-dashboard").textContent = "0";
-            
-            localMembros = [];
-            localDizimos = [];
-            localOfertas = [];
-            localFinanceiro = [];
-        }
-
-
-        // ============================================
-        // RENDERIZAR TABELA DE MEMBROS
-        // ============================================
-        
-        const listaMembros = document.getElementById("lista-membros");
-        const filtroMembros = document.getElementById("filtro-membros");
-        
-        filtroMembros.addEventListener("input", (e) => {
-            const termo = e.target.value.toLowerCase();
-            const membrosFiltrados = localMembros.filter(m => m.nome.toLowerCase().includes(termo));
-            renderMembros(membrosFiltrados);
-        });
-
-        function renderMembros(membros) {
-            listaMembros.innerHTML = "";
-            
-            if (membros.length === 0) {
-                listaMembros.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum membro encontrado.</td></tr>';
-                return;
-            }
-            
-            membros.forEach(membro => {
-                const tr = document.createElement("tr");
-                tr.className = "hover:bg-gray-50 cursor-pointer";
-                tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <a href="#" class="text-blue-600 hover:text-blue-800 font-medium" data-id="${membro.id}">${membro.nome}</a>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.funcao || '-'}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.telefone || '-'}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.email || '-'}</td>
-            `;
-                tr.querySelector("a").addEventListener("click", (e) => {
-                    e.preventDefault();
-                    showMembroDetalhesModal(membro.id);
-                });
-                listaMembros.appendChild(tr);
-            });
-        }
-
-        // Popular Select de Membros
-        const dizimoMembroSelect = document.getElementById("dizimo-membro");
-        
-        function populateMembrosSelect(membros) {
-            dizimoMembroSelect.innerHTML = '<option value="">Selecione o Membro</option>';
-            
-            if (membros.length === 0) {
-                const option = document.createElement("option");
-                option.value = "";
-                option.textContent = "Nenhum membro cadastrado";
-                option.disabled = true;
-                dizimoMembroSelect.appendChild(option);
-                return;
-            }
-            
-            membros.forEach(membro => {
-                const option = document.createElement("option");
-                option.value = membro.id;
-                option.textContent = membro.nome;
-                dizimoMembroSelect.appendChild(option);
-            });
-        }
-
-        // ============================================
-        // RENDERIZAR TABELA FINANCEIRO (EXTRATO)
-        // ============================================
-        
-        const listaFinanceiro = document.getElementById("lista-financeiro");
-        const saldoTotalFinanceiro = document.getElementById("saldo-total-financeiro");
-
-        function renderFinanceiro(transacoes) {
-            listaFinanceiro.innerHTML = "";
-            let saldo = 0;
-
-            if (transacoes.length === 0) {
-                listaFinanceiro.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum lançamento no caixa.</td></tr>';
-                saldoTotalFinanceiro.textContent = "R$ 0,00";
-                saldoTotalFinanceiro.className = "text-2xl font-bold text-blue-700";
-                return;
-            }
-
-            transacoes.forEach(transacao => {
-                const valor = transacao.valor || 0;
-                saldo += valor;
-                const corValor = valor > 0 ? "text-green-600" : "text-red-600";
-                const sinal = valor > 0 ? "+" : "";
-
-                const tr = document.createElement("tr");
-                tr.className = "hover:bg-gray-50";
-                tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatarData(transacao.data)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${transacao.descricao || '-'}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${corValor}">
-                    ${sinal} R$ ${Math.abs(valor).toFixed(2).replace(".", ",")}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    <button data-id="${transacao.id}" class="delete-btn text-red-500 hover:text-red-700 p-1" data-tipo="financeiro" title="Excluir">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
-                </td>
-            `;
-                listaFinanceiro.appendChild(tr);
-            });
-
-            // Adiciona listeners aos botões de excluir
-            adicionarListenersExcluir();
-
-            // Atualiza saldo total
-            const corSaldo = saldo >= 0 ? "text-blue-700" : "text-red-700";
-            saldoTotalFinanceiro.className = `text-2xl font-bold ${corSaldo}`;
-            saldoTotalFinanceiro.textContent = `R$ ${saldo.toFixed(2).replace(".", ",")}`;
-
-            // Atualiza ícones Lucide
-            lucide.createIcons();
-        }
-
-        // ============================================
-        // FILTROS E RENDERIZAÇÃO DE DÍZIMOS E OFERTAS
-        // ============================================
-
-        const filtroDizimoMes = document.getElementById("filtro-dizimo-mes");
-        const filtroDizimoAno = document.getElementById("filtro-dizimo-ano");
-        const listaDizimos = document.getElementById("lista-dizimos");
-        const filtroOfertaMes = document.getElementById("filtro-oferta-mes");
-        const filtroOfertaAno = document.getElementById("filtro-oferta-ano");
-        const listaOfertas = document.getElementById("lista-ofertas");
-
-        const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-        const hoje = new Date();
-        const mesAtual = hoje.getMonth();
-        const anoAtual = hoje.getFullYear();
-
-        function popularFiltros(selectMes, selectAno) {
-            // Meses
-            selectMes.innerHTML = "";
-            meses.forEach((mes, index) => {
-                const option = document.createElement("option");
-                option.value = index;
-                option.textContent = mes;
-                if (index === mesAtual) option.selected = true;
-                selectMes.appendChild(option);
-            });
-
-            // Anos (Ano atual + 2 anteriores)
-            selectAno.innerHTML = "";
-            for (let i = 0; i < 3; i++) {
-                const ano = anoAtual - i;
-                const option = document.createElement("option");
-                option.value = ano;
-                option.textContent = ano;
-                if (ano === anoAtual) option.selected = true;
-                selectAno.appendChild(option);
-            }
-        }
-
-        popularFiltros(filtroDizimoMes, filtroDizimoAno);
-        popularFiltros(filtroOfertaMes, filtroOfertaAno);
-
-        filtroDizimoMes.addEventListener("change", renderFiltroDizimos);
-        filtroDizimoAno.addEventListener("change", renderFiltroDizimos);
-        filtroOfertaMes.addEventListener("change", renderFiltroOfertas);
-        filtroOfertaAno.addEventListener("change", renderFiltroOfertas);
-
-        function renderFiltroDizimos() {
-            const mes = parseInt(filtroDizimoMes.value);
-            const ano = parseInt(filtroDizimoAno.value);
-
-            const dadosFiltrados = localDizimos.filter(d => {
-                const data = get2xl font-semibold">Relatório de Dízimos</h2>
-                                <div class="flex gap-4">
-                                    <select id="filtro-dizimo-mes"
-                                        class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                        <!-- Opções de mês -->
-                                    </select>
-                                    <select id="filtro-dizimo-ano"
-                                        class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                        <!-- Opções de ano -->
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Data</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Membro</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Valor (R$)</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Ação</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="lista-dizimos" class="bg-white divide-y divide-gray-200">
-                                        <!-- Linhas de dízimos serão inseridas aqui -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- (ABA) Ofertas e Outras -->
-            <div id="ofertas" class="tab-content">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Coluna de Registro -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <h2 class="text-2xl font-semibold mb-6">Registar Oferta / Outra Entrada</h2>
-                            <form id="form-oferta">
-                                <div class="mb-4">
-                                    <label for="oferta-tipo"
-                                        class="block text-sm font-medium text-gray-700">Tipo</label>
-                                    <select id="oferta-tipo"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required>
-                                        <option value="Oferta">Oferta</option>
-                                        <option value="Oferta Alçada">Oferta Alçada</option>
-                                        <option value="Venda Evento">Venda Evento</option>
-                                        <option value="Outro">Outro</option>
-                                    </select>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="oferta-descricao"
-                                        class="block text-sm font-medium text-gray-700">Descrição Breve</label>
-                                    <input type="text" id="oferta-descricao"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Ex: Oferta do culto de domingo" required>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="oferta-valor"
-                                        class="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                                    <input type="number" id="oferta-valor" step="0.01" min="0.01"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="oferta-data"
-                                        class="block text-sm font-medium text-gray-700">Data</label>
-                                    <input type="date" id="oferta-data"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required>
-                                </div>
-                                <div class="mt-6">
-                                    <button type="submit" id="oferta-submit-btn"
-                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
-                                        Registar Entrada
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <!-- Coluna de Relatório -->
-                    <div class="lg:col-span-2">
-                        <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                                <h2 class="text-
