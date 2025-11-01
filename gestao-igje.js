@@ -107,12 +107,66 @@ registerForm.addEventListener("submit", async (e) => {
     registerError.textContent = "";
     toggleButtonLoading(registerSubmitBtn, true, "Cadastrar");
     
+    // Campos novos
+    const nome = document.getElementById("register-name").value;
+    const telefone = document.getElementById("register-phone").value;
+    // Campos existentes
     const email = document.getElementById("register-email").value;
     const password = document.getElementById("register-password").value;
 
+    // --- INÍCIO DAS NOVAS VERIFICAÇÕES ---
+
+    // 1. Validar campos
+    if (!nome || !telefone) {
+        registerError.textContent = "Nome e Telefone são obrigatórios.";
+        toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
+        return;
+    }
+
+    // 2. Verificar lista de nomes permitidos (case-insensitive)
+    const allowedNames = ["pr. gabriel", "miss. lorrane", "prb. leandro"];
+    if (!allowedNames.includes(nome.trim().toLowerCase())) {
+        registerError.textContent = "Nome não autorizado para cadastro.";
+        toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
+        return;
+    }
+
+    // 3. Verificar se o telefone já está em uso (verificação de unicidade)
     try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        // O onAuthStateChanged vai tratar de mostrar o app
+        const q = query(collection(db, "users"), where("telefone", "==", telefone.trim()));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+            registerError.textContent = "Este número de telefone já está cadastrado.";
+            toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
+            return;
+        }
+    } catch (error) {
+         console.error("Erro ao verificar telefone:", error);
+         registerError.textContent = "Erro ao verificar dados. Tente novamente.";
+         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
+         return;
+    }
+
+    // --- FIM DAS NOVAS VERIFICAÇÕES ---
+
+    try {
+        // 4. Criar o usuário na Autenticação
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // 5. Salvar dados do perfil no Firestore
+        // ATENÇÃO: A regra de segurança do Firebase deve permitir
+        // escrita na coleção 'users' com o ID do usuário
+        await setDoc(doc(db, "users", user.uid), {
+            nome: nome.trim(),
+            telefone: telefone.trim(),
+            email: email,
+            createdAt: Timestamp.now()
+        });
+
+        // O onAuthStateChanged vai pegar a partir daqui
+        
     } catch (error) {
         console.error("Erro no cadastro:", error.code, error.message);
         if (error.code === 'auth/email-already-in-use') {
@@ -126,6 +180,7 @@ registerForm.addEventListener("submit", async (e) => {
         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
     }
 });
+
 
 // Processar Login
 loginForm.addEventListener("submit", async (e) => {
@@ -1369,7 +1424,7 @@ function getDateFromInput(dataInput) {
         }
         // Se já for um objeto Date
         if (dataInput instanceof Date) {
-            return dataInput;
+            return dataInput; // Corrigido: dataInput
         }
         // Se for uma string (ex: '2025-11-01')
         if (typeof dataInput === 'string' && dataInput.includes('-')) {
@@ -1391,3 +1446,4 @@ function getDateFromInput(dataInput) {
 
 // Inicializa ícones Lucide
 lucide.createIcons();
+
