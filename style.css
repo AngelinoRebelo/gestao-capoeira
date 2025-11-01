@@ -1,0 +1,138 @@
+/* Estilo para abas ativas e inativas */
+.tab-button.active {
+    border-bottom-color: #3b82f6;
+    /* Cor azul */
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.tab-button {
+    border-bottom-width: 3px;
+    border-bottom-color: transparent;
+}
+
+/* Ocultar abas por padrão */
+.tab-content {
+    display: none;
+}
+
+/* Mostrar aba ativa */
+.tab-content.active {
+    display: block;
+}
+
+/* Estilo para modal */
+.modal {
+    display: none;
+    /* Oculto por padrão */
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Spinner de carregamento */
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+button:disabled .spinner {
+     border-top: 3px solid #ffffff;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Toast de notificação */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    min-width: 300px;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.toast-success {
+    background-color: #10b981;
+    color: white;
+}
+
+.toast-error {
+    background-color: #ef4444;
+    color: white;
+}
+
+.toast-warning {
+    background-color: #f59e0b;
+    color: white;
+}
