@@ -1,982 +1,1471 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR" class="h-full bg-gray-100">
+
 <head>
-    <meta charset="UTF-8"> <!-- Corrigido de UTF-T para UTF-8 -->
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão da Igreja - Membros e Financeiro</title>
-    <!-- Carrega o Tailwind CSS -->
+    <title>Planilha de Gestão da Igreja</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Carrega a biblioteca de ícones Lucide -->
-    <!-- <script type="module" src="https://unpkg.com/lucide-react@latest/dist/lucide-react.js"></script> --> <!-- Removido: Esta é a biblioteca para React -->
-    <!-- <script src="https://unpkg.com/lucide-icons@latest"></script> --> <!-- Movido para o final do <body> -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
     <style>
-        /* Fonte Inter */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f4f7f6; /* Um cinza-azulado muito claro */
         }
-        /* Estilo para a aba ativa */
-        .tab-active {
-            border-bottom-color: #3b82f6; /* Azul */
-            color: #3b82f6;
+
+        /* Estilos para abas */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-button.active {
+            border-bottom-color: #4f46e5;
+            /* indigo-600 */
+            color: #4f46e5;
             font-weight: 600;
+        }
+
+        /* Estilo para o modal */
+        .modal {
+            display: none;
+            /* Oculto por padrão */
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Fundo escuro semi-transparente */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.flex {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 24px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Estilo para a mensagem de carregamento/erro de autenticação */
+        #auth-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-size: 1.25rem;
+            color: #4b5563;
+        }
+
+        /* Esconde o conteúdo principal até que a autenticação esteja pronta */
+        #main-app {
+            display: none;
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
 
-    <div class="container mx-auto max-w-7xl p-4 md:p-8">
-        
-        <!-- Cabeçalho -->
-        <header class="mb-6 flex flex-col md:flex-row justify-between items-center">
-            <h1 class="text-3xl font-bold text-blue-700">Sistema de Gestão da Igreja</h1>
-            <div class="text-sm text-gray-600 mt-2 md:mt-0">
-                Seu ID de usuário: <span id="userIdDisplay" class="font-mono bg-gray-200 px-2 py-1 rounded">Carregando...</span>
+<body class="h-full">
+
+    <!-- Tela de Autenticação (Login/Cadastro) -->
+    <div id="auth-container" class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
+            <div>
+                <h2 id="auth-title" class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                    Aceder à sua conta
+                </h2>
             </div>
-        </header>
-
-        <!-- Navegação por Abas -->
-        <div class="mb-6 border-b border-gray-300">
-            <nav class="flex -mb-px space-x-6 overflow-x-auto" aria-label="Tabs">
-                <button id="tab-cad-membro" onclick="changeTab('cad-membro')" class="tab-button tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2">
-                    <i data-lucide="user-plus"></i>
-                    <span>Cadastrar Membro</span>
-                </button>
-                <button id="tab-vis-membros" onclick="changeTab('vis-membros')" class="tab-button text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2">
-                    <i data-lucide="users"></i>
-                    <span>Visualizar Membros</span>
-                </button>
-                <button id="tab-dizimos" onclick="changeTab('dizimos')" class="tab-button text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2">
-                    <i data-lucide="hand-heart"></i>
-                    <span>Dízimos e Ofertas</span>
-                </button>
-                <button id="tab-financeiro" onclick="changeTab('financeiro')" class="tab-button text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2">
-                    <i data-lucide="dollar-sign"></i>
-                    <span>Financeiro (Caixa)</span>
-                </button>
-            </nav>
-        </div>
-
-        <!-- Mensagem de Status -->
-        <div id="statusMessage" class="hidden mb-4 p-4 rounded-md text-sm"></div>
-
-        <!-- Conteúdo das Abas -->
-        <main>
-            <!-- ======================= -->
-            <!-- ABA DE CADASTRO MEMBROS -->
-            <!-- ======================= -->
-            <section id="content-cad-membro" class="content-section space-y-6">
-                <div class="max-w-xl mx-auto">
-                    <!-- Formulário de Novo Membro -->
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h2 class="text-xl font-semibold mb-4 text-blue-600">Novo Membro</h2>
-                        <form id="formMembro" class="space-y-4">
-                            <div>
-                                <label for="membroNome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                                <input type="text" id="membroNome" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-                            </div>
-                            <div>
-                                <label for="membroTelefone" class="block text-sm font-medium text-gray-700">Telefone</label>
-                                <input type="tel" id="membroTelefone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-                            </div>
-                            <div>
-                                <label for="membroEmail" class="block text-sm font-medium text-gray-700">Email</label>
-                                <input type="email" id="membroEmail" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-                            </div>
-                            <div>
-                                <label for="membroNascimento" class="block text-sm font-medium text-gray-700">Data de Nascimento</label>
-                                <input type="date" id="membroNascimento" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-                            </div>
-                             <div>
-                                <label for="membroBatismo" class="block text-sm font-medium text-gray-700">Data de Batismo</label>
-                                <input type="date" id="membroBatismo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-                            </div>
-                             <div>
-                                <label for="membroFuncao" class="block text-sm font-medium text-gray-700">Função / Ministério</label>
-                                <input type="text" id="membroFuncao" placeholder="Ex: Pastor, Diácono, Membro" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-                            </div>
-                            <div>
-                                <label for="membroEndereco" class="block text-sm font-medium text-gray-700">Endereço</label>
-                                <textarea id="membroEndereco" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2" placeholder="Rua, Número, Bairro, Cidade - UF"></textarea>
-                            </div>
-                            <button type="submit" class="w-full flex justify-center items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out">
-                                <i data-lucide="user-plus"></i>
-                                <span>Adicionar Membro</span>
-                            </button>
-                        </form>
+            <form id="auth-form" class="mt-8 space-y-6" action="#" method="POST">
+                <input type="hidden" name="remember" value="true">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="email-address" class="sr-only">Email</label>
+                        <input id="email-address" name="email" type="email" autocomplete="email" required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                            placeholder="Endereço de email">
+                    </div>
+                    <div>
+                        <label for="password" class="sr-only">Senha</label>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                            placeholder="Senha (mín. 6 caracteres)">
                     </div>
                 </div>
-            </section>
 
-            <!-- ======================= -->
-            <!-- ABA DE VISUALIZAR MEMBROS -->
-            <!-- ======================= -->
-            <section id="content-vis-membros" class="content-section hidden space-y-6">
-                <!-- Tabela de Membros -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h2 class="text-xl font-semibold mb-4 text-blue-600">Membros Cadastrados</h2>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Função</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabelaMembros" class="bg-white divide-y divide-gray-200">
-                                    <!-- Linhas de membros serão inseridas aqui pelo JS -->
-                                    <tr><td colspan="5" class="p-4 text-center text-gray-500">Carregando membros...</td></tr>
-                                </tbody>
-                            </table>
+                <p id="auth-error" class="text-center text-sm text-red-600"></p>
+
+                <div>
+                    <button id="auth-submit-button" type="submit"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Entrar
+                    </button>
+                </div>
+            </form>
+            <div class="text-center">
+                <a href="#" id="toggle-auth-mode" class="font-medium text-indigo-600 hover:text-indigo-500">
+                    Não tem uma conta? Crie o seu primeiro acesso.
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensagem de Carregamento/Verificação -->
+    <div id="auth-loading" class="text-lg text-gray-700">
+        A verificar autenticação...
+    </div>
+
+    <!-- Aplicação Principal (Oculta até o login) -->
+    <div id="main-app" class="min-h-full">
+        <div class="bg-gray-800 pb-32">
+            <nav class="bg-gray-800">
+                <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div class="border-b border-gray-700">
+                        <div class="flex items-center justify-between h-16 px-4 sm:px-0">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-indigo-400" data-lucide="church" fill="none"
+                                        stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="m18 7 4 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9l4-2" />
+                                        <path d="M14 22v-4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v4" />
+                                        <path d="M18 22V5l-6-3-6 3v17" />
+                                        <path d="M12 7v5" />
+                                        <path d="M10 9h4" />
+                                    </svg>
+                                </div>
+                                <div class="hidden md:block">
+                                    <div class="ml-10 flex items-baseline space-x-4">
+                                        <!-- Abas de Navegação -->
+                                        <button class="tab-button active" data-tab="tab-dashboard">Dashboard</button>
+                                        <button class="tab-button" data-tab="tab-cadastrar-membro">Cadastrar
+                                            Membro</button>
+                                        <button class="tab-button" data-tab="tab-visualizar-membros">Visualizar
+                                            Membros</button>
+                                        <button class="tab-button" data-tab="tab-dizimos">Dízimos e Ofertas</button>
+                                        <button class="tab-button" data-tab="tab-financeiro">Financeiro (Caixa)</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="hidden md:block">
+                                <div class="ml-4 flex items-center md:ml-6">
+                                    <span id="user-email-display" class="text-gray-300 text-sm mr-3"></span>
+                                    <button id="logout-button"
+                                        class="bg-red-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-red-700">
+                                        Sair
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </section>
-
-            <!-- ======================= -->
-            <!-- ABA DE DÍZIMOS        -->
-            <!-- ======================= -->
-            <section id="content-dizimos" class="content-section hidden space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    <!-- Formulário de Novo Dízimo/Oferta -->
-                    <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-                        <h2 class="text-xl font-semibold mb-4 text-green-600">Registrar Dízimo / Oferta</h2>
-                        <form id="formDizimo" class="space-y-4">
-                            <div>
-                                <label for="dizimoMembro" class="block text-sm font-medium text-gray-700">Membro</label>
-                                <select id="dizimoMembro" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2">
-                                    <option value="">Selecione um membro...</option>
-                                    <!-- Opções de membros serão inseridas aqui pelo JS -->
-                                </select>
-                            </div>
-                            <div>
-                                <label for="dizimoValor" class="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                                <input type="number" id="dizimoValor" step="0.01" min="0" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2">
-                            </div>
-                            <div>
-                                <label for="dizimoData" class="block text-sm font-medium text-gray-700">Data</label>
-                                <input type="date" id="dizimoData" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2">
-                            </div>
-                             <div>
-                                <label for="dizimoDescricao" class="block text-sm font-medium text-gray-700">Descrição (Ex: Dízimo, Oferta, Evento)</label>
-                                <input type="text" id="dizimoDescricao" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm p-2" value="Dízimo">
-                            </div>
-                            <button type="submit" class="w-full flex justify-center items-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out">
-                                <i data-lucide="check"></i>
-                                <span>Registrar Entrada</span>
+                <!-- Menu Mobile -->
+                <div class="border-b border-gray-700 md:hidden" id="mobile-menu">
+                    <div class="px-2 py-3 space-y-1 sm:px-3">
+                        <button class="tab-button active" data-tab="tab-dashboard">Dashboard</button>
+                        <button class="tab-button" data-tab="tab-cadastrar-membro">Cadastrar Membro</button>
+                        <button class="tab-button" data-tab="tab-visualizar-membros">Visualizar Membros</button>
+                        <button class="tab-button" data-tab="tab-dizimos">Dízimos e Ofertas</button>
+                        <button class="tab-button" data-tab="tab-financeiro">Financeiro (Caixa)</button>
+                    </div>
+                    <div class="pt-4 pb-3 border-t border-gray-700">
+                        <div class="flex items-center px-5">
+                            <div class="text-base font-medium text-white" id="user-email-display-mobile"></div>
+                        </div>
+                        <div class="mt-3 px-2 space-y-1">
+                            <button id="logout-button-mobile"
+                                class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">
+                                Sair
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <header class="py-10">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h1 id="header-title" class="text-3xl font-bold text-white">Dashboard</h1>
+                </div>
+            </header>
+        </div>
+
+        <main class="-mt-32">
+            <div class="max-w-7xl mx-auto pb-12 px-4 sm:px-6 lg:px-8">
+                <!-- Conteúdo das Abas -->
+                <div class="bg-white rounded-lg shadow px-5 py-6 sm:px-6">
+
+                    <!-- Aba Dashboard -->
+                    <div id="tab-dashboard" class="tab-content active">
+                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                            <!-- Card Saldo Atual -->
+                            <div class="bg-white overflow-hidden shadow rounded-lg">
+                                <div class="p-5">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-6 w-6 text-gray-400" data-lucide="scale" fill="none"
+                                                stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                stroke-width="2" viewBox="0 0 24 24">
+                                                <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+                                                <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+                                                <path d="M7 21h10" />
+                                                <path d="M12 3v18" />
+                                                <path d="M3 7h2c2 0 5-1 7-1s5 1 7 1h2" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt class="text-sm font-medium text-gray-500 truncate">Saldo Atual
+                                                </dt>
+                                                <dd>
+                                                    <div id="dashboard-saldo"
+                                                        class="text-lg font-medium text-gray-900">R$ 0,00</div>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Card Total de Membros -->
+                            <div class="bg-white overflow-hidden shadow rounded-lg">
+                                <div class="p-5">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-6 w-6 text-gray-400" data-lucide="users" fill="none"
+                                                stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                stroke-width="2" viewBox="0 0 24 24">
+                                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                                <circle cx="9" cy="7" r="4" />
+                                                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt class="text-sm font-medium text-gray-500 truncate">Total de Membros
+                                                </dt>
+                                                <dd>
+                                                    <div id="dashboard-membros"
+                                                        class="text-lg font-medium text-gray-900">0</div>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Card Dízimos/Ofertas (Mês) -->
+                            <div class="bg-white overflow-hidden shadow rounded-lg">
+                                <div class="p-5">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-6 w-6 text-gray-400" data-lucide="piggy-bank" fill="none"
+                                                stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                stroke-width="2" viewBox="0 0 24 24">
+                                                <path
+                                                    d="M15 10v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1Z" />
+                                                <path d="M2 14v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2" />
+                                                <path
+                                                    d="M18 10V8a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v2" />
+                                                <path d="M22 10v4" />
+                                                <path d"M10 10V5" />
+                                                <path d"M10 5a2 2 0 0 1 4 0v5" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt class="text-sm font-medium text-gray-500 truncate">Entradas (Mês
+                                                    Atual)</dt>
+                                                <dd>
+                                                    <div id="dashboard-entradas-mes"
+                                                        class="text-lg font-medium text-gray-900">R$ 0,00</div>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba Cadastrar Membro -->
+                    <div id="tab-cadastrar-membro" class="tab-content">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Formulário de Cadastro de Membros</h2>
+                        <form id="membro-form" class="space-y-4">
+                            <div>
+                                <label for="membro-nome"
+                                    class="block text-sm font-medium text-gray-700">Nome:</label>
+                                <input type="text" id="membro-nome" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="membro-telefone"
+                                    class="block text-sm font-medium text-gray-700">Telefone:</label>
+                                <input type="tel" id="membro-telefone"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="membro-email"
+                                    class="block text-sm font-medium text-gray-700">Email:</label>
+                                <input type="email" id="membro-email"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="membro-data-nascimento"
+                                    class="block text-sm font-medium text-gray-700">Data de Nascimento:</label>
+                                <input type="date" id="membro-data-nascimento"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="membro-data-batismo"
+                                    class="block text-sm font-medium text-gray-700">Data de Batismo:</label>
+                                <input type="date" id="membro-data-batismo"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="membro-funcao" class="block text-sm font-medium text-gray-700">Função /
+                                    Ministério:</label>
+                                <input type="text" id="membro-funcao"
+                                    placeholder="Ex: Pastor, Diácono, Líder Louvor, Membro"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="membro-endereco"
+                                    class="block text-sm font-medium text-gray-700">Endereço:</label>
+                                <textarea id="membro-endereco" rows="3"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                            </div>
+                            <button type="submit"
+                                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Salvar Membro
+                            </button>
+                            <p id="membro-form-mensagem" class="text-sm text-green-600"></p>
                         </form>
                     </div>
 
-                    <!-- Tabela de Registros -->
-                    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-                        <h2 class="text-xl font-semibold mb-4 text-green-600">Registros de Dízimos e Ofertas</h2>
+                    <!-- Aba Visualizar Membros -->
+                    <div id="tab-visualizar-membros" class="tab-content">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Membros Cadastrados</h2>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Membro</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor (R$)</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Nome</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Telefone</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Função</th>
+                                        <th scope="col" class="relative px-6 py-3">
+                                            <span class="sr-only">Ações</span>
+                                        </th>
                                     </tr>
                                 </thead>
-                                <tbody id="tabelaDizimos" class="bg-white divide-y divide-gray-200">
-                                    <!-- Linhas de dízimos serão inseridas aqui pelo JS -->
-                                    <tr><td colspan="5" class="p-4 text-center text-gray-500">Carregando registros...</td></tr>
+                                <tbody id="membros-tabela" class="bg-white divide-y divide-gray-200">
+                                    <!-- Linhas inseridas via JS -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            <!-- ======================= -->
-            <!-- ABA FINANCEIRO (CAIXA) -->
-            <!-- ======================= -->
-            <section id="content-financeiro" class="content-section hidden space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    <!-- Lançamento (Entrada/Saída) -->
-                    <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-                        <h2 class="text-xl font-semibold mb-4 text-indigo-600">Novo Lançamento no Caixa</h2>
-                        <form id="formFinanceiro" class="space-y-4">
-                            <div>
-                                <label for="financeiroData" class="block text-sm font-medium text-gray-700">Data</label>
-                                <input type="date" id="financeiroData" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                    <!-- Aba Dízimos e Ofertas -->
+                    <div id="tab-dizimos" class="tab-content">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Coluna do Formulário -->
+                            <div class="md:col-span-1">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-4">Registro de Entradas</h2>
+                                <form id="dizimo-form" class="space-y-4">
+                                    <div>
+                                        <label for="dizimo-data"
+                                            class="block text-sm font-medium text-gray-700">Data:</label>
+                                        <input type="date" id="dizimo-data" required
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="dizimo-membro"
+                                            class="block text-sm font-medium text-gray-700">Membro (Opcional):</label>
+                                        <select id="dizimo-membro"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <option value="">Anônimo / Não se aplica</option>
+                                            <!-- Opções carregadas via JS -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="dizimo-valor"
+                                            class="block text-sm font-medium text-gray-700">Valor (R$):</label>
+                                        <input type="number" step="0.01" id="dizimo-valor" required
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="100.00">
+                                    </div>
+                                    <div>
+                                        <label for="dizimo-tipo"
+                                            class="block text-sm font-medium text-gray-700">Tipo:</label>
+                                        <select id="dizimo-tipo"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <option value="Dízimo">Dízimo</option>
+                                            <option value="Oferta">Oferta</option>
+                                            <option value="Venda Evento">Venda Evento</option>
+                                            <option value="Outra Entrada">Outra Entrada</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="dizimo-descricao"
+                                            class="block text-sm font-medium text-gray-700">Descrição
+                                            (Opcional):</label>
+                                        <input type="text" id="dizimo-descricao"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="Ex: Oferta especial, Cantina">
+                                    </div>
+                                    <button type="submit"
+                                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Registrar Entrada
+                                    </button>
+                                    <p id="dizimo-form-mensagem" class="text-sm text-green-600"></p>
+                                </form>
                             </div>
-                            <div>
-                                <label for="financeiroDescricao" class="block text-sm font-medium text-gray-700">Descrição</label>
-                                <input type="text" id="financeiroDescricao" required placeholder="Ex: Aluguel, Conta de Luz, Oferta" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
-                            </div>
-                            <div>
-                                <label for="financeiroTipo" class="block text-sm font-medium text-gray-700">Tipo</label>
-                                <select id="financeiroTipo" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
-                                    <option value="entrada">Entrada</option>
-                                    <option value="saida">Saída (Despesa)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="financeiroValor" class="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                                <input type="number" id="financeiroValor" step="0.01" min="0" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
-                            </div>
-                            <button type="submit" class="w-full flex justify-center items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out">
-                                <i data-lucide="plus-circle"></i>
-                                <span>Lançar no Caixa</span>
-                            </button>
-                        </form>
-                    </div>
 
-                    <!-- Tabela Financeiro e Saldo -->
-                    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md space-y-6">
-                        <!-- Saldo -->
-                        <div>
-                            <h2 class="text-xl font-semibold mb-4 text-indigo-600">Balanço Financeiro</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                                <div class="bg-green-100 p-4 rounded-lg">
-                                    <div class="text-sm font-medium text-green-800">Total de Entradas</div>
-                                    <div id="totalEntradas" class="text-2xl font-bold text-green-600">R$ 0,00</div>
+                            <!-- Coluna dos Relatórios -->
+                            <div class="md:col-span-2">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-4">Relatório Mensal de Entradas</h2>
+                                <!-- Seletores de Mês/Ano -->
+                                <div class="flex space-x-4 mb-4">
+                                    <div>
+                                        <label for="relatorio-mes"
+                                            class="block text-sm font-medium text-gray-700">Mês:</label>
+                                        <select id="relatorio-mes"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <!-- Meses carregados via JS -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="relatorio-ano"
+                                            class="block text-sm font-medium text-gray-700">Ano:</label>
+                                        <input type="number" id="relatorio-ano"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="AAAA">
+                                    </div>
                                 </div>
-                                <div class="bg-red-100 p-4 rounded-lg">
-                                    <div class="text-sm font-medium text-red-800">Total de Saídas</div>
-                                    <div id="totalSaidas" class="text-2xl font-bold text-red-600">R$ 0,00</div>
+
+                                <!-- Tabela de Dizimistas -->
+                                <h3 class="text-lg font-semibold text-gray-700 mb-2">Dizimistas do Mês</h3>
+                                <div class="overflow-x-auto mb-6">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Data</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Membro</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Valor (R$)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dizimos-tabela" class="bg-white divide-y divide-gray-200">
+                                            <!-- Linhas inseridas via JS -->
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <div class="bg-blue-100 p-4 rounded-lg">
-                                    <div class="text-sm font-medium text-blue-800">Saldo Atual</div>
-                                    <div id="saldoAtual" class="text-2xl font-bold text-blue-600">R$ 0,00</div>
+
+                                <!-- Tabela de Outras Entradas -->
+                                <h3 class="text-lg font-semibold text-gray-700 mb-2">Outras Entradas (Ofertas, etc.) do
+                                    Mês</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Data</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Tipo</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Descrição</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Valor (R$)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ofertas-tabela" class="bg-white divide-y divide-gray-200">
+                                            <!-- Linhas inseridas via JS -->
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Tabela de Lançamentos -->
-                        <div>
-                            <h2 class="text-xl font-semibold mb-4 text-indigo-600">Extrato do Caixa</h2>
-                            <div class="overflow-x-auto max-h-96 overflow-y-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50 sticky top-0">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor (R$)</th>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tabelaFinanceiro" class="bg-white divide-y divide-gray-200">
-                                        <!-- Linhas de lançamentos serão inseridas aqui pelo JS -->
-                                        <tr><td colspan="4" class="p-4 text-center text-gray-500">Carregando lançamentos...</td></tr>
-                                    </tbody>
-                                </table>
+                    <!-- Aba Financeiro (Caixa) -->
+                    <div id="tab-financeiro" class="tab-content">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Coluna do Formulário -->
+                            <div class="md:col-span-1">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-4">Lançamento no Caixa</h2>
+                                <form id="financeiro-form" class="space-y-4">
+                                    <div>
+                                        <label for="financeiro-data"
+                                            class="block text-sm font-medium text-gray-700">Data:</label>
+                                        <input type="date" id="financeiro-data" required
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="financeiro-descricao"
+                                            class="block text-sm font-medium text-gray-700">Descrição:</label>
+                                        <input type="text" id="financeiro-descricao" required
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="Ex: Compra de material limpeza, Conta de luz">
+                                    </div>
+                                    <div>
+                                        <label for="financeiro-valor"
+                                            class="block text-sm font-medium text-gray-700">Valor (R$):</label>
+                                        <input type="number" step="0.01" id="financeiro-valor" required
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="100.00">
+                                    </div>
+                                    <div>
+                                        <label for="financeiro-tipo"
+                                            class="block text-sm font-medium text-gray-700">Tipo:</label>
+                                        <select id="financeiro-tipo"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <option value="saida">Saída (Despesa)</option>
+                                            <option value="entrada">Entrada (Manual)</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit"
+                                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Lançar no Caixa
+                                    </button>
+                                    <p id="financeiro-form-mensagem" class="text-sm text-green-600"></p>
+                                </form>
+                            </div>
+                            <!-- Coluna da Tabela/Extrato -->
+                            <div class="md:col-span-2">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-4">Extrato do Caixa</h2>
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-lg font-medium text-gray-700">Saldo Atual:</span>
+                                    <span id="financeiro-saldo"
+                                        class="text-2xl font-bold text-gray-900">R$ 0,00</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col"
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Data</th>
+                                                <th scope="col"
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Descrição</th>
+                                                <th scope="col"
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Valor (R$)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="financeiro-tabela" class="bg-white divide-y divide-gray-200">
+                                            <!-- Linhas inseridas via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
-            </section>
+            </div>
         </main>
     </div>
 
-    <!-- Modal de Exclusão (Genérico) -->
-    <div id="deleteModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3 text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                    <i data-lucide="alert-triangle" class="h-6 w-6 text-red-600"></i>
-                </div>
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">Confirmar Exclusão</h3>
-                <div class="mt-2 px-7 py-3">
-                    <p class="text-sm text-gray-500">Você tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.</p>
-                </div>
-                <div class="items-center px-4 py-3 space-x-4">
-                    <button id="modalConfirmDelete" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-auto shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
-                        Excluir
-                    </button>
-                    <button id="modalCancelDelete" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-auto shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal de Detalhes do Membro -->
-    <div id="memberDetailModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-10 mx-auto p-6 border w-full max-w-lg shadow-lg rounded-md bg-white">
+    <div id="membro-detalhes-modal" class="modal">
+        <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
-                 <h3 class="text-xl leading-6 font-medium text-gray-900">Detalhes do Membro</h3>
-                 <button id="modalCloseDetails" class="text-gray-400 hover:text-gray-600">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                 </button>
+                <h2 class="text-xl font-semibold text-gray-800">Detalhes do Membro</h2>
+                <button id="modal-close-button" class="text-gray-500 hover:text-gray-800">
+                    <svg class="h-6 w-6" data-lucide="x" fill="none" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
             </div>
-            <!-- Conteúdo dos Detalhes -->
-            <div id="memberDetailContent" class="space-y-1 border-t border-b divide-y divide-gray-200">
-                <!-- Conteúdo será preenchido pelo JS -->
-                <p class="text-center text-gray-500 py-4">Carregando...</p>
+            <div id="membro-detalhes-conteudo" class="space-y-3">
+                <!-- Conteúdo carregado via JS -->
             </div>
-            <div class="items-center px-4 py-3 mt-4 text-right">
-                <button id="modalCloseDetailsBtn" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-auto shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">
-                    Fechar
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="membro-delete-button"
+                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    Excluir Membro
+                </button>
+                <button id="membro-edit-button"
+                    class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Editar
                 </button>
             </div>
         </div>
     </div>
 
 
-    <!-- ======================= -->
-    <!-- SCRIPTS                 -->
-    <!-- ======================= -->
-
-    <!-- Carrega o Lucide (deve vir antes do script module que o chama) -->
-    <!-- <script src="https://unpkg.com/lucide-icons@latest"></script> --> <!-- Biblioteca incorreta -->
-    <script src="https://unpkg.com/lucide@latest"></script> <!-- Biblioteca correta que expõe o objeto 'lucide' -->
-
-    <!-- Firebase SDKs -->
+    <!-- Scripts Firebase -->
     <script type="module">
         // Importações do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            signInAnonymously, 
-            signInWithCustomToken, 
-            onAuthStateChanged 
+        import {
+            getAuth,
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            doc, 
-            getDoc, 
-            addDoc, 
-            setDoc, 
-            updateDoc, 
-            deleteDoc, 
-            onSnapshot, 
-            collection, 
-            query, 
-            where, 
-            getDocs,
+        import {
+            getFirestore,
+            doc,
+            addDoc,
+            setDoc,
+            deleteDoc,
+            onSnapshot,
+            collection,
+            query,
+            where,
             Timestamp,
-            setLogLevel
+            writeBatch
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- VARIÁVEIS GLOBAIS ---
-        let db, auth;
-        let userId; // ID do usuário autenticado
-        let appId;  // ID da aplicação (vem do ambiente)
-        
-        let unsubMembros = null;    // Função para parar de ouvir membros
-        let unsubDizimos = null;    // Função para parar de ouvir dízimos
-        let unsubFinanceiro = null; // Função para parar de ouvir financeiro
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyA59Apn8I_8uT7XBrMIS_zD1RdtHgJCzOA",
+            authDomain: "gestao-capoeira.firebaseapp.com",
+            projectId: "gestao-capoeira",
+            storageBucket: "gestao-capoeira.firebasestorage.app",
+            messagingSenderId: "907559288919",
+            appId: "1:907559288919:web:a4afdb4ed23e9d11196312"
+        };
 
-        let listaMembrosCache = []; // Cache para popular dropdowns
+        // Inicializa Firebase
+        let app, db, auth;
+        let userId = null; // ID do usuário logado
+        let unsubMembros = () => { };
+        let unsubDizimos = () => { };
+        let unsubFinanceiro = () => { };
 
-        // --- INICIALIZAÇÃO ---
+        // Coleções de dados (listas locais)
+        let todosMembros = [];
+        let todosDizimos = [];
+        let todosFinanceiro = [];
 
-        // Configuração e Inicialização do Firebase
-        async function setupFirebase() {
+        // Elementos DOM - Autenticação
+        const authContainer = document.getElementById('auth-container');
+        const authLoading = document.getElementById('auth-loading');
+        const mainApp = document.getElementById('main-app');
+        const authForm = document.getElementById('auth-form');
+        const authTitle = document.getElementById('auth-title');
+        const emailInput = document.getElementById('email-address');
+        const passwordInput = document.getElementById('password');
+        const authSubmitButton = document.getElementById('auth-submit-button');
+        const toggleAuthModeLink = document.getElementById('toggle-auth-mode');
+        const authError = document.getElementById('auth-error');
+        const logoutButton = document.getElementById('logout-button');
+        const logoutButtonMobile = document.getElementById('logout-button-mobile');
+        const userEmailDisplay = document.getElementById('user-email-display');
+        const userEmailDisplayMobile = document.getElementById('user-email-display-mobile');
+
+        // Elementos DOM - Abas e Conteúdo
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const headerTitle = document.getElementById('header-title');
+
+        // Elementos DOM - Formulários
+        const membroForm = document.getElementById('membro-form');
+        const membroFormMensagem = document.getElementById('membro-form-mensagem');
+        const dizimoForm = document.getElementById('dizimo-form');
+        const dizimoFormMensagem = document.getElementById('dizimo-form-mensagem');
+        const financeiroForm = document.getElementById('financeiro-form');
+        const financeiroFormMensagem = document.getElementById('financeiro-form-mensagem');
+
+        // Elementos DOM - Tabelas e Selects
+        const membrosTabela = document.getElementById('membros-tabela');
+        const dizimoMembroSelect = document.getElementById('dizimo-membro');
+        const financeiroTabela = document.getElementById('financeiro-tabela');
+        const financeiroSaldo = document.getElementById('financeiro-saldo');
+        const dizimosTabela = document.getElementById('dizimos-tabela');
+        const ofertasTabela = document.getElementById('ofertas-tabela');
+        const relatorioMesSelect = document.getElementById('relatorio-mes');
+        const relatorioAnoInput = document.getElementById('relatorio-ano');
+
+        // Elementos DOM - Dashboard
+        const dashboardSaldo = document.getElementById('dashboard-saldo');
+        const dashboardMembros = document.getElementById('dashboard-membros');
+        const dashboardEntradasMes = document.getElementById('dashboard-entradas-mes');
+
+        // Elementos DOM - Modal Membros
+        const modal = document.getElementById('membro-detalhes-modal');
+        const modalCloseButton = document.getElementById('modal-close-button');
+        const modalContent = document.getElementById('membro-detalhes-conteudo');
+        const modalDeleteButton = document.getElementById('membro-delete-button');
+        const modalEditButton = document.getElementById('membro-edit-button');
+        let currentMembroId = null; // ID do membro selecionado no modal
+        let isEditMode = false; // Controla se o modal está em modo de edição
+
+        // Variável de estado da autenticação
+        let isRegisterMode = false; // Controla se o formulário é de login ou cadastro
+
+        // --- INICIALIZAÇÃO E AUTENTICAÇÃO ---
+
+        function setupFirebase() {
             try {
-                // 1. Obter Configs do Ambiente
-                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-
-                if (!firebaseConfig.apiKey) {
-                    showStatus("Erro crítico: Configuração do Firebase não encontrada.", "error");
-                    console.error("Configuração do Firebase não carregada.");
-                    return;
-                }
-
-                // 2. Inicializar App e Serviços
-                const app = initializeApp(firebaseConfig);
+                app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                setLogLevel('Debug'); // Para logs detalhados no console
-
-                // 3. Autenticação
-                setupAuthListener();
-                
-                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (token) {
-                    console.log("Autenticando com Custom Token...");
-                    await signInWithCustomToken(auth, token);
-                } else {
-                    console.log("Autenticando anonimamente...");
-                    await signInAnonymously(auth);
-                }
-
+                setupAuthListener(); // Configura o listener de autenticação
             } catch (error) {
                 console.error("Erro ao inicializar o Firebase:", error);
-                showStatus(`Erro ao conectar: ${error.message}`, "error");
+                authLoading.textContent = "Erro ao conectar. Verifique o console.";
             }
         }
 
-        // Observador de Autenticação
         function setupAuthListener() {
             onAuthStateChanged(auth, (user) => {
+                authLoading.style.display = 'none'; // Esconde a mensagem de "verificando"
+
                 if (user) {
-                    console.log("Usuário autenticado:", user.uid);
+                    // Usuário está logado
                     userId = user.uid;
-                    document.getElementById('userIdDisplay').textContent = userId;
-                    
-                    // Usuário está logado, podemos carregar os dados
-                    loadAllData();
+                    userEmailDisplay.textContent = user.email;
+                    userEmailDisplayMobile.textContent = user.email;
+
+                    authContainer.style.display = 'none'; // Esconde formulário de login
+                    mainApp.style.display = 'block'; // Mostra aplicação principal
+
+                    loadAllData(); // Carrega os dados do usuário
                 } else {
-                    console.log("Usuário deslogado.");
+                    // Usuário está deslogado
                     userId = null;
-                    document.getElementById('userIdDisplay').textContent = "Ninguém logado";
-                    // Limpar dados se o usuário deslogar
-                    cleanupListeners();
-                    clearAllTables();
+                    authContainer.style.display = 'flex'; // Mostra formulário de login
+                    mainApp.style.display = 'none'; // Esconde aplicação principal
+
+                    // Limpa dados e listeners antigos
+                    clearAllTablesAndListeners();
                 }
             });
         }
 
-        // Carrega todos os dados (chamado após auth)
-        function loadAllData() {
-            if (!db || !userId) {
-                console.warn("Firestore ou UserID não estão prontos.");
-                return;
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            authError.textContent = ''; // Limpa erros
+
+            if (isRegisterMode) {
+                authTitle.textContent = 'Crie o seu primeiro acesso';
+                authSubmitButton.textContent = 'Registar';
+                toggleAuthModeLink.textContent = 'Já tem uma conta? Entre aqui.';
+            } else {
+                authTitle.textContent = 'Aceder à sua conta';
+                authSubmitButton.textContent = 'Entrar';
+                toggleAuthModeLink.textContent = 'Não tem uma conta? Crie o seu primeiro acesso.';
             }
-            
-            // Limpa listeners antigos (caso de reconexão)
-            cleanupListeners();
-            
+        }
+
+        async function handleAuthFormSubmit(e) {
+            e.preventDefault();
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            authError.textContent = ''; // Limpa erros anteriores
+            authSubmitButton.disabled = true;
+
+            try {
+                if (isRegisterMode) {
+                    // Modo Registo
+                    if (password.length < 6) {
+                        throw new Error("A senha deve ter pelo menos 6 caracteres.");
+                    }
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    // O onAuthStateChanged tratará da exibição do app
+                } else {
+                    // Modo Login
+                    await signInWithEmailAndPassword(auth, email, password);
+                    // O onAuthStateChanged tratará da exibição do app
+                }
+            } catch (error) {
+                console.error("Erro de autenticação:", error);
+                authError.textContent = getAuthErrorMessage(error.code);
+            } finally {
+                authSubmitButton.disabled = false;
+            }
+        }
+
+        function getAuthErrorMessage(errorCode) {
+            switch (errorCode) {
+                case 'auth/invalid-email':
+                    return 'Email inválido.';
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                    return 'Email ou senha incorretos.';
+                case 'auth/email-already-in-use':
+                    return 'Este email já está a ser utilizado.';
+                case 'auth/weak-password':
+                    return 'A senha é muito fraca. (Mín. 6 caracteres)';
+                default:
+                    return 'Ocorreu um erro. Tente novamente.';
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                // O onAuthStateChanged tratará da exibição da tela de login
+            } catch (error) {
+                console.error("Erro ao sair:", error);
+            }
+        }
+
+        // --- CARREGAMENTO DE DADOS (FIRESTORE) ---
+
+        function loadAllData() {
+            if (!userId) return; // Garante que temos um ID de usuário
+
+            // Limpa dados e listeners antigos (caso seja um login diferente)
+            clearAllTablesAndListeners();
+
             // Inicia novos listeners
             listenToMembros();
             listenToDizimos();
             listenToFinanceiro();
         }
 
-        // Limpa todos os listeners onSnapshot
-        function cleanupListeners() {
-            if (unsubMembros) unsubMembros();
-            if (unsubDizimos) unsubDizimos();
-            if (unsubFinanceiro) unsubFinanceiro();
+        function clearAllTablesAndListeners() {
+            // Para os listeners antigos
+            unsubMembros();
+            unsubDizimos();
+            unsubFinanceiro();
+
+            // Limpa listas locais
+            todosMembros = [];
+            todosDizimos = [];
+            todosFinanceiro = [];
+
+            // Limpa tabelas na UI
+            membrosTabela.innerHTML = '';
+            dizimoMembroSelect.innerHTML = '<option value="">Anônimo / Não se aplica</option>';
+            dizimosTabela.innerHTML = '';
+            ofertasTabela.innerHTML = '';
+            financeiroTabela.innerHTML = '';
         }
 
-        // Limpa tabelas
-        function clearAllTables() {
-            renderMembros([]);
-            renderDizimos([]);
-            renderFinanceiro([]); // Adicionado
-            updateDropdownMembros([]);
-            updateSaldo(0, 0); // Adicionado
-        }
-
-        // --- NAVEGAÇÃO POR ABAS ---
-        window.changeTab = (tabName) => {
-            // Oculta todos os conteúdos
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.add('hidden');
-            });
-            // Remove classe ativa de todos os botões
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.classList.remove('tab-active', 'text-blue-600');
-                button.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-            });
-
-            // Mostra o conteúdo da aba selecionada
-            document.getElementById(`content-${tabName}`).classList.remove('hidden');
-            
-            // Adiciona classe ativa ao botão selecionado
-            const activeButton = document.getElementById(`tab-${tabName}`);
-            activeButton.classList.add('tab-active');
-            activeButton.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-        }
-
-        // --- MENSAGENS DE STATUS ---
-        function showStatus(message, type = 'success') {
-            const statusEl = document.getElementById('statusMessage');
-            statusEl.textContent = message;
-            statusEl.classList.remove('hidden');
-            
-            if (type === 'success') {
-                statusEl.className = 'mb-4 p-4 rounded-md text-sm bg-green-100 text-green-700';
-            } else if (type === 'error') {
-                statusEl.className = 'mb-4 p-4 rounded-md text-sm bg-red-100 text-red-700';
-            } else {
-                 statusEl.className = 'mb-4 p-4 rounded-md text-sm bg-blue-100 text-blue-700';
-            }
-
-            // Esconde a mensagem após 5 segundos
-            setTimeout(() => {
-                statusEl.classList.add('hidden');
-            }, 5000);
-        }
-
-        // --- FORMATAÇÃO ---
-        const formatCurrency = (value) => {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-        };
-
-        const formatDate = (date) => {
-            // Converte string YYYY-MM-DD para DD/MM/YYYY
-            if (typeof date === 'string' && date.includes('-')) {
-                const parts = date.split('-');
-                return `${parts[2]}/${parts[1]}/${parts[0]}`;
-            }
-            // Converte Timestamp do Firebase
-            if (date && typeof date.toDate === 'function') {
-                return date.toDate().toLocaleDateString('pt-BR');
-            }
-            // Fallback para datas já formatadas ou nulas
-            if (typeof date === 'string') {
-                return date;
-            }
-            return 'Data Inválida';
-        };
-
-        // --- GESTÃO DE MEMBROS ---
-        
-        // Caminho da coleção de Membros
-        const getMembrosCollection = () => collection(db, `artifacts/${appId}/users/${userId}/membros`);
-        
-        // Listener (onSnapshot) para Membros
+        // Listener para MEMBROS
         function listenToMembros() {
-            const q = query(getMembrosCollection()); // Adicionar orderBy aqui se necessário
+            const q = query(collection(db, `users/${userId}/membros`));
             unsubMembros = onSnapshot(q, (snapshot) => {
-                const membros = [];
+                todosMembros = [];
                 snapshot.forEach((doc) => {
-                    membros.push({ id: doc.id, ...doc.data() });
+                    todosMembros.push({ id: doc.id, ...doc.data() });
                 });
-                // Ordena por nome no cliente (Evita erro de índice no Firestore)
-                membros.sort((a, b) => a.nome.localeCompare(b.nome));
-                
-                listaMembrosCache = membros; // Atualiza o cache
-                renderMembros(membros);
-                updateDropdownMembros(membros);
+                // Ordena por nome
+                todosMembros.sort((a, b) => a.nome.localeCompare(b.nome));
+                renderMembros();
+                updateDashboard();
             }, (error) => {
-                console.error("Erro ao ouvir membros:", error);
-                showStatus("Erro ao carregar membros.", "error");
+                console.error("Erro ao ouvir membros:", error.message);
             });
         }
 
-        // Renderiza tabela de Membros
-        function renderMembros(membros) {
-            const tbody = document.getElementById('tabelaMembros');
-            if (membros.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Nenhum membro cadastrado.</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = membros.map(m => `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 whitespace-nowrap">
-                        <div class="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer" onclick="showMemberDetails('${m.id}')">
-                            ${m.nome}
-                        </div>
-                        <div class="text-sm text-gray-500">Nasc: ${m.nascimento ? formatDate(m.nascimento) : 'N/A'}</div>
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${m.funcao || 'N/A'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${m.telefone || 'N/A'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${m.email || 'N/A'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                        <button onclick="confirmDelete('${m.id}', 'membro')" class="text-red-600 hover:text-red-900" title="Excluir">
-                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons(); // Recria ícones
-        }
-
-        // Atualiza o <select> de membros na aba Dízimos
-        function updateDropdownMembros(membros) {
-            const select = document.getElementById('dizimoMembro');
-            select.innerHTML = '<option value="">Selecione um membro...</option>'; // Reseta
-            membros.forEach(m => {
-                const option = document.createElement('option');
-                option.value = m.id;
-                option.textContent = m.nome;
-                // Guarda o nome no dataset para referência futura
-                option.dataset.nome = m.nome; 
-                select.appendChild(option);
-            });
-        }
-        
-        // Handler do formulário de Membro
-        document.getElementById('formMembro').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nome = document.getElementById('membroNome').value;
-            const telefone = document.getElementById('membroTelefone').value;
-            const email = document.getElementById('membroEmail').value;
-            const nascimento = document.getElementById('membroNascimento').value;
-            const batismo = document.getElementById('membroBatismo').value;
-            const funcao = document.getElementById('membroFuncao').value;
-            const endereco = document.getElementById('membroEndereco').value;
-
-            if (!nome) {
-                showStatus("O nome do membro é obrigatório.", "error");
-                return;
-            }
-
-            try {
-                await addDoc(getMembrosCollection(), {
-                    nome,
-                    telefone,
-                    email,
-                    nascimento: nascimento || null, // Salva nulo se vazio
-                    batismo: batismo || null, // Salva nulo se vazio
-                    funcao: funcao || 'Membro', // Salva 'Membro' se estiver vazio
-                    endereco: endereco || null, // Salva nulo se vazio
-                    criadoEm: Timestamp.now()
-                });
-                showStatus("Membro adicionado com sucesso!", "success");
-                e.target.reset(); // Limpa o formulário
-            } catch (error) {
-                console.error("Erro ao adicionar membro:", error);
-                showStatus("Erro ao salvar membro.", "error");
-            }
-        });
-
-        // --- GESTÃO DE DÍZIMOS ---
-        
-        // Caminho da coleção de Dízimos
-        const getDizimosCollection = () => collection(db, `artifacts/${appId}/users/${userId}/dizimos`);
-        
-        // Listener (onSnapshot) para Dízimos
+        // Listener para DÍZIMOS/OFERTAS
         function listenToDizimos() {
-            const q = query(getDizimosCollection());
+            const q = query(collection(db, `users/${userId}/dizimos`));
             unsubDizimos = onSnapshot(q, (snapshot) => {
-                const dizimos = [];
+                todosDizimos = [];
                 snapshot.forEach((doc) => {
-                    dizimos.push({ id: doc.id, ...doc.data() });
+                    todosDizimos.push({ id: doc.id, ...doc.data() });
                 });
-                // Ordena por data (mais recente primeiro)
-                dizimos.sort((a, b) => b.data.localeCompare(a.data));
-                renderDizimos(dizimos);
+                renderRelatorioDizimos(); // Atualiza tabelas de dízimos/ofertas
+                updateDashboard(); // Atualiza dashboard
             }, (error) => {
-                console.error("Erro ao ouvir dízimos:", error);
-                showStatus("Erro ao carregar dízimos.", "error");
+                console.error("Erro ao ouvir dízimos:", error.message);
             });
         }
-        
-        // Renderiza tabela de Dízimos
-        function renderDizimos(dizimos) {
-            const tbody = document.getElementById('tabelaDizimos');
-            if (dizimos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Nenhum registro encontrado.</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = dizimos.map(d => `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${formatDate(d.data)}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${d.membroNome || 'Membro não encontrado'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${d.descricao}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-green-600 font-medium">${formatCurrency(d.valor)}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                        <button onclick="confirmDelete('${d.id}', 'dizimo')" class="text-red-600 hover:text-red-900" title="Excluir">
-                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons(); // Recria ícones
-        }
 
-        // Handler do formulário de Dízimo
-        document.getElementById('formDizimo').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const selectMembro = document.getElementById('dizimoMembro');
-            const membroId = selectMembro.value;
-            const membroNome = selectMembro.options[selectMembro.selectedIndex].dataset.nome;
-            const valor = parseFloat(document.getElementById('dizimoValor').value);
-            const data = document.getElementById('dizimoData').value;
-            const descricao = document.getElementById('dizimoDescricao').value;
-
-            if (!membroId || !valor || !data || !descricao) {
-                showStatus("Por favor, preencha todos os campos.", "error");
-                return;
-            }
-
-            try {
-                // 1. Adiciona o registro em 'dizimos'
-                const dizimoDocRef = await addDoc(getDizimosCollection(), {
-                    membroId,
-                    membroNome,
-                    valor,
-                    data,
-                    descricao,
-                    criadoEm: Timestamp.now()
-                });
-                
-                // 2. Adiciona o registro correspondente em 'financeiro' como entrada
-                await addDoc(getFinanceiroCollection(), {
-                    data,
-                    descricao: `${descricao} - ${membroNome}`,
-                    tipo: 'entrada',
-                    valor,
-                    criadoEm: Timestamp.now(),
-                    origemDizimoId: dizimoDocRef.id // Linka ao registro de dízimo
-                });
-
-                showStatus("Dízimo/Oferta registrado com sucesso!", "success");
-                e.target.reset();
-                document.getElementById('dizimoData').value = new Date().toISOString().split('T')[0]; // Reseta data
-                document.getElementById('dizimoDescricao').value = "Dízimo"; // Reseta descrição padrão
-            } catch (error) {
-                console.error("Erro ao registrar dízimo:", error);
-                showStatus("Erro ao salvar o registro.", "error");
-            }
-        });
-
-
-        // --- GESTÃO FINANCEIRA (CAIXA) ---
-
-        // Caminho da coleção Financeiro
-        const getFinanceiroCollection = () => collection(db, `artifacts/${appId}/users/${userId}/financeiro`);
-
-        // Listener (onSnapshot) para Financeiro
+        // Listener para FINANCEIRO
         function listenToFinanceiro() {
-            const q = query(getFinanceiroCollection());
+            const q = query(collection(db, `users/${userId}/financeiro`));
             unsubFinanceiro = onSnapshot(q, (snapshot) => {
-                const lancamentos = [];
-                let totalEntradas = 0;
-                let totalSaidas = 0;
-
+                todosFinanceiro = [];
                 snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    lancamentos.push({ id: doc.id, ...data });
-
-                    if (data.tipo === 'entrada') {
-                        totalEntradas += data.valor;
-                    } else if (data.tipo === 'saida') {
-                        totalSaidas += data.valor;
-                    }
+                    todosFinanceiro.push({ id: doc.id, ...doc.data() });
                 });
-
-                // Ordena por data (mais recente primeiro)
-                lancamentos.sort((a, b) => b.data.localeCompare(a.data));
-                
-                renderFinanceiro(lancamentos);
-                updateSaldo(totalEntradas, totalSaidas);
+                renderFinanceiro();
+                updateDashboard();
             }, (error) => {
-                console.error("Erro ao ouvir financeiro:", error);
-                showStatus("Erro ao carregar o financeiro.", "error");
+                console.error("Erro ao ouvir financeiro:", error.message);
             });
         }
 
-        // Renderiza tabela do Financeiro
-        function renderFinanceiro(lancamentos) {
-            const tbody = document.getElementById('tabelaFinanceiro');
-            if (lancamentos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Nenhum lançamento no caixa.</td></tr>';
-                return;
+        // --- RENDERIZAÇÃO (ATUALIZAÇÃO DA UI) ---
+
+        // Renderiza a tabela de membros e o select de dízimos
+        function renderMembros() {
+            membrosTabela.innerHTML = ''; // Limpa tabela
+            dizimoMembroSelect.innerHTML = '<option value="">Anônimo / Não se aplica</option>'; // Limpa select
+
+            if (todosMembros.length === 0) {
+                membrosTabela.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum membro cadastrado.</td></tr>';
             }
 
-            tbody.innerHTML = lancamentos.map(l => {
-                const isEntrada = l.tipo === 'entrada';
-                const valorClasse = isEntrada ? 'text-green-600' : 'text-red-600';
-                const valorPrefixo = isEntrada ? '+' : '-';
-
-                return `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${formatDate(l.data)}</td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${l.descricao}</td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium ${valorClasse}">
-                            ${valorPrefixo} ${formatCurrency(l.valor)}
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                            <button onclick="confirmDelete('${l.id}', 'financeiro')" class="text-red-600 hover:text-red-900" title="Excluir" ${l.origemDizimoId ? 'disabled' : ''}>
-                                <i data-lucide="trash-2" class="w-5 h-5 ${l.origemDizimoId ? 'text-gray-400' : ''}"></i>
-                            </button>
-                        </td>
-                    </tr>
+            todosMembros.forEach(membro => {
+                // Adiciona na Tabela
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="#" data-id="${membro.id}" class="text-indigo-600 hover:text-indigo-900 font-medium modal-trigger">${membro.nome}</a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${membro.telefone || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${membro.funcao || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="#" data-id="${membro.id}" class="text-red-600 hover:text-red-900 delete-membro-quick">Excluir</a>
+                    </td>
                 `;
-            }).join('');
-            lucide.createIcons(); // Recria ícones
+                membrosTabela.appendChild(tr);
+
+                // Adiciona no Select
+                const option = document.createElement('option');
+                option.value = membro.id;
+                option.textContent = membro.nome;
+                dizimoMembroSelect.appendChild(option);
+            });
         }
 
-        // Atualiza o painel de Saldo
-        function updateSaldo(entradas, saidas) {
-            const saldo = entradas - saidas;
-            document.getElementById('totalEntradas').textContent = formatCurrency(entradas);
-            document.getElementById('totalSaidas').textContent = formatCurrency(saidas);
-            document.getElementById('saldoAtual').textContent = formatCurrency(saldo);
-            
-            // Atualiza cor do saldo
-            const saldoEl = document.getElementById('saldoAtual');
-            saldoEl.classList.remove('text-green-600', 'text-red-600', 'text-blue-600');
-            if (saldo > 0) {
-                saldoEl.classList.add('text-green-600');
-            } else if (saldo < 0) {
-                saldoEl.classList.add('text-red-600');
-            } else {
-                saldoEl.classList.add('text-blue-600');
+        // Renderiza as tabelas de Dízimos e Ofertas (Relatório Mensal)
+        function renderRelatorioDizimos() {
+            const mes = parseInt(relatorioMesSelect.value);
+            const ano = parseInt(relatorioAnoInput.value);
+
+            if (isNaN(mes) || isNaN(ano)) {
+                return; // Não renderiza se mês/ano não estiverem definidos
             }
+
+            dizimosTabela.innerHTML = '';
+            ofertasTabela.innerHTML = '';
+
+            const dizimistasDoMes = todosDizimos
+                .filter(d => {
+                    const data = d.data.toDate();
+                    return data.getMonth() === mes && data.getFullYear() === ano && d.tipo === 'Dízimo';
+                })
+                .sort((a, b) => a.data.toDate() - b.data.toDate()); // Ordena por data
+
+            const ofertasDoMes = todosDizimos
+                .filter(d => {
+                    const data = d.data.toDate();
+                    return data.getMonth() === mes && data.getFullYear() === ano && d.tipo !== 'Dízimo';
+                })
+                .sort((a, b) => a.data.toDate() - b.data.toDate()); // Ordena por data
+
+            // Renderiza Dizimistas
+            if (dizimistasDoMes.length === 0) {
+                dizimosTabela.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registrado este mês.</td></tr>';
+            }
+            dizimistasDoMes.forEach(dizimo => {
+                const membro = todosMembros.find(m => m.id === dizimo.membroId);
+                const nomeMembro = membro ? membro.nome : 'Anônimo';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(dizimo.data.toDate())}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${nomeMembro}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ ${dizimo.valor.toFixed(2)}</td>
+                `;
+                dizimosTabela.appendChild(tr);
+            });
+
+            // Renderiza Ofertas
+            if (ofertasDoMes.length === 0) {
+                ofertasTabela.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhuma outra entrada registrada este mês.</td></tr>';
+            }
+            ofertasDoMes.forEach(oferta => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(oferta.data.toDate())}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${oferta.tipo}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${oferta.descricao || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ ${oferta.valor.toFixed(2)}</td>
+                `;
+                ofertasTabela.appendChild(tr);
+            });
         }
 
-        // Handler do formulário Financeiro
-        document.getElementById('formFinanceiro').addEventListener('submit', async (e) => {
+        // Renderiza tabela financeira e calcula saldo
+        function renderFinanceiro() {
+            financeiroTabela.innerHTML = '';
+            let saldo = 0;
+
+            // Ordena por data (mais recente primeiro)
+            const lancamentosOrdenados = [...todosFinanceiro].sort((a, b) => b.data.toDate() - a.data.toDate());
+
+            if (lancamentosOrdenados.length === 0) {
+                financeiroTabela.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">Nenhum lançamento no caixa.</td></tr>';
+            }
+
+            lancamentosOrdenados.forEach(lancamento => {
+                const valor = parseFloat(lancamento.valor);
+                let valorFormatado = '';
+
+                if (lancamento.tipo === 'entrada') {
+                    saldo += valor;
+                    valorFormatado = `<span class="text-green-600 font-medium">+ R$ ${valor.toFixed(2)}</span>`;
+                } else { // 'saida'
+                    saldo -= valor;
+                    valorFormatado = `<span class="text-red-600 font-medium">- R$ ${valor.toFixed(2)}</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(lancamento.data.toDate())}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${lancamento.descricao}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${valorFormatado}</td>
+                `;
+                financeiroTabela.appendChild(tr);
+            });
+
+            // Atualiza o saldo
+            financeiroSaldo.textContent = `R$ ${saldo.toFixed(2)}`;
+            financeiroSaldo.className = `text-2xl font-bold ${saldo >= 0 ? 'text-gray-900' : 'text-red-600'}`;
+            dashboardSaldo.textContent = `R$ ${saldo.toFixed(2)}`; // Atualiza dashboard
+        }
+
+        // Atualiza os cards do Dashboard
+        function updateDashboard() {
+            // Saldo (já atualizado pelo renderFinanceiro)
+            // Total de Membros
+            dashboardMembros.textContent = todosMembros.length;
+
+            // Entradas (Mês Atual)
+            const hoje = new Date();
+            const mesAtual = hoje.getMonth();
+            const anoAtual = hoje.getFullYear();
+
+            const entradasMes = todosDizimos
+                .filter(d => {
+                    const data = d.data.toDate();
+                    return data.getMonth() === mesAtual && data.getFullYear() === anoAtual;
+                })
+                .reduce((acc, d) => acc + d.valor, 0);
+
+            dashboardEntradasMes.textContent = `R$ ${entradasMes.toFixed(2)}`;
+        }
+
+
+        // --- MANIPULAÇÃO DE FORMULÁRIOS (SALVAR DADOS) ---
+
+        // Salvar/Editar Membro
+        async function handleMembroFormSubmit(e) {
             e.preventDefault();
-            const data = document.getElementById('financeiroData').value;
-            const descricao = document.getElementById('financeiroDescricao').value;
-            const tipo = document.getElementById('financeiroTipo').value;
-            const valor = parseFloat(document.getElementById('financeiroValor').value);
+            const nome = document.getElementById('membro-nome').value;
+            const telefone = document.getElementById('membro-telefone').value;
+            const email = document.getElementById('membro-email').value;
+            const dataNascimento = document.getElementById('membro-data-nascimento').value;
+            const dataBatismo = document.getElementById('membro-data-batismo').value;
+            const funcao = document.getElementById('membro-funcao').value;
+            const endereco = document.getElementById('membro-endereco').value;
 
-            if (!data || !descricao || !valor) {
-                 showStatus("Por favor, preencha todos os campos.", "error");
-                return;
-            }
-
-            try {
-                await addDoc(getFinanceiroCollection(), {
-                    data,
-                    descricao,
-                    tipo,
-                    valor,
-                    criadoEm: Timestamp.now()
-                });
-                showStatus("Lançamento salvo com sucesso!", "success");
-                e.target.reset();
-                document.getElementById('financeiroData').value = new Date().toISOString().split('T')[0]; // Reseta data
-            } catch (error) {
-                console.error("Erro ao salvar lançamento:", error);
-                showStatus("Erro ao salvar o lançamento.", "error");
-            }
-        });
-
-        // --- GESTÃO DE EXCLUSÃO (MODAL) ---
-
-        const deleteModal = document.getElementById('deleteModal');
-        const modalConfirmBtn = document.getElementById('modalConfirmDelete');
-        const modalCancelBtn = document.getElementById('modalCancelDelete');
-        let deleteId = null;
-        let deleteType = null;
-
-        // Abre o modal de confirmação
-        window.confirmDelete = (id, type) => {
-            deleteId = id;
-            deleteType = type;
-            deleteModal.classList.remove('hidden');
-        }
-
-        // Fecha o modal
-        modalCancelBtn.onclick = () => {
-            deleteModal.classList.add('hidden');
-            deleteId = null;
-            deleteType = null;
-        }
-
-        // Confirma a exclusão
-        modalConfirmBtn.onclick = async () => {
-            if (!deleteId || !deleteType) return;
-
-            let docRef;
-            let successMessage = "Item excluído com sucesso.";
-
-            try {
-                if (deleteType === 'membro') {
-                    docRef = doc(db, `artifacts/${appId}/users/${userId}/membros`, deleteId);
-                    // TODO: Adicionar lógica para lidar com dízimos órfãos se necessário
-                    successMessage = "Membro excluído com sucesso.";
-                } else if (deleteType === 'dizimo') {
-                    docRef = doc(db, `artifacts/${appId}/users/${userId}/dizimos`, deleteId);
-                    // Ao excluir um dízimo, precisamos excluir a entrada financeira correspondente
-                    // Primeiro, busca o lançamento financeiro que tem a origemDizimoId
-                    const q = query(getFinanceiroCollection(), where("origemDizimoId", "==", deleteId));
-                    const querySnapshot = await getDocs(q);
-                    querySnapshot.forEach(async (doc) => {
-                        await deleteDoc(doc.ref); // Deleta o lançamento financeiro
-                    });
-                    
-                    successMessage = "Registro de dízimo e lançamento financeiro excluídos.";
-                } else if (deleteType === 'financeiro') {
-                    docRef = doc(db, `artifacts/${appId}/users/${userId}/financeiro`, deleteId);
-                    
-                    // Verifica se tem origem de dízimo (não deveria ser excluível por aqui, mas por segurança)
-                    const docSnap = await getDoc(docRef);
-                    if (docSnap.data().origemDizimoId) {
-                        throw new Error("Este lançamento veio de um dízimo. Exclua o registro de dízimo para estornar.");
-                    }
-                    
-                    successMessage = "Lançamento financeiro excluído.";
-                } else {
-                    throw new Error("Tipo de exclusão desconhecido.");
-                }
-
-                if (deleteType !== 'dizimo') { // No 'dizimo', a ref principal é deletada depois
-                     await deleteDoc(docRef);
-                }
-                
-                if (deleteType === 'dizimo') {
-                     await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/dizimos`, deleteId));
-                }
-
-                showStatus(successMessage, "success");
-            } catch (error) {
-                console.error("Erro ao excluir:", error);
-                showStatus(error.message || "Erro ao excluir o item.", "error");
-            } finally {
-                // Fecha o modal independentemente do resultado
-                modalCancelBtn.click();
-            }
-        }
-
-        // --- GESTÃO DE DETALHES (MODAL) ---
-
-        const detailModal = document.getElementById('memberDetailModal');
-        const detailModalContent = document.getElementById('memberDetailContent');
-        const modalCloseDetails = document.getElementById('modalCloseDetails');
-        const modalCloseDetailsBtn = document.getElementById('modalCloseDetailsBtn');
-
-        // Função para fechar o modal de detalhes
-        const closeDetailModal = () => {
-            detailModal.classList.add('hidden');
-            detailModalContent.innerHTML = '<p class="text-center text-gray-500 py-4">Carregando...</p>'; // Reset
-        }
-
-        // Event listeners for closing
-        modalCloseDetails.onclick = closeDetailModal;
-        modalCloseDetailsBtn.onclick = closeDetailModal;
-
-        // Função para MOSTRAR o modal de detalhes
-        window.showMemberDetails = (memberId) => {
-            if (!listaMembrosCache) return;
-            
-            const member = listaMembrosCache.find(m => m.id === memberId);
-            if (!member) {
-                showStatus("Membro não encontrado.", "error");
-                return;
-            }
-
-            // Helper function for display
-            const detailItem = (label, value) => {
-                // Substitui quebras de linha por <br> para o endereço
-                const val = value ? String(value).replace(/\n/g, '<br>') : '<span class="text-gray-400">N/A</span>';
-                return `<div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4 px-1">
-                            <dt class="text-sm font-medium text-gray-500">${label}</dt>
-                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${val}</dd>
-                        </div>`;
+            const membroData = {
+                nome,
+                telefone,
+                email,
+                dataNascimento,
+                dataBatismo,
+                funcao,
+                endereco
             };
 
-            detailModalContent.innerHTML = `
-                ${detailItem('Nome Completo', member.nome)}
-                ${detailItem('Função / Ministério', member.funcao)}
-                ${detailItem('Telefone', member.telefone)}
-                ${detailItem('Email', 'email')}
-                ${detailItem('Data de Nascimento', member.nascimento ? formatDate(member.nascimento) : null)}
-                ${detailItem('Data de Batismo', member.batismo ? formatDate(member.batismo) : null)}
-                ${detailItem('Endereço', member.endereco)}
-            `;
-            
-            detailModal.classList.remove('hidden');
+            try {
+                if (isEditMode && currentMembroId) {
+                    // Modo Edição
+                    const docRef = doc(db, `users/${userId}/membros`, currentMembroId);
+                    await setDoc(docRef, membroData); // setDoc substitui o documento
+                    showFormMessage(membroFormMensagem, "Membro atualizado com sucesso!");
+                    closeModal();
+                } else {
+                    // Modo Cadastro
+                    await addDoc(collection(db, `users/${userId}/membros`), membroData);
+                    showFormMessage(membroFormMensagem, "Membro salvo com sucesso!");
+                    membroForm.reset(); // Limpa o formulário
+                }
+            } catch (error) {
+                console.error("Erro ao salvar membro: ", error);
+                showFormMessage(membroFormMensagem, "Erro ao salvar membro.", true);
+            }
         }
 
-        // --- INICIALIZAÇÃO DA PÁGINA ---
-        document.addEventListener('DOMContentLoaded', () => {
-            setupFirebase();
-            lucide.createIcons();
-            
-            // Define data atual nos campos de data por padrão
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('dizimoData').value = today;
-            document.getElementById('financeiroData').value = today;
-        });
+        // Salvar Dízimo/Oferta
+        async function handleDizimoFormSubmit(e) {
+            e.preventDefault();
+            const dataInput = document.getElementById('dizimo-data').value;
+            const membroId = document.getElementById('dizimo-membro').value;
+            const valor = parseFloat(document.getElementById('dizimo-valor').value);
+            const tipo = document.getElementById('dizimo-tipo').value;
+            const descricao = document.getElementById('dizimo-descricao').value;
 
+            if (isNaN(valor) || valor <= 0) {
+                showFormMessage(dizimoFormMensagem, "Valor inválido.", true);
+                return;
+            }
+
+            const dizimoData = {
+                data: Timestamp.fromDate(new Date(dataInput.replace(/-/g, '\/'))), // Corrige formato de data para JS
+                membroId: membroId || null,
+                valor: valor,
+                tipo: tipo,
+                descricao: descricao
+            };
+
+            // Usar um WriteBatch para garantir que ambas as operações funcionem ou falhem juntas
+            const batch = writeBatch(db);
+
+            try {
+                // 1. Adiciona o registro em "dizimos"
+                const dizimoRef = doc(collection(db, `users/${userId}/dizimos`));
+                batch.set(dizimoRef, dizimoData);
+
+                // 2. Adiciona o registro correspondente em "financeiro"
+                const financeiroRef = doc(collection(db, `users/${userId}/financeiro`));
+                batch.set(financeiroRef, {
+                    data: dizimoData.data,
+                    descricao: `${tipo} - ${descricao || (todosMembros.find(m => m.id === membroId)?.nome || 'Anônimo')}`,
+                    valor: dizimoData.valor,
+                    tipo: 'entrada' // Toda entrada de dízimo/oferta é uma 'entrada' no financeiro
+                });
+
+                await batch.commit(); // Executa as duas operações
+
+                showFormMessage(dizimoFormMensagem, "Entrada registrada com sucesso!");
+                dizimoForm.reset();
+                document.getElementById('dizimo-data').value = new Date().toISOString().split('T')[0]; // Reseta data para hoje
+
+            } catch (error) {
+                console.error("Erro ao registrar entrada: ", error);
+                showFormMessage(dizimoFormMensagem, "Erro ao registrar entrada.", true);
+            }
+        }
+
+        // Salvar Lançamento Financeiro
+        async function handleFinanceiroFormSubmit(e) {
+            e.preventDefault();
+            const dataInput = document.getElementById('financeiro-data').value;
+            const descricao = document.getElementById('financeiro-descricao').value;
+            const valor = parseFloat(document.getElementById('financeiro-valor').value);
+            const tipo = document.getElementById('financeiro-tipo').value;
+
+            if (isNaN(valor) || valor <= 0) {
+                showFormMessage(financeiroFormMensagem, "Valor inválido.", true);
+                return;
+            }
+
+            const financeiroData = {
+                data: Timestamp.fromDate(new Date(dataInput.replace(/-/g, '\/'))),
+                descricao,
+                valor,
+                tipo
+            };
+
+            try {
+                await addDoc(collection(db, `users/${userId}/financeiro`), financeiroData);
+                showFormMessage(financeiroFormMensagem, "Lançamento salvo com sucesso!");
+                financeiroForm.reset();
+                document.getElementById('financeiro-data').value = new Date().toISOString().split('T')[0]; // Reseta data para hoje
+            } catch (error) {
+                console.error("Erro ao salvar lançamento: ", error);
+                showFormMessage(financeiroFormMensagem, "Erro ao salvar lançamento.", true);
+            }
+        }
+
+        // Excluir Membro (Ação Rápida ou Pelo Modal)
+        async function deleteMembro(membroId) {
+            if (!confirm("Tem certeza que deseja excluir este membro? Esta ação não pode ser desfeita.")) {
+                return;
+            }
+            try {
+                await deleteDoc(doc(db, `users/${userId}/membros`, membroId));
+                closeModal(); // Fecha o modal se estiver aberto
+                // O listener onSnapshot atualizará a tabela automaticamente
+            } catch (error) {
+                console.error("Erro ao excluir membro: ", error);
+                alert("Erro ao excluir membro.");
+            }
+        }
+
+
+        // --- MODAL DE DETALHES DO MEMBRO ---
+
+        function openModal(membroId) {
+            const membro = todosMembros.find(m => m.id === membroId);
+            if (!membro) return;
+
+            currentMembroId = membroId;
+            isEditMode = false; // Reseta para modo visualização
+            modal.classList.add('flex');
+            showMembroDetails(membro);
+        }
+
+        function closeModal() {
+            modal.classList.remove('flex');
+            currentMembroId = null;
+            isEditMode = false;
+        }
+
+        // Mostra os detalhes do membro no modal (modo visualização)
+        function showMembroDetails(membro) {
+            modalContent.innerHTML = `
+                <p><strong>Nome:</strong> ${membro.nome || ''}</p>
+                <p><strong>Telefone:</strong> ${membro.telefone || ''}</p>
+                <p><strong>Email:</strong> ${membro.email || ''}</p>
+                <p><strong>Data de Nascimento:</strong> ${membro.dataNascimento || ''}</p>
+                <p><strong>Data de Batismo:</strong> ${membro.dataBatismo || ''}</p>
+                <p><strong>Função / Ministério:</strong> ${membro.funcao || ''}</p>
+                <p><strong>Endereço:</strong><br>${membro.endereco ? membro.endereco.replace(/\n/g, '<br>') : ''}</p>
+            `;
+            modalEditButton.textContent = 'Editar';
+            modalDeleteButton.style.display = 'inline-flex';
+        }
+
+        // Mostra o formulário de edição do membro no modal (modo edição)
+        function showMembroEditForm(membro) {
+            modalContent.innerHTML = `
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nome:</label>
+                        <input type="text" id="modal-membro-nome" value="${membro.nome || ''}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Telefone:</label>
+                        <input type="tel" id="modal-membro-telefone" value="${membro.telefone || ''}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email:</label>
+                        <input type="email" id="modal-membro-email" value="${membro.email || ''}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Data de Nascimento:</label>
+                        <input type="date" id="modal-membro-data-nascimento" value="${membro.dataNascimento || ''}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Data de Batismo:</label>
+                        <input type="date" id="modal-membro-data-batismo" value="${membro.dataBatismo || ''}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Função / Ministério:</label>
+                        <input type="text" id="modal-membro-funcao" value="${membro.funcao || ''}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Endereço:</label>
+                        <textarea id="modal-membro-endereco" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">${membro.endereco || ''}</textarea>
+                    </div>
+                </div>
+            `;
+            modalEditButton.textContent = 'Salvar Alterações';
+            modalDeleteButton.style.display = 'none'; // Oculta o botão de excluir no modo de edição
+        }
+
+        // Ação do botão Editar/Salvar no modal
+        async function handleModalEditClick() {
+            if (isEditMode) {
+                // Se está em modo edição, Tenta salvar
+                const membroData = {
+                    nome: document.getElementById('modal-membro-nome').value,
+                    telefone: document.getElementById('modal-membro-telefone').value,
+                    email: document.getElementById('modal-membro-email').value,
+                    dataNascimento: document.getElementById('modal-membro-data-nascimento').value,
+                    dataBatismo: document.getElementById('modal-membro-data-batismo').value,
+                    funcao: document.getElementById('modal-membro-funcao').value,
+                    endereco: document.getElementById('modal-membro-endereco').value
+                };
+
+                try {
+                    const docRef = doc(db, `users/${userId}/membros`, currentMembroId);
+                    await setDoc(docRef, membroData);
+                    closeModal();
+                    // O listener onSnapshot atualizará a UI
+                } catch (error) {
+                    console.error("Erro ao atualizar membro:", error);
+                    alert("Erro ao atualizar membro.");
+                }
+            } else {
+                // Se está em modo visualização, entra em modo edição
+                const membro = todosMembros.find(m => m.id === currentMembroId);
+                if (membro) {
+                    isEditMode = true;
+                    showMembroEditForm(membro);
+                }
+            }
+        }
+
+
+        // --- NAVEGAÇÃO POR ABAS ---
+
+        function setupTabs() {
+            // Define os títulos de cada aba
+            const tabTitles = {
+                'tab-dashboard': 'Dashboard',
+                'tab-cadastrar-membro': 'Cadastrar Novo Membro',
+                'tab-visualizar-membros': 'Visualizar Membros',
+                'tab-dizimos': 'Dízimos e Ofertas',
+                'tab-financeiro': 'Financeiro (Caixa)'
+            };
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+
+                    // Atualiza Header
+                    headerTitle.textContent = tabTitles[targetTab] || 'Dashboard';
+
+                    // Atualiza botões (Active)
+                    tabButtons.forEach(btn => {
+                        if (btn.getAttribute('data-tab') === targetTab) {
+                            btn.classList.add('active');
+                            // Ajusta classes mobile/desktop
+                            btn.classList.remove('text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
+                            btn.classList.add('bg-gray-900', 'text-white');
+                        } else {
+                            btn.classList.remove('active', 'bg-gray-900', 'text-white');
+                            btn.classList.add('text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
+                        }
+                    });
+
+                    // Atualiza Conteúdo (Active)
+                    tabContents.forEach(content => {
+                        content.style.display = content.id === targetTab ? 'block' : 'none';
+                    });
+                });
+            });
+
+            // Ajuste inicial para botões mobile/desktop (não-abas)
+            document.querySelectorAll('.tab-button').forEach(button => {
+                if (button.classList.contains('active')) {
+                    button.classList.add('bg-gray-900', 'text-white');
+                } else {
+                    button.classList.add('text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
+                }
+                // Classes comuns a todos
+                button.classList.add('px-3', 'py-2', 'rounded-md', 'text-sm', 'font-medium', 'block', 'md:inline-block', 'border-b-2', 'border-transparent', 'md:border-b-0');
+            });
+        }
+
+
+        // --- FUNÇÕES UTILITÁRIAS ---
+
+        // Formata data para dd/mm/aaaa
+        function formatDate(date) {
+            if (!date) return '';
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        // Mostra mensagem de sucesso/erro nos formulários
+        function showFormMessage(element, message, isError = false) {
+            element.textContent = message;
+            element.className = isError ? 'text-sm text-red-600' : 'text-sm text-green-600';
+            setTimeout(() => {
+                element.textContent = '';
+            }, 3000);
+        }
+
+        // Preenche os seletores de data para o relatório de dízimos
+        function setupRelatorioSelectors() {
+            const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            const hoje = new Date();
+            const mesAtual = hoje.getMonth(); // 0-11
+            const anoAtual = hoje.getFullYear();
+
+            relatorioMesSelect.innerHTML = '';
+            meses.forEach((mes, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = mes;
+                if (index === mesAtual) {
+                    option.selected = true;
+                }
+                relatorioMesSelect.appendChild(option);
+            });
+
+            relatorioAnoInput.value = anoAtual;
+
+            // Adiciona listeners para atualizar o relatório quando os seletores mudarem
+            relatorioMesSelect.addEventListener('change', renderRelatorioDizimos);
+            relatorioAnoInput.addEventListener('change', renderRelatorioDizimos);
+        }
+
+
+        // --- EVENT LISTENERS GLOBAIS ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Configura Firebase e Autenticação
+            setupFirebase();
+            toggleAuthModeLink.addEventListener('click', toggleAuthMode);
+            authForm.addEventListener('submit', handleAuthFormSubmit);
+            logoutButton.addEventListener('click', handleLogout);
+            logoutButtonMobile.addEventListener('click', handleLogout);
+
+            // Configura Navegação
+            setupTabs();
+            setupRelatorioSelectors();
+
+            // Seta datas padrão nos formulários
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dizimo-data').value = today;
+            document.getElementById('financeiro-data').value = today;
+
+            // Formulários
+            membroForm.addEventListener('submit', handleMembroFormSubmit);
+            dizimoForm.addEventListener('submit', handleDizimoFormSubmit);
+            financeiroForm.addEventListener('submit', handleFinanceiroFormSubmit);
+
+            // Modal de Membros
+            modalCloseButton.addEventListener('click', closeModal);
+            modalDeleteButton.addEventListener('click', () => deleteMembro(currentMembroId));
+            modalEditButton.addEventListener('click', handleModalEditClick);
+
+            // Event delegation para cliques na tabela (Abrir Modal, Excluir Rápido)
+            membrosTabela.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = e.target;
+
+                if (target.classList.contains('modal-trigger')) {
+                    openModal(target.getAttribute('data-id'));
+                }
+                if (target.classList.contains('delete-membro-quick')) {
+                    deleteMembro(target.getAttribute('data-id'));
+                }
+            });
+
+        });
     </script>
+
+    <!-- Script Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Espera o DOM estar pronto e então carrega os ícones
+            // Isso garante que os elementos SVG já existem
+            try {
+                lucide.createIcons();
+            } catch (error) {
+                console.error("Erro ao criar ícones Lucide:", error);
+            }
+        });
+    </sCRIPT>
+
 </body>
+
 </html>
 
