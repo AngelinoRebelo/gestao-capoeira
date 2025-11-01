@@ -162,7 +162,8 @@
                                             Membro</button>
                                         <button class="tab-button" data-tab="tab-visualizar-membros">Visualizar
                                             Membros</button>
-                                        <button class="tab-button" data-tab="tab-dizimos">Dízimos e Ofertas</button>
+                                        <button class="tab-button" data-tab="tab-dizimos-reg">Dízimos</button>
+                                        <button class="tab-button" data-tab="tab-ofertas-reg">Ofertas e Outras</button>
                                         <button class="tab-button" data-tab="tab-financeiro">Financeiro (Caixa)</button>
                                     </div>
                                 </div>
@@ -185,7 +186,8 @@
                         <button class="tab-button active" data-tab="tab-dashboard">Dashboard</button>
                         <button class="tab-button" data-tab="tab-cadastrar-membro">Cadastrar Membro</button>
                         <button class="tab-button" data-tab="tab-visualizar-membros">Visualizar Membros</button>
-                        <button class="tab-button" data-tab="tab-dizimos">Dízimos e Ofertas</button>
+                        <button class="tab-button" data-tab="tab-dizimos-reg">Dízimos</button>
+                        <button class="tab-button" data-tab="tab-ofertas-reg">Ofertas e Outras</button>
                         <button class="tab-button" data-tab="tab-financeiro">Financeiro (Caixa)</button>
                     </div>
                     <div class="pt-4 pb-3 border-t border-gray-700">
@@ -512,6 +514,203 @@
                         </div>
                     </div>
 
+                    <!-- Aba Dízimos -->
+                    <div id="tab-dizimos-reg" class="tab-content">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Coluna do Formulário de Dízimo -->
+                            <div class="md:col-span-1">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-4">Registro de Dízimo</h2>
+                                <form id="form-dizimo-novo" class="space-y-4">
+                                    <div>
+                                        <label for="dizimo-data-novo"
+                                            class="block text-sm font-medium text-gray-700">Data:</label>
+                                        <input type="date" id="dizimo-data-novo" required
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="dizimo-membro-novo"
+                                            class="block text-sm font-medium text-gray-700">Membro:</label>
+                                        <select id="dizimo-membro-novo" required
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <option value="">Selecione o Membro</option>
+                                            <!-- Opções carregadas via JS -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="dizimo-valor-novo"
+                                            class="block text-sm font-medium text-gray-700">Valor (R$):</label>
+                                        <input type="number" step="0.01" id="dizimo-valor-novo" required
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="100.00">
+                                    </div>
+                                    <div>
+                                        <label for="dizimo-descricao-novo"
+                                            class="block text-sm font-medium text-gray-700">Descrição
+                                            (Opcional):</label>
+                                        <input type="text" id="dizimo-descricao-novo"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="Ex: Referente a Jan/25">
+                                    </div>
+                                    <button type="submit"
+                                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Registrar Dízimo
+                                    </button>
+                                    <p id="dizimo-novo-mensagem" class="text-sm text-green-600"></p>
+                                </form>
+                            </div>
+                            <!-- Coluna do Relatório de Dízimos -->
+                            <div class="md:col-span-2">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-4">Relatório Mensal de Dízimos</h2>
+                                <!-- Seletores de Mês/Ano -->
+                                <div class="flex space-x-4 mb-4">
+                                    <div>
+                                        <label for="relatorio-mes-dizimo"
+                                            class="block text-sm font-medium text-gray-700">Mês:</label>
+                                        <select id="relatorio-mes-dizimo"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <!-- Meses carregados via JS -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="relatorio-ano-dizimo"
+                                            class="block text-sm font-medium text-gray-700">Ano:</label>
+                                        <input type="number" id="relatorio-ano-dizimo"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="AAAA">
+                                    </div>
+                                </div>
+                                <!-- Tabela de Dizimistas -->
+                                <div class="overflow-x-auto mb-6">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Data</th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Membro</th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Valor (R$)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dizimos-tabela" class="bg-white divide-y divide-gray-200">
+                                            <!-- Linhas inseridas via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba Ofertas e Outras Entradas -->
+                    <div id="tab-ofertas-reg" class="tab-content">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Coluna do Formulário de Oferta -->
+                            <div class="md:col-span-1">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-4">Registro de Ofertas/Entradas
+                                </h2>
+                                <form id="form-oferta-nova" class="space-y-4">
+                                    <div>
+                                        <label for="oferta-data-nova"
+                                            class="block text-sm font-medium text-gray-700">Data:</label>
+                                        <input type="date" id="oferta-data-nova" required
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="oferta-membro-novo"
+                                            class="block text-sm font-medium text-gray-700">Membro
+                                            (Opcional):</label>
+                                        <select id="oferta-membro-novo"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <option value="">Anônimo / Não se aplica</option>
+                                            <!-- Opções carregadas via JS -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="oferta-valor-novo"
+                                            class="block text-sm font-medium text-gray-700">Valor (R$):</label>
+                                        <input type="number" step="0.01" id="oferta-valor-novo" required
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="50.00">
+                                    </div>
+                                    <div>
+                                        <label for="oferta-tipo-novo"
+                                            class="block text-sm font-medium text-gray-700">Tipo:</label>
+                                        <select id="oferta-tipo-novo"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <option value="Oferta">Oferta</option>
+                                            <option value="Oferta Alçada">Oferta Alçada</option>
+                                            <option value="Venda Evento">Venda Evento</option>
+                                            <option value="Outra Entrada">Outra Entrada</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="oferta-descricao-nova"
+                                            class="block text-sm font-medium text-gray-700">Descrição
+                                            (Opcional):</label>
+                                        <input type="text" id="oferta-descricao-nova"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="Ex: Oferta especial, Cantina">
+                                    </div>
+                                    <button type="submit"
+                                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Registrar Entrada
+                                    </button>
+                                    <p id="oferta-novo-mensagem" class="text-sm text-green-600"></p>
+                                </form>
+                            </div>
+                            <!-- Coluna do Relatório de Ofertas -->
+                            <div class="md:col-span-2">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-4">Relatório Mensal de
+                                    Ofertas/Entradas</h2>
+                                <!-- Seletores de Mês/Ano -->
+                                <div class="flex space-x-4 mb-4">
+                                    <div>
+                                        <label for="relatorio-mes-oferta"
+                                            class="block text-sm font-medium text-gray-700">Mês:</label>
+                                        <select id="relatorio-mes-oferta"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <!-- Meses carregados via JS -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="relatorio-ano-oferta"
+                                            class="block text-sm font-medium text-gray-700">Ano:</label>
+                                        <input type="number" id="relatorio-ano-oferta"
+                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="AAAA">
+                                    </div>
+                                </div>
+                                <!-- Tabela de Outras Entradas -->
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Data</th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Tipo</th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Descrição</th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Valor (R$)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ofertas-tabela" class="bg-white divide-y divide-gray-200">
+                                            <!-- Linhas inseridas via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Aba Financeiro (Caixa) -->
                     <div id="tab-financeiro" class="tab-content">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -698,6 +897,15 @@
         const financeiroForm = document.getElementById('financeiro-form');
         const financeiroFormMensagem = document.getElementById('financeiro-form-mensagem');
 
+        // Elementos DOM - Novos Formulários Dízimo/Oferta
+        const formDizimoNovo = document.getElementById('form-dizimo-novo');
+        const dizimoNovoMensagem = document.getElementById('dizimo-novo-mensagem');
+        const dizimoMembroNovoSelect = document.getElementById('dizimo-membro-novo');
+
+        const formOfertaNova = document.getElementById('form-oferta-nova');
+        const ofertaNovoMensagem = document.getElementById('oferta-novo-mensagem');
+        const ofertaMembroNovoSelect = document.getElementById('oferta-membro-novo');
+
         // Elementos DOM - Tabelas e Selects
         const membrosTabela = document.getElementById('membros-tabela');
         const dizimoMembroSelect = document.getElementById('dizimo-membro');
@@ -707,6 +915,11 @@
         const ofertasTabela = document.getElementById('ofertas-tabela');
         const relatorioMesSelect = document.getElementById('relatorio-mes');
         const relatorioAnoInput = document.getElementById('relatorio-ano');
+        
+        const relatorioMesDizimo = document.getElementById('relatorio-mes-dizimo');
+        const relatorioAnoDizimo = document.getElementById('relatorio-ano-dizimo');
+        const relatorioMesOferta = document.getElementById('relatorio-mes-oferta');
+        const relatorioAnoOferta = document.getElementById('relatorio-ano-oferta');
 
         // Elementos DOM - Dashboard
         const dashboardSaldo = document.getElementById('dashboard-saldo');
@@ -861,6 +1074,8 @@
             // Limpa tabelas na UI
             membrosTabela.innerHTML = '';
             dizimoMembroSelect.innerHTML = '<option value="">Anônimo / Não se aplica</option>';
+            dizimoMembroNovoSelect.innerHTML = '<option value="">Selecione o Membro</option>';
+            ofertaMembroNovoSelect.innerHTML = '<option value="">Anônimo / Não se aplica</option>';
             dizimosTabela.innerHTML = '';
             ofertasTabela.innerHTML = '';
             financeiroTabela.innerHTML = '';
@@ -920,6 +1135,10 @@
             membrosTabela.innerHTML = ''; // Limpa tabela
             dizimoMembroSelect.innerHTML = '<option value="">Anônimo / Não se aplica</option>'; // Limpa select
 
+            // Limpa os novos selects
+            dizimoMembroNovoSelect.innerHTML = '<option value="">Selecione o Membro</option>';
+            ofertaMembroNovoSelect.innerHTML = '<option value="">Anônimo / Não se aplica</option>';
+
             if (todosMembros.length === 0) {
                 membrosTabela.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum membro cadastrado.</td></tr>';
             }
@@ -944,6 +1163,18 @@
                 option.value = membro.id;
                 option.textContent = membro.nome;
                 dizimoMembroSelect.appendChild(option);
+
+                // Adiciona no Select (Dízimo)
+                const optionDizimo = document.createElement('option');
+                optionDizimo.value = membro.id;
+                optionDizimo.textContent = membro.nome;
+                dizimoMembroNovoSelect.appendChild(optionDizimo);
+
+                // Adiciona no Select (Oferta)
+                const optionOferta = document.createElement('option');
+                optionOferta.value = membro.id;
+                optionOferta.textContent = membro.nome;
+                ofertaMembroNovoSelect.appendChild(optionOferta.cloneNode(true));
             });
         }
 
@@ -952,7 +1183,10 @@
             const mes = parseInt(relatorioMesSelect.value);
             const ano = parseInt(relatorioAnoInput.value);
 
-            if (isNaN(mes) || isNaN(ano)) {
+            const mesDizimo = parseInt(relatorioMesDizimo.value);
+            const anoDizimo = parseInt(relatorioAnoDizimo.value);
+
+            if (isNaN(mesDizimo) || isNaN(anoDizimo)) {
                 return; // Não renderiza se mês/ano não estiverem definidos
             }
 
@@ -962,17 +1196,10 @@
             const dizimistasDoMes = todosDizimos
                 .filter(d => {
                     const data = d.data.toDate();
-                    return data.getMonth() === mes && data.getFullYear() === ano && d.tipo === 'Dízimo';
+                    return data.getMonth() === mesDizimo && data.getFullYear() === anoDizimo && d.tipo === 'Dízimo';
                 })
                 .sort((a, b) => a.data.toDate() - b.data.toDate()); // Ordena por data
-
-            const ofertasDoMes = todosDizimos
-                .filter(d => {
-                    const data = d.data.toDate();
-                    return data.getMonth() === mes && data.getFullYear() === ano && d.tipo !== 'Dízimo';
-                })
-                .sort((a, b) => a.data.toDate() - b.data.toDate()); // Ordena por data
-
+            
             // Renderiza Dizimistas
             if (dizimistasDoMes.length === 0) {
                 dizimosTabela.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registrado este mês.</td></tr>';
@@ -988,6 +1215,39 @@
                 `;
                 dizimosTabela.appendChild(tr);
             });
+
+            // Renderiza Ofertas
+            if (ofertasDoMes.length === 0) {
+                ofertasTabela.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhuma outra entrada registrada este mês.</td></tr>';
+            }
+            ofertasDoMes.forEach(oferta => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(oferta.data.toDate())}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${oferta.tipo}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${oferta.descricao || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ ${oferta.valor.toFixed(2)}</td>
+                `;
+                ofertasTabela.appendChild(tr);
+            });
+        }
+
+        function renderRelatorioOfertas() {
+            const mesOferta = parseInt(relatorioMesOferta.value);
+            const anoOferta = parseInt(relatorioAnoOferta.value);
+
+            if (isNaN(mesOferta) || isNaN(anoOferta)) {
+                return; 
+            }
+            
+            ofertasTabela.innerHTML = '';
+
+            const ofertasDoMes = todosDizimos
+                .filter(d => {
+                    const data = d.data.toDate();
+                    return data.getMonth() === mesOferta && data.getFullYear() === anoOferta && d.tipo !== 'Dízimo';
+                })
+                .sort((a, b) => a.data.toDate() - b.data.toDate()); // Ordena por data
 
             // Renderiza Ofertas
             if (ofertasDoMes.length === 0) {
@@ -1104,7 +1364,7 @@
                 }
             } catch (error) {
                 console.error("Erro ao salvar membro: ", error);
-                showFormMessage(membroFormMensagem, "Erro ao salvar membro.", true);
+                    showFormMessage(membroFormMensagem, "Erro ao salvar membro.", true);
             }
         }
 
@@ -1156,6 +1416,99 @@
             } catch (error) {
                 console.error("Erro ao registrar entrada: ", error);
                 showFormMessage(dizimoFormMensagem, "Erro ao registrar entrada.", true);
+            }
+        }
+
+        // Salvar Dízimo (Novo Formulário)
+        async function handleDizimoNovoSubmit(e) {
+            e.preventDefault();
+            const dataInput = document.getElementById('dizimo-data-novo').value;
+            const membroId = document.getElementById('dizimo-membro-novo').value;
+            const valor = parseFloat(document.getElementById('dizimo-valor-novo').value);
+            const descricao = document.getElementById('dizimo-descricao-novo').value;
+
+            if (membroId === "") {
+                showFormMessage(dizimoNovoMensagem, "Por favor, selecione um membro.", true);
+                return;
+            }
+            if (isNaN(valor) || valor <= 0) {
+                showFormMessage(dizimoNovoMensagem, "Valor inválido.", true);
+                return;
+            }
+
+            const dizimoData = {
+                data: Timestamp.fromDate(new Date(dataInput.replace(/-/g, '\/'))),
+                membroId: membroId,
+                valor: valor,
+                tipo: 'Dízimo', // Hardcoded
+                descricao: descricao
+            };
+
+            const batch = writeBatch(db);
+            try {
+                const dizimoRef = doc(collection(db, `users/${userId}/dizimos`));
+                batch.set(dizimoRef, dizimoData);
+
+                const financeiroRef = doc(collection(db, `users/${userId}/financeiro`));
+                batch.set(financeiroRef, {
+                    data: dizimoData.data,
+                    descricao: `Dízimo - ${todosMembros.find(m => m.id === membroId)?.nome}`,
+                    valor: dizimoData.valor,
+                    tipo: 'entrada'
+                });
+
+                await batch.commit();
+                showFormMessage(dizimoNovoMensagem, "Dízimo registrado com sucesso!");
+                formDizimoNovo.reset();
+                document.getElementById('dizimo-data-novo').value = new Date().toISOString().split('T')[0];
+            } catch (error) {
+                console.error("Erro ao registrar dízimo: ", error);
+                showFormMessage(dizimoNovoMensagem, "Erro ao registrar dízimo.", true);
+            }
+        }
+
+        // Salvar Oferta (Novo Formulário)
+        async function handleOfertaNovaSubmit(e) {
+            e.preventDefault();
+            const dataInput = document.getElementById('oferta-data-nova').value;
+            const membroId = document.getElementById('oferta-membro-novo').value;
+            const valor = parseFloat(document.getElementById('oferta-valor-novo').value);
+            const tipo = document.getElementById('oferta-tipo-novo').value; // From select
+            const descricao = document.getElementById('oferta-descricao-nova').value;
+
+            if (isNaN(valor) || valor <= 0) {
+                showFormMessage(ofertaNovoMensagem, "Valor inválido.", true);
+                return;
+            }
+
+            const ofertaData = {
+                data: Timestamp.fromDate(new Date(dataInput.replace(/-/g, '\/'))),
+                membroId: membroId || null,
+                valor: valor,
+                tipo: tipo,
+                descricao: descricao
+            };
+
+            const batch = writeBatch(db);
+            try {
+                const dizimoRef = doc(collection(db, `users/${userId}/dizimos`)); // Still goes to "dizimos" collection
+                batch.set(dizimoRef, ofertaData);
+
+                const financeiroRef = doc(collection(db, `users/${userId}/financeiro`));
+                batch.set(financeiroRef, {
+                    data: ofertaData.data,
+                    descricao: `${tipo} - ${descricao || (todosMembros.find(m => m.id === membroId)?.nome || 'Anônimo')}`,
+                    valor: ofertaData.valor,
+                    tipo: 'entrada'
+                });
+
+                await batch.commit();
+                showFormMessage(ofertaNovoMensagem, "Entrada registrada com sucesso!");
+                formOfertaNova.reset();
+                document.getElementById('oferta-data-nova').value = new Date().toISOString().split('T')[0];
+            } catch (error) {
+                console.error("Erro ao registrar entrada: ", error);
+                showFormMessage(ofertaNovoMensagem, "Erro ao registrar entrada.", true);
             }
         }
 
@@ -1320,6 +1673,8 @@
                 'tab-cadastrar-membro': 'Cadastrar Novo Membro',
                 'tab-visualizar-membros': 'Visualizar Membros',
                 'tab-dizimos': 'Dízimos e Ofertas',
+                'tab-dizimos-reg': 'Dízimos',
+                'tab-ofertas-reg': 'Ofertas e Outras Entradas',
                 'tab-financeiro': 'Financeiro (Caixa)'
             };
 
@@ -1400,9 +1755,39 @@
 
             relatorioAnoInput.value = anoAtual;
 
+            // Setup for Dízimo Selectors
+            relatorioMesDizimo.innerHTML = '';
+            meses.forEach((mes, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = mes;
+                if (index === mesAtual) option.selected = true;
+                relatorioMesDizimo.appendChild(option);
+            });
+            relatorioAnoDizimo.value = anoAtual;
+
+            // Setup for Oferta Selectors
+            relatorioMesOferta.innerHTML = '';
+            meses.forEach((mes, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = mes;
+                if (index === mesAtual) option.selected = true;
+                relatorioMesOferta.appendChild(option.cloneNode(true));
+            });
+            relatorioAnoOferta.value = anoAtual;
+
             // Adiciona listeners para atualizar o relatório quando os seletores mudarem
             relatorioMesSelect.addEventListener('change', renderRelatorioDizimos);
             relatorioAnoInput.addEventListener('change', renderRelatorioDizimos);
+
+            // Add listeners for Dízimo
+            relatorioMesDizimo.addEventListener('change', renderRelatorioDizimos);
+            relatorioAnoDizimo.addEventListener('change', renderRelatorioDizimos);
+
+            // Add listeners for Oferta
+            relatorioMesOferta.addEventListener('change', renderRelatorioOfertas);
+            relatorioAnoOferta.addEventListener('change', renderRelatorioOfertas);
         }
 
 
@@ -1423,11 +1808,15 @@
             // Seta datas padrão nos formulários
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('dizimo-data').value = today;
+            document.getElementById('dizimo-data-novo').value = today;
+            document.getElementById('oferta-data-nova').value = today;
             document.getElementById('financeiro-data').value = today;
 
             // Formulários
             membroForm.addEventListener('submit', handleMembroFormSubmit);
             dizimoForm.addEventListener('submit', handleDizimoFormSubmit);
+            formDizimoNovo.addEventListener('submit', handleDizimoNovoSubmit);
+            formOfertaNova.addEventListener('submit', handleOfertaNovaSubmit);
             financeiroForm.addEventListener('submit', handleFinanceiroFormSubmit);
 
             // Modal de Membros
@@ -1468,4 +1857,5 @@
 </body>
 
 </html>
+
 
