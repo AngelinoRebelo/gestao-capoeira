@@ -411,6 +411,9 @@
                                             <th
                                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Valor (R$)</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Ação</th>
                                         </tr>
                                     </thead>
                                     <tbody id="lista-dizimos" class="bg-white divide-y divide-gray-200">
@@ -506,6 +509,9 @@
                                             <th
                                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Valor (R$)</th>
+                                            <th
+                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Ação</th>
                                         </tr>
                                     </thead>
                                     <tbody id="lista-ofertas" class="bg-white divide-y divide-gray-200">
@@ -616,20 +622,92 @@
                         class="block whitespace-pre-wrap"></span></p>
             </div>
             <div class="mt-6 flex justify-end">
-                <button id="excluir-membro-btn"
-                    class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 mr-2">
+                <button id="show-edit-membro-btn"
+                    class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 mr-2">
+                    Editar
+                </button>
+                <button id="show-delete-membro-btn"
+                    class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150">
                     Excluir Membro
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Confirmação de Exclusão (Financeiro) -->
+    <!-- Modal: Editar Membro -->
+    <div id="membro-edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-membro-edit-modal">&times;</span>
+            <h2 class="text-2xl font-semibold mb-6">Editar Membro</h2>
+            <form id="form-edit-membro">
+                <div class="space-y-4">
+                    <div>
+                        <label for="edit-nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
+                        <input type="text" id="edit-nome"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required>
+                    </div>
+                    <div>
+                        <label for="edit-email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="edit-email"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="edit-telefone" class="block text-sm font-medium text-gray-700">Telefone</label>
+                        <input type="tel" id="edit-telefone"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="edit-data-nascimento" class="block text-sm font-medium text-gray-700">Data de
+                            Nascimento</label>
+                        <input type="date" id="edit-data-nascimento"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="edit-funcao" class="block text-sm font-medium text-gray-700">Função /
+                            Ministério</label>
+                        <input type="text" id="edit-funcao"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="edit-endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
+                        <textarea id="edit-endereco" rows="3"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                    
+                    <hr class="my-6">
+                    
+                    <!-- Confirmação de Senha para Edição -->
+                    <div>
+                         <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Confirme sua senha para salvar:</label>
+                        <input type="password" id="edit-membro-password"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required>
+                        <p id="edit-membro-error" class="text-red-500 text-sm mt-2"></p>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-end">
+                     <button type="button" id="cancel-edit-membro-btn"
+                        class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150 mr-2">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                        class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modal: Confirmação de Exclusão (Universal) -->
     <div id="delete-confirm-modal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="close-delete-modal">&times;</span>
             <h2 class="text-xl font-semibold mb-4 text-red-600">Confirmar Exclusão</h2>
-            <p class="mb-4">Tem certeza que deseja excluir este lançamento? Esta ação é irreversível.</p>
+            <p class="mb-4">Tem certeza que deseja excluir este registo? Esta ação é irreversível.</p>
             <p class="mb-2" id="delete-cascade-warning" class="text-yellow-700 font-medium"></p>
             <p class="mb-4">Para confirmar, digite sua senha de login:</p>
             <form id="delete-confirm-form">
@@ -675,7 +753,11 @@
             onSnapshot,
             query,
             deleteDoc,
-            Timestamp
+            Timestamp,
+            getDocs,
+            where,
+            writeBatch,
+            updateDoc
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Configuração do Firebase
@@ -707,8 +789,15 @@
         let localOfertas = [];
         let localFinanceiro = [];
         let unsubMembros, unsubDizimos, unsubOfertas, unsubFinanceiro;
-        let docFinanceiroParaExcluir = null; // Armazena o OBJETO financeiro
-        let docIdMembroParaExcluir = null;
+
+        // Objeto para guardar os dados da exclusão
+        let itemParaExcluir = {
+            id: null,
+            tipo: null // 'financeiro', 'dizimo', 'oferta', 'membro'
+        };
+
+        // ID do membro a ser editado
+        let membroParaEditarId = null;
 
         // --- CONTROLE DE AUTENTICAÇÃO ---
 
@@ -812,6 +901,33 @@
             }
         });
 
+        // --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
+        
+        // Esta função é crucial para operações seguras (excluir, editar)
+        async function reauthenticate(password) {
+            const user = auth.currentUser;
+            if (!user) {
+                throw new Error("Usuário não está logado.");
+            }
+            if (!user.email) {
+                 throw new Error("Usuário não tem email associado (ex: anônimo).");
+            }
+
+            try {
+                const credential = EmailAuthProvider.credential(user.email, password);
+                await reauthenticateWithCredential(user, credential);
+                return true; // Reautenticação bem-sucedida
+            } catch (error) {
+                console.error("Erro ao reautenticar:", error.code);
+                if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    throw new Error("Senha incorreta.");
+                } else {
+                    throw new Error("Erro de autenticação.");
+                }
+            }
+        }
+
+
         // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
 
         const tabButtons = document.querySelectorAll(".tab-button:not(#login-tab-button):not(#register-tab-button)");
@@ -838,7 +954,7 @@
             });
         });
 
-        // --- FORMULÁRIO DE MEMBROS ---
+        // --- FORMULÁRIO DE MEMBROS (CADASTRO) ---
 
         const formMembro = document.getElementById("form-membro");
         const membroSuccess = document.getElementById("membro-success");
@@ -874,6 +990,58 @@
                 setTimeout(() => membroSuccess.textContent = "", 3000);
             }
         });
+        
+        // --- FORMULÁRIO DE MEMBROS (EDIÇÃO) ---
+        
+        const formEditMembro = document.getElementById("form-edit-membro");
+        const editMembroError = document.getElementById("edit-membro-error");
+        
+        formEditMembro.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (!userId || !membroParaEditarId) return;
+            
+            const password = document.getElementById("edit-membro-password").value;
+            editMembroError.textContent = "";
+
+            if (!password) {
+                editMembroError.textContent = "A senha é obrigatória para salvar.";
+                return;
+            }
+
+            // 1. Reautenticar
+            try {
+                await reauthenticate(password);
+            } catch (error) {
+                console.error(error);
+                editMembroError.textContent = error.message; // Exibe "Senha incorreta."
+                return;
+            }
+            
+            // 2. Coletar dados do formulário
+            const dadosAtualizados = {
+                nome: document.getElementById("edit-nome").value,
+                email: document.getElementById("edit-email").value,
+                telefone: document.getElementById("edit-telefone").value,
+                dataNascimento: document.getElementById("edit-data-nascimento").value,
+                funcao: document.getElementById("edit-funcao").value,
+                endereco: document.getElementById("edit-endereco").value,
+            };
+            
+            // 3. Atualizar no Firebase
+            try {
+                const docRef = doc(db, "users", userId, "membros", membroParaEditarId);
+                await updateDoc(docRef, dadosAtualizados);
+                
+                // Sucesso
+                doCloseMembroEditModal(); // <-- CORRIGIDO
+                alert("Membro atualizado com sucesso!"); // Substituir por modal de sucesso se desejado
+            
+            } catch (error) {
+                 console.error("Erro ao atualizar membro:", error);
+                 editMembroError.textContent = "Erro ao salvar os dados.";
+            }
+        });
+
 
         // --- FORMULÁRIO DE DÍZIMOS ---
 
@@ -897,19 +1065,23 @@
             }
 
             try {
-                // 1. Salva na coleção de dízimos
-                const dizimoColRef = collection(db, "users", userId, "dizimos");
-                const dizimoDocRef = await addDoc(dizimoColRef, {
+                // Usar um "batch" para garantir que as duas operações ocorram
+                const batch = writeBatch(db);
+
+                // 1. Cria o documento de dízimo
+                const dizimoDocRef = doc(collection(db, "users", userId, "dizimos"));
+                batch.set(dizimoDocRef, {
                     membroId: membroId,
                     membroNome: membroNome,
                     valor: valor,
                     data: data,
-                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)) // Adiciona hora para evitar timezone
+                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
+                    financeiroId: null // Será atualizado depois
                 });
 
-                // 2. Adiciona ao financeiro (Entrada) com ID de origem
-                const financeiroColRef = collection(db, "users", userId, "financeiro");
-                await addDoc(financeiroColRef, {
+                // 2. Cria o documento financeiro
+                const financeiroDocRef = doc(collection(db, "users", userId, "financeiro"));
+                batch.set(financeiroDocRef, {
                     tipo: "entrada",
                     descricao: `Dízimo - ${membroNome}`,
                     valor: valor,
@@ -918,6 +1090,12 @@
                     origemId: dizimoDocRef.id, // ID do dízimo original
                     origemTipo: "dizimo"      // Tipo da origem
                 });
+
+                // 3. Atualiza o dízimo com o ID do financeiro
+                batch.update(dizimoDocRef, { financeiroId: financeiroDocRef.id });
+
+                // 4. Executa o batch
+                await batch.commit();
 
                 formDizimo.reset();
                 dizimoSuccess.textContent = "Dízimo registado com sucesso!";
@@ -950,19 +1128,23 @@
             }
 
             try {
-                // 1. Salva na coleção de ofertas
-                const ofertaColRef = collection(db, "users", userId, "ofertas");
-                const ofertaDocRef = await addDoc(ofertaColRef, {
+                // Usar um "batch"
+                const batch = writeBatch(db);
+
+                // 1. Cria o documento de oferta
+                const ofertaDocRef = doc(collection(db, "users", userId, "ofertas"));
+                batch.set(ofertaDocRef, {
                     tipo: tipo,
                     descricao: descricao,
                     valor: valor,
                     data: data,
-                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`))
+                    timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
+                    financeiroId: null // Será atualizado
                 });
 
-                // 2. Adiciona ao financeiro (Entrada) com ID de origem
-                const financeiroColRef = collection(db, "users", userId, "financeiro");
-                await addDoc(financeiroColRef, {
+                // 2. Cria o documento financeiro
+                const financeiroDocRef = doc(collection(db, "users", userId, "financeiro"));
+                batch.set(financeiroDocRef, {
                     tipo: "entrada",
                     descricao: `${tipo} - ${descricao}`,
                     valor: valor,
@@ -971,6 +1153,12 @@
                     origemId: ofertaDocRef.id, // ID da oferta original
                     origemTipo: "oferta"      // Tipo da origem
                 });
+
+                // 3. Atualiza a oferta com o ID do financeiro
+                batch.update(ofertaDocRef, { financeiroId: financeiroDocRef.id });
+
+                // 4. Executa
+                await batch.commit();
 
                 formOferta.reset();
                 ofertaSuccess.textContent = "Entrada registada com sucesso!";
@@ -1108,10 +1296,18 @@
 
         // Renderizar Tabela de Membros
         const listaMembros = document.getElementById("lista-membros");
+        const filtroMembros = document.getElementById("filtro-membros");
+        
+        filtroMembros.addEventListener("input", (e) => {
+            const termo = e.target.value.toLowerCase();
+            const membrosFiltrados = localMembros.filter(m => m.nome.toLowerCase().includes(termo));
+            renderMembros(membrosFiltrados);
+        });
+
         function renderMembros(membros) {
             listaMembros.innerHTML = ""; // Limpa a lista
             if (membros.length === 0) {
-                listaMembros.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum membro cadastrado.</td></tr>';
+                listaMembros.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum membro encontrado.</td></tr>';
                 return;
             }
             membros.forEach(membro => {
@@ -1128,7 +1324,7 @@
                 // Adiciona listener para abrir modal
                 tr.querySelector("a").addEventListener("click", (e) => {
                     e.preventDefault();
-                    showMembroModal(membro.id);
+                    showMembroDetalhesModal(membro.id);
                 });
                 listaMembros.appendChild(tr);
             });
@@ -1174,7 +1370,7 @@
                     ${sinal} R$ ${Math.abs(valor).toFixed(2).replace(".", ",")}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    <button data-id="${transacao.id}" class="delete-fin-btn text-red-500 hover:text-red-700">
+                    <button data-id="${transacao.id}" class="delete-btn text-red-500 hover:text-red-700" data-tipo="financeiro">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                     </button>
                 </td>
@@ -1183,14 +1379,7 @@
             });
 
             // Adiciona listeners aos botões de excluir
-            document.querySelectorAll(".delete-fin-btn").forEach(button => {
-                button.addEventListener("click", (e) => {
-                    const docId = e.currentTarget.dataset.id;
-                    // Encontra o objeto financeiro completo para verificar a origem
-                    docFinanceiroParaExcluir = localFinanceiro.find(t => t.id === docId);
-                    showDeleteModal();
-                });
-            });
+            adicionarListenersExcluir();
 
 
             // Atualiza saldo total
@@ -1252,16 +1441,16 @@
             const ano = parseInt(filtroDizimoAno.value);
 
             const dadosFiltrados = localDizimos.filter(d => {
-                const data = new Date(getDateFromInput(d.data));
+                const data = getDateFromInput(d.data); // <-- CORRIGIDO
                 return data.getMonth() === mes && data.getFullYear() === ano;
             });
 
             // Ordena por data
-            dadosFiltrados.sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+            dadosFiltrados.sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data)); // <-- CORRIGIDO
 
             listaDizimos.innerHTML = "";
             if (dadosFiltrados.length === 0) {
-                listaDizimos.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registado para este mês/ano.</td></tr>';
+                listaDizimos.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registado para este mês/ano.</td></tr>';
                 return;
             }
 
@@ -1271,26 +1460,33 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatarData(dizimo.data)}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${dizimo.membroNome}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">R$ ${dizimo.valor.toFixed(2).replace(".", ",")}</td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <button data-id="${dizimo.id}" class="delete-btn text-red-500 hover:text-red-700" data-tipo="dizimo">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </td>
             `;
                 listaDizimos.appendChild(tr);
             });
+            adicionarListenersExcluir(); // Adiciona listeners aos novos botões
+            lucide.createIcons();
         }
 
         function renderFiltroOfertas() {
             const mes = parseInt(filtroOfertaMes.value);
             const ano = parseInt(filtroOfertaAno.value);
 
-            const dadosFiltrados = localOfertas.filter(o => {
-                const data = new Date(getDateFromInput(o.data));
+            const dadosFiltrados = localOfertas.filter(d => {
+                const data = getDateFromInput(d.data); // <-- CORRIGIDO
                 return data.getMonth() === mes && data.getFullYear() === ano;
             });
 
             // Ordena por data
-            dadosFiltrados.sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+            dadosFiltrados.sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data)); // <-- CORRIGIDO
 
             listaOfertas.innerHTML = "";
             if (dadosFiltrados.length === 0) {
-                listaOfertas.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhuma entrada registada para este mês/ano.</td></tr>';
+                listaOfertas.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhuma oferta registada para este mês/ano.</td></tr>';
                 return;
             }
 
@@ -1301,431 +1497,500 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${oferta.tipo}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${oferta.descricao}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">R$ ${oferta.valor.toFixed(2).replace(".", ",")}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <button data-id="${oferta.id}" class="delete-btn text-red-500 hover:text-red-700" data-tipo="oferta">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </td>
             `;
                 listaOfertas.appendChild(tr);
             });
+            adicionarListenersExcluir(); // Adiciona listeners aos novos botões
+            lucide.createIcons();
         }
+
 
         // --- ATUALIZAÇÃO DO DASHBOARD ---
 
         const saldoDashboard = document.getElementById("saldo-total-dashboard");
         const entradasDashboard = document.getElementById("entradas-mes-dashboard");
         const saidasDashboard = document.getElementById("saidas-mes-dashboard");
-        const totalMembrosDashboard = document.getElementById("total-membros-dashboard");
+        const membrosDashboard = document.getElementById("total-membros-dashboard");
         const dashboardLoading = document.getElementById("dashboard-loading");
 
         function updateDashboard() {
-            dashboardLoading.style.display = 'block';
+            dashboardLoading.textContent = "Calculando dados...";
 
-            // 1. Saldo Total (do financeiro)
-            const saldo = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
-            const corSaldo = saldo >= 0 ? "text-blue-700" : "text-red-700";
+            // 1. Saldo Total
+            const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
+            const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
             saldoDashboard.className = `text-3xl font-bold ${corSaldo} mt-1`;
-            saldoDashboard.textContent = `R$ ${saldo.toFixed(2).replace(".", ",")}`;
+            saldoDashboard.textContent = `R$ ${saldoTotal.toFixed(2).replace(".", ",")}`;
 
             // 2. Total de Membros
-            totalMembrosDashboard.textContent = localMembros.length;
+            membrosDashboard.textContent = localMembros.length;
 
             // 3. Entradas e Saídas do Mês Atual
-            const hoje = new Date();
-            const mesAtual = hoje.getMonth();
-            const anoAtual = hoje.getFullYear();
+            const mesCorrente = new Date().getMonth();
+            const anoCorrente = new Date().getFullYear();
 
-            let entradasMes = 0;
-            let saidasMes = 0;
-
-            localFinanceiro.forEach(t => {
-                const data = getDateFromInput(t.data); // Usa a função auxiliar
-                if (data.getMonth() === mesAtual && data.getFullYear() === anoAtual) {
-                    if (t.tipo === 'entrada') {
-                        entradasMes += t.valor;
-                    } else if (t.tipo === 'saida') {
-                        saidasMes += t.valor; // valor já é negativo
-                    }
-                }
+            const transacoesMes = localFinanceiro.filter(t => {
+                const data = getDateFromInput(t.data); // <-- CORRIGIDO
+                return data.getMonth() === mesCorrente && data.getFullYear() === anoCorrente;
             });
+
+            const entradasMes = transacoesMes
+                .filter(t => t.valor > 0)
+                .reduce((acc, t) => acc + t.valor, 0);
+
+            const saidasMes = transacoesMes
+                .filter(t => t.valor < 0)
+                .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
 
             entradasDashboard.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
             saidasDashboard.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
 
-            dashboardLoading.style.display = 'none';
+            dashboardLoading.textContent = "";
         }
 
-        // --- MODAL DETALHES DO MEMBRO ---
+        // --- CONTROLO DOS MODAIS (JANELAS POP-UP) ---
 
-        const membroModal = document.getElementById("membro-detalhes-modal");
+        // Modal Detalhes do Membro
+        const membroDetalhesModal = document.getElementById("membro-detalhes-modal");
         const closeMembroModal = document.getElementById("close-membro-modal");
-        const excluirMembroBtn = document.getElementById("excluir-membro-btn");
 
-        function showMembroModal(membroId) {
-            const membro = localMembros.find(m => m.id === membroId);
+        function showMembroDetalhesModal(id) {
+            const membro = localMembros.find(m => m.id === id);
             if (!membro) return;
 
-            docIdMembroParaExcluir = membroId; // Armazena o ID para exclusão
-
             document.getElementById("modal-nome").textContent = membro.nome;
-            document.getElementById("modal-funcao").textContent = membro.funcao || 'Não informado';
-            document.getElementById("modal-email").textContent = membro.email || 'Não informado';
-            document.getElementById("modal-telefone").textContent = membro.telefone || 'Não informado';
-            document.getElementById("modal-data-nascimento").textContent = membro.dataNascimento ? formatarData(membro.dataNascimento) : 'Não informado';
-            document.getElementById("modal-endereco").textContent = membro.endereco || 'Não informado';
+            document.getElementById("modal-funcao").textContent = membro.funcao || 'N/A';
+            document.getElementById("modal-email").textContent = membro.email || 'N/A';
+            document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
+            document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
+            document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
+            
+            // Define o ID para os botões de ação
+            membroParaEditarId = id; // Para edição
+            itemParaExcluir.id = id; // Para exclusão
+            itemParaExcluir.tipo = 'membro';
 
-            membroModal.style.display = "block";
+            membroDetalhesModal.style.display = "block";
         }
+        closeMembroModal.onclick = () => membroDetalhesModal.style.display = "none";
+        
+        // Modal Editar Membro
+        const membroEditModal = document.getElementById("membro-edit-modal");
+        const closeMembroEditModal = document.getElementById("close-membro-edit-modal");
+        const showEditMembroBtn = document.getElementById("show-edit-membro-btn");
+        const cancelEditMembroBtn = document.getElementById("cancel-edit-membro-btn");
 
-        closeMembroModal.onclick = () => {
-            membroModal.style.display = "none";
-            docIdMembroParaExcluir = null;
+        function showMembroEditModal() {
+            const membro = localMembros.find(m => m.id === membroParaEditarId);
+            if (!membro) return;
+
+            // Preenche o formulário de edição
+            document.getElementById("edit-nome").value = membro.nome || '';
+            document.getElementById("edit-email").value = membro.email || '';
+            document.getElementById("edit-telefone").value = membro.telefone || '';
+            document.getElementById("edit-data-nascimento").value = membro.dataNascimento || '';
+            document.getElementById("edit-funcao").value = membro.funcao || '';
+            document.getElementById("edit-endereco").value = membro.endereco || '';
+            
+            // Limpa erros e senha
+            document.getElementById("edit-membro-password").value = "";
+            document.getElementById("edit-membro-error").textContent = "";
+
+            // Troca os modais
+            membroDetalhesModal.style.display = "none";
+            membroEditModal.style.display = "block";
         }
-
-        // Excluir Membro
-        excluirMembroBtn.onclick = async () => {
-            if (!docIdMembroParaExcluir || !userId) return;
-
-            if (confirm(`Tem certeza que deseja excluir este membro? Esta ação não pode ser desfeita.`)) {
-                try {
-                    const docRef = doc(db, "users", userId, "membros", docIdMembroParaExcluir);
-                    await deleteDoc(docRef);
-                    membroModal.style.display = "none";
-                    docIdMembroParaExcluir = null;
-                    console.log("Membro excluído.");
-                } catch (error) {
-                    console.error("Erro ao excluir membro: ", error);
-                    alert("Erro ao excluir membro.");
-                }
-            }
+        
+        function doCloseMembroEditModal() {
+             membroEditModal.style.display = "none";
+             membroParaEditarId = null;
         }
+        
+        showEditMembroBtn.onclick = showMembroEditModal;
+        closeMembroEditModal.onclick = doCloseMembroEditModal;
+        cancelEditMembroBtn.onclick = doCloseMembroEditModal;
 
-        // --- MODAL EXCLUIR FINANCEIRO (COM SENHA) ---
 
-        const deleteModal = document.getElementById("delete-confirm-modal");
+        // Modal Universal de Exclusão
+        const deleteConfirmModal = document.getElementById("delete-confirm-modal");
         const closeDeleteModal = document.getElementById("close-delete-modal");
+        const deleteConfirmForm = document.getElementById("delete-confirm-form");
         const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
-        const deleteForm = document.getElementById("delete-confirm-form");
-        const deletePasswordInput = document.getElementById("delete-password");
-        const deleteErrorMessage = document.getElementById("delete-error-message");
+        const deleteErrorMsg = document.getElementById("delete-error-message");
         const deleteCascadeWarning = document.getElementById("delete-cascade-warning");
-
+        const showDeleteMembroBtn = document.getElementById("show-delete-membro-btn");
 
         function showDeleteModal() {
-            deletePasswordInput.value = "";
-            deleteErrorMessage.textContent = "";
+            // Limpa o modal
+            deleteErrorMsg.textContent = "";
+            deleteCascadeWarning.textContent = "";
+            document.getElementById("delete-password").value = "";
 
-            // Mostra aviso de exclusão em cascata
-            if (docFinanceiroParaExcluir && docFinanceiroParaExcluir.origemId) {
-                deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o registro de origem (Dízimo ou Oferta).";
-                deleteCascadeWarning.style.display = "block";
-            } else {
-                deleteCascadeWarning.style.display = "none";
+            // Avisos de exclusão em cascata
+            if (itemParaExcluir.tipo === 'financeiro') {
+                const fin = localFinanceiro.find(f => f.id === itemParaExcluir.id);
+                if (fin && fin.origemId) {
+                    deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o Dízimo ou Oferta original associado a este lançamento.";
+                }
+            } else if (itemParaExcluir.tipo === 'dizimo' || itemParaExcluir.tipo === 'oferta') {
+                deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o lançamento no Caixa associado a este registo.";
+            } else if (itemParaExcluir.tipo === 'membro') {
+                deleteCascadeWarning.textContent = "Aviso: Excluir um membro NÃO apaga seus registos financeiros.";
+                membroDetalhesModal.style.display = "none"; // Fecha modal de detalhes
             }
 
-            deleteModal.style.display = "block";
+            deleteConfirmModal.style.display = "block";
+        }
+        
+        showDeleteMembroBtn.onclick = showDeleteModal;
+        closeDeleteModal.onclick = () => deleteConfirmModal.style.display = "none";
+        cancelDeleteBtn.onclick = () => deleteConfirmModal.style.display = "none";
+        
+        function adicionarListenersExcluir() {
+             document.querySelectorAll(".delete-btn").forEach(button => {
+                // Remove listener antigo para evitar duplicados
+                button.removeEventListener("click", handleDeleteClick); 
+                // Adiciona novo listener
+                button.addEventListener("click", handleDeleteClick);
+            });
+        }
+        
+        function handleDeleteClick(e) {
+            itemParaExcluir.id = e.currentTarget.dataset.id;
+            itemParaExcluir.tipo = e.currentTarget.dataset.tipo;
+            showDeleteModal();
         }
 
-        function hideDeleteModal() {
-            deleteModal.style.display = "none";
-            docFinanceiroParaExcluir = null;
-        }
-
-        closeDeleteModal.onclick = hideDeleteModal;
-        cancelDeleteBtn.onclick = hideDeleteModal;
-
-        // Processar exclusão com reautenticação
-        deleteForm.addEventListener("submit", async (e) => {
+        // Processar a Exclusão (Formulário do Modal)
+        deleteConfirmForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            if (!docFinanceiroParaExcluir || !userId) return;
+            if (!userId || !itemParaExcluir.id || !itemParaExcluir.tipo) return;
 
-            const password = deletePasswordInput.value;
-            const user = auth.currentUser;
+            const password = document.getElementById("delete-password").value;
+            deleteErrorMsg.textContent = "";
 
-            if (!user) {
-                deleteErrorMessage.textContent = "Usuário não encontrado. Tente fazer login novamente.";
+            if (!password) {
+                deleteErrorMsg.textContent = "A senha é obrigatória.";
                 return;
             }
 
+            // 1. Reautenticar
             try {
-                // 1. Reautenticar o usuário
-                const credential = EmailAuthProvider.credential(user.email, password);
-                await reauthenticateWithCredential(user, credential);
+                await reauthenticate(password);
+            } catch (error) {
+                console.error(error);
+                deleteErrorMsg.textContent = error.message; // Exibe "Senha incorreta."
+                return;
+            }
 
-                // 2. Senha correta, prosseguir com a exclusão
+            // 2. Executar a Exclusão
+            try {
+                const batch = writeBatch(db);
                 
-                // 2a. Excluir a origem (dízimo ou oferta) se houver
-                if (docFinanceiroParaExcluir.origemId && docFinanceiroParaExcluir.origemTipo) {
-                    let origemCollection;
-                    if (docFinanceiroParaExcluir.origemTipo === 'dizimo') {
-                        origemCollection = "dizimos";
-                    } else if (docFinanceiroParaExcluir.origemTipo === 'oferta') {
-                        origemCollection = "ofertas";
+                if (itemParaExcluir.tipo === 'financeiro') {
+                    const finDocRef = doc(db, "users", userId, "financeiro", itemParaExcluir.id);
+                    const finData = localFinanceiro.find(f => f.id === itemParaExcluir.id);
+                    
+                    batch.delete(finDocRef); // Apaga o financeiro
+
+                    // Se tiver origem, apaga a origem
+                    if (finData && finData.origemId && finData.origemTipo) {
+                         const origemCollection = finData.origemTipo === 'dizimo' ? 'dizimos' : 'ofertas';
+                         const origemDocRef = doc(db, "users", userId, origemCollection, finData.origemId);
+                         batch.delete(origemDocRef);
+                    }
+                
+                } else if (itemParaExcluir.tipo === 'dizimo') {
+                    const dizimoDocRef = doc(db, "users", userId, "dizimos", itemParaExcluir.id);
+                    const dizimoData = localDizimos.find(d => d.id === itemParaExcluir.id);
+                    
+                    batch.delete(dizimoDocRef); // Apaga o dízimo
+                    
+                    // Apaga o financeiro associado
+                    if (dizimoData && dizimoData.financeiroId) {
+                        const finDocRef = doc(db, "users", userId, "financeiro", dizimoData.financeiroId);
+                        batch.delete(finDocRef);
                     }
 
-                    if (origemCollection) {
-                        try {
-                            const origemDocRef = doc(db, "users", userId, origemCollection, docFinanceiroParaExcluir.origemId);
-                            await deleteDoc(origemDocRef);
-                            console.log("Registro de origem excluído:", docFinanceiroParaExcluir.origemId);
-                        } catch (err) {
-                            console.warn("Não foi possível excluir o registro de origem:", err.message);
-                            // Continua mesmo se falhar (pode já ter sido excluído)
-                        }
+                } else if (itemParaExcluir.tipo === 'oferta') {
+                    const ofertaDocRef = doc(db, "users", userId, "ofertas", itemParaExcluir.id);
+                    const ofertaData = localOfertas.find(o => o.id === itemParaExcluir.id);
+
+                    batch.delete(ofertaDocRef); // Apaga a oferta
+
+                    // Apaga o financeiro associado
+                    if (ofertaData && ofertaData.financeiroId) {
+                        const finDocRef = doc(db, "users", userId, "financeiro", ofertaData.financeiroId);
+                        batch.delete(finDocRef);
                     }
+                    
+                } else if (itemParaExcluir.tipo === 'membro') {
+                    // Exclusão de membro não é em batch, pois não tem cascata financeira
+                    const membroDocRef = doc(db, "users", userId, "membros", itemParaExcluir.id);
+                    await deleteDoc(membroDocRef);
+                    
+                    // Fechamos os modais manually
+                    deleteConfirmModal.style.display = "none";
+                    return; // Sai da função aqui
                 }
 
-                // 2b. Excluir o lançamento financeiro
-                const docRef = doc(db, "users", userId, "financeiro", docFinanceiroParaExcluir.id);
-                await deleteDoc(docRef);
-
-                console.log("Lançamento financeiro excluído com sucesso.");
-                hideDeleteModal();
+                // 3. Commit do Batch (para fin, dizimo, oferta)
+                await batch.commit();
+                
+                // 4. Fechar modal
+                deleteConfirmModal.style.display = "none";
 
             } catch (error) {
-                console.error("Erro na exclusão: ", error.code);
-                if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                    deleteErrorMessage.textContent = "Senha incorreta. A exclusão foi cancelada.";
-                } else {
-                    deleteErrorMessage.textContent = "Erro ao verificar senha. Tente novamente.";
-                }
+                console.error("Erro ao excluir registo:", error);
+                deleteErrorMsg.textContent = "Erro ao excluir. Tente novamente.";
             }
         });
 
-
-        // --- FILTRO E UTILS ---
-
-        // Filtro da Tabela de Membros
-        const filtroMembros = document.getElementById("filtro-membros");
-        filtroMembros.addEventListener("input", (e) => {
-            const termo = e.target.value.toLowerCase();
-            const membrosFiltrados = localMembros.filter(membro =>
-                membro.nome.toLowerCase().includes(termo)
-            );
-            renderMembros(membrosFiltrados);
-        });
-
-        // Converte input de data (string ou timestamp) para um objeto Date
-        // Usado nos filtros e dashboard
-        function getDateFromInput(dataInput) {
-            if (!dataInput) return new Date(); // Retorna agora se for nulo
-            
-            // Se for Timestamp
-            if (typeof dataInput === 'object' && dataInput.seconds) {
-                return dataInput.toDate();
+        // Fecha modais se clicar fora do conteúdo
+        window.onclick = function (event) {
+            if (event.target == membroDetalhesModal) {
+                membroDetalhesModal.style.display = "none";
             }
-            // Se for string YYYY-MM-DD
-            if (typeof dataInput === 'string') {
-                return new Date(`${dataInput}T12:00:00`); // Evita fuso
+            if (event.target == deleteConfirmModal) {
+                deleteConfirmModal.style.display = "none";
             }
-            return dataInput; // Se já for Date
-        }
-
-        // Formatar Data (DD/MM/AAAA)
-        function formatarData(dataInput) {
-            if (!dataInput) return '';
-
-            let data;
-            // Verifica se é um objeto Timestamp do Firebase
-            if (typeof dataInput === 'object' && dataInput.seconds) {
-                data = dataInput.toDate();
+             if (event.target == membroEditModal) {
+                doCloseMembroEditModal(); 
             }
-            // Verifica se é uma string (ex: YYYY-MM-DD)
-            else if (typeof dataInput === 'string') {
-                // Adiciona T12:00:00 para evitar problemas de fuso horário
-                // que podem mudar a data para o dia anterior.
-                data = new Date(`${dataInput}T12:00:00`);
-            }
-            // Verifica se é um objeto Date nativo
-            else if (dataInput instanceof Date) {
-                data = dataInput;
-            }
-            // Se não for um formato reconhecido, retorna vazio
-            else {
-                console.warn("Formato de data desconhecido:", dataInput);
-                return '';
-            }
-
-            // Agora que 'data' é um objeto Date, podemos formatá-lo com segurança.
-            // Usamos getUTCDate() para consistência, já que tratamos como T12:00:00
-            const dia = String(data.getUTCDate()).padStart(2, '0');
-            const mes = String(data.getUTCMonth() + 1).padStart(2, '0'); // Mês é 0-indexado
-            const ano = data.getUTCFullYear();
-
-            // Verifica se a data é válida
-            if (isNaN(dia) || isNaN(mes) || isNaN(ano)) return '';
-
-            return `${dia}/${mes}/${ano}`;
         }
 
         // --- GERAÇÃO DE RELATÓRIO ---
-
+        
         const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
-        gerarRelatorioBtn.addEventListener("click", gerarRelatorioCompleto);
 
-        function gerarRelatorioCompleto() {
-            // 1. Calcular dados atuais
-            const saldo = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
+        gerarRelatorioBtn.addEventListener("click", () => {
+            // 1. Coletar todos os dados
+            const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
             const totalMembros = localMembros.length;
-            const dataGeracao = new Date().toLocaleString("pt-BR", { dateStyle: 'long', timeStyle: 'short' });
+            
+            // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
+            const financOrdenado = [...localFinanceiro].sort((a, b) => a.timestamp.seconds - b.timestamp.seconds);
+            const dizimosOrdenados = [...localDizimos].sort((a, b) => a.timestamp.seconds - b.timestamp.seconds);
+            const ofertasOrdenadas = [...localOfertas].sort((a, b) => a.timestamp.seconds - b.timestamp.seconds);
 
-            // Ordenar dados para o relatório
-            const dizimosOrdenados = [...localDizimos].sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
-            const ofertasOrdenadas = [...localOfertas].sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
-            // Financeiro já está ordenado (mais novo primeiro), vamos inverter (mais antigo primeiro)
-            const financeiroOrdenado = [...localFinanceiro].reverse();
-
-            // 2. Criar HTML do Relatório
-            let htmlRelatorio = `
+            // 3. Construir o HTML do Relatório
+            let relatorioHTML = `
                 <html>
                 <head>
-                    <title>Relatório Completo da Igreja</title>
+                    <title>Relatório Geral da Igreja</title>
+                    <script src="https://cdn.tailwindcss.com"></script>
                     <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-                        h1 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; }
-                        h2 { color: #007bff; border-bottom: 1px solid #ccc; padding-bottom: 3px; margin-top: 30px; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-                        th { background-color: #f2f2f2; }
-                        tr:nth-child(even) { background-color: #f9f9f9; }
-                        .resumo { background-color: #e6f7ff; border: 1px solid #b3e0ff; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-                        .resumo p { margin: 5px 0; font-size: 16px; }
-                        .resumo strong { color: #0056b3; }
-                        .print-btn {
-                            display: block; width: 100px; margin: 20px auto; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;
-                        }
-                        .entrada { color: green; }
-                        .saida { color: red; }
-                        .valor { text-align: right; }
-
                         @media print {
-                            .print-btn { display: none; }
+                            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                            .no-print { display: none; }
                         }
+                        body { font-family: sans-serif; }
+                        h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
+                        h2 { font-size: 20px; font-weight: 600; color: #1d4ed8; margin-top: 24px; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                        th, td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; font-size: 14px; }
+                        th { background-color: #f3f4f6; font-weight: 600; }
+                        .currency { text-align: right; font-weight: 500; }
+                        .currency-header { text-align: right; }
+                        .entrada { color: #15803d; }
+                        .saida { color: #b91c1c; }
+                        .total { font-weight: bold; font-size: 16px; }
                     </style>
                 </head>
-                <body>
-                    <button class="print-btn" onclick="window.print()">Imprimir</button>
-                    
-                    <h1>Relatório Completo da Igreja</h1>
-                    <p>Gerado em: ${dataGeracao}</p>
+                <body class="bg-gray-100 p-8">
+                    <div class="container mx-auto bg-white p-10 rounded shadow-lg">
+                        <div class="flex justify-between items-center mb-6">
+                            <h1>Relatório Geral da Igreja</h1>
+                            <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
-                    <div class="resumo">
-                        <p><strong>Saldo Atual (Caixa):</strong> R$ ${saldo.toFixed(2).replace(".", ",")}</p>
-                        <p><strong>Total de Membros:</strong> ${totalMembros}</p>
+                        <!-- Resumo -->
+                        <div class="grid grid-cols-2 gap-6 mb-8">
+                            <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                                <h3 class="text-lg font-semibold text-blue-800">Saldo Atual (Caixa)</h3>
+                                <p class="text-3xl font-bold ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">R$ ${saldoTotal.toFixed(2).replace(".", ",")}</p>
+                            </div>
+                            <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+                                <h3 class="text-lg font-semibold text-indigo-800">Total de Membros</h3>
+                                <p class="text-3xl font-bold text-indigo-700">${totalMembros}</p>
+                            </div>
+                        </div>
+
+                        <!-- Lista de Membros -->
+                        <h2>Lista de Membros</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Função</th>
+                                    <th>Telefone</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${localMembros.map(m => `
+                                    <tr>
+                                        <td>${m.nome}</td>
+                                        <td>${m.funcao || ''}</td>
+                                        <td>${m.telefone || ''}</td>
+                                        <td>${m.email || ''}</td>
+                                    </tr>
+                                `).join('')}
+                                ${localMembros.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhum membro cadastrado.</td></tr>' : ''}
+                            </tbody>
+                        </table>
+                        
+                        <!-- Dízimos -->
+                        <h2>Registos de Dízimos</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Membro</th>
+                                    <th class="currency-header">Valor (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${dizimosOrdenados.map(d => `
+                                    <tr>
+                                        <td>${formatarData(d.data)}</td>
+                                        <td>${d.membroNome}</td>
+                                        <td class="currency entrada">R$ ${d.valor.toFixed(2).replace(".", ",")}</td>
+                                    </tr>
+                                `).join('')}
+                                ${dizimosOrdenados.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum dízimo registado.</td></tr>' : ''}
+                            </tbody>
+                        </table>
+                        
+                        <!-- Ofertas -->
+                        <h2>Registos de Ofertas e Outras Entradas</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Tipo</th>
+                                    <th>Descrição</th>
+                                    <th class="currency-header">Valor (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${ofertasOrdenadas.map(o => `
+                                    <tr>
+                                        <td>${formatarData(o.data)}</td>
+                                        <td>${o.tipo}</td>
+                                        <td>${o.descricao}</td>
+                                        <td class="currency entrada">R$ ${o.valor.toFixed(2).replace(".", ",")}</td>
+                                    </tr>
+                                `).join('')}
+                                ${ofertasOrdenadas.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada.</td></tr>' : ''}
+                            </tbody>
+                        </table>
+
+                        <!-- Extrato Financeiro -->
+                        <h2>Extrato Financeiro (Caixa)</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th class="currency-header">Valor (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${financOrdenado.map(f => `
+                                    <tr>
+                                        <td>${formatarData(f.data)}</td>
+                                        <td>${f.descricao}</td>
+                                        <td class="currency ${f.valor > 0 ? 'entrada' : 'saida'}">
+                                            R$ ${f.valor.toFixed(2).replace(".", ",")}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                                ${financOrdenado.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum lançamento no caixa.</td></tr>' : ''}
+                                <!-- Linha de Saldo Total -->
+                                <tr class="total bg-gray-50">
+                                    <td colspan="2" class="text-right font-bold">SALDO TOTAL</td>
+                                    <td class="currency ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">
+                                        R$ ${saldoTotal.toFixed(2).replace(".", ",")}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-
-                    <!-- Tabela de Membros -->
-                    <h2>Lista de Membros (${localMembros.length})</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Função</th>
-                                <th>Telefone</th>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${localMembros.map(m => `
-                                <tr>
-                                    <td>${m.nome}</td>
-                                    <td>${m.funcao || ''}</td>
-                                    <td>${m.telefone || ''}</td>
-                                    <td>${m.email || ''}</td>
-                                </tr>
-                            `).join('')}
-                            ${localMembros.length === 0 ? '<tr><td colspan="4">Nenhum membro cadastrado.</td></tr>' : ''}
-                        </tbody>
-                    </table>
-
-                    <!-- Tabela de Dízimos -->
-                    <h2>Registros de Dízimos (${dizimosOrdenados.length})</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Membro</th>
-                                <th class="valor">Valor (R$)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${dizimosOrdenados.map(d => `
-                                <tr>
-                                    <td>${formatarData(d.data)}</td>
-                                    <td>${d.membroNome}</td>
-                                    <td class="entrada valor">R$ ${d.valor.toFixed(2).replace(".", ",")}</td>
-                                </tr>
-                            `).join('')}
-                            ${dizimosOrdenados.length === 0 ? '<tr><td colspan="3">Nenhum dízimo registrado.</td></tr>' : ''}
-                        </tbody>
-                    </table>
-
-                    <!-- Tabela de Ofertas -->
-                    <h2>Registros de Ofertas e Outras Entradas (${ofertasOrdenadas.length})</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Descrição</th>
-                                <th class="valor">Valor (R$)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${ofertasOrdenadas.map(o => `
-                                <tr>
-                                    <td>${formatarData(o.data)}</td>
-                                    <td>${o.tipo}</td>
-                                    <td>${o.descricao}</td>
-                                    <td class="entrada valor">R$ ${o.valor.toFixed(2).replace(".", ",")}</td>
-                                </tr>
-                            `).join('')}
-                            ${ofertasOrdenadas.length === 0 ? '<tr><td colspan="4">Nenhuma oferta registrada.</td></tr>' : ''}
-                        </tbody>
-                    </table>
-
-                    <!-- Tabela Financeiro -->
-                    <h2>Extrato Financeiro Completo (${financeiroOrdenado.length})</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Descrição</th>
-                                <th class="valor">Valor (R$)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${financeiroOrdenado.map(f => `
-                                <tr class="${f.tipo === 'entrada' ? 'entrada' : 'saida'}">
-                                    <td>${formatarData(f.data)}</td>
-                                    <td>${f.descricao}</td>
-                                    <td class="valor">${f.tipo === 'entrada' ? '+' : ''} R$ ${f.valor.toFixed(2).replace(".", ",")}</td>
-                                img
-                            `).join('')}
-                            ${financeiroOrdenado.length === 0 ? '<tr><td colspan="3">Nenhum lançamento financeiro.</td></tr>' : ''}
-                        </tbody>
-                    </table>
-
-                    <button class="print-btn" onclick="window.print()">Imprimir</button>
                 </body>
                 </html>
             `;
 
-            // 3. Abrir nova janela
-            const relatorioWindow = window.open("", "_blank");
-            relatorioWindow.document.write(htmlRelatorio);
-            relatorioWindow.document.close();
+            // 4. Abrir numa nova janela
+            const relatorioJanela = window.open("", "_blank");
+            relatorioJanela.document.write(relatorioHTML);
+            relatorioJanela.document.close();
+        });
+
+
+        // --- FUNÇÕES UTILITÁRIAS ---
+
+        // Função de formatação de data
+        function formatarData(dataString) {
+            // Se for um Timestamp do Firebase, converte para Date
+            if (dataString && typeof dataString.toDate === 'function') {
+                dataString = dataString.toDate();
+            }
+            // Se for um objeto Date
+            else if (dataString instanceof Date) {
+                 // Não faz nada, já é um Date
+            }
+            // Se for uma string (ex: '2025-11-01')
+            else if (typeof dataString === 'string' && dataString.includes('-')) {
+                 dataString = getDateFromInput(dataString); // Usa a função robusta
+            } 
+            // Se for inválido ou nulo
+            else {
+                return 'N/A'; // Retorna 'N/A' se a data for inválida
+            }
+            
+            try {
+                // Formata para dd/mm/aaaa
+                return dataString.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+            } catch (e) {
+                console.warn("Erro ao formatar data:", dataString, e);
+                return 'N/A';
+            }
+        }
+
+        // Converte string 'aaaa-mm-dd' ou Timestamp para um Date UTC
+        // CORRIGIDO para ser mais robusto
+        function getDateFromInput(dataInput) {
+            // Se for um Timestamp do Firebase
+            if (dataInput && typeof dataInput.toDate === 'function') {
+                return dataInput.toDate(); // Retorna o objeto Date
+            }
+            // Se já for um objeto Date
+            if (dataInput instanceof Date) {
+                return dataInput;
+            }
+            // Se for uma string (ex: '2025-11-01')
+            if (typeof dataInput === 'string' && dataInput.includes('-')) {
+                const parts = dataInput.split('-');
+                if (parts.length === 3) {
+                    // Ano, Mês (base 0), Dia
+                    // Garante que seja UTC para evitar problemas de fuso
+                    return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+                }
+            }
+            // Fallback para data inválida ou formato desconhecido
+            // Retorna uma data no passado para não corresponder aos filtros
+            return new Date('1970-01-01T00:00:00Z');
         }
 
 
-        // Fechar Modais clicando fora
-        window.onclick = function (event) {
-            if (event.target == membroModal) {
-                membroModal.style.display = "none";
-                docIdMembroParaExcluir = null;
-            }
-            if (event.target == deleteModal) {
-                hideDeleteModal();
-            }
-        }
-
-        // Inicialização dos ícones
+        // Inicializa ícones Lucide
         lucide.createIcons();
     </script>
 </body>
