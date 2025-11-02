@@ -264,6 +264,32 @@ async function reauthenticate(password) {
 }
 
 
+// --- LÓGICA CONDICIONAL ESTADO CIVIL ---
+const estadoCivilSelect = document.getElementById("estado-civil");
+const campoConjuge = document.getElementById("campo-conjuge");
+
+estadoCivilSelect.addEventListener("change", () => {
+    if (estadoCivilSelect.value === 'Casado(a)') {
+        campoConjuge.classList.remove("hidden");
+    } else {
+        campoConjuge.classList.add("hidden");
+        document.getElementById("conjuge").value = ""; // Limpa o campo
+    }
+});
+
+const editEstadoCivilSelect = document.getElementById("edit-estado-civil");
+const editCampoConjuge = document.getElementById("edit-campo-conjuge");
+
+editEstadoCivilSelect.addEventListener("change", () => {
+    if (editEstadoCivilSelect.value === 'Casado(a)') {
+        editCampoConjuge.classList.remove("hidden");
+    } else {
+        editCampoConjuge.classList.add("hidden");
+        document.getElementById("edit-conjuge").value = ""; // Limpa o campo
+    }
+});
+
+
 // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
 
 const tabButtons = document.querySelectorAll(".tab-button:not(#login-tab-button):not(#register-tab-button)");
@@ -307,6 +333,9 @@ formMembro.addEventListener("submit", async (e) => {
     const dataNascimento = document.getElementById("data-nascimento").value;
     const funcao = document.getElementById("funcao").value;
     const endereco = document.getElementById("endereco").value;
+    // CAMPOS ADICIONADOS
+    const estadoCivil = document.getElementById("estado-civil").value;
+    const conjuge = document.getElementById("conjuge").value;
 
     try {
         const docRef = collection(db, "users", userId, "membros");
@@ -316,10 +345,14 @@ formMembro.addEventListener("submit", async (e) => {
             telefone: telefone,
             dataNascimento: dataNascimento,
             funcao: funcao,
-            endereco: endereco
+            endereco: endereco,
+            // CAMPOS ADICIONADOS
+            estadoCivil: estadoCivil,
+            conjuge: conjuge
         });
 
         formMembro.reset();
+        campoConjuge.classList.add("hidden"); // Esconde o campo cônjuge
         showToast("Membro salvo com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar membro: ", error);
@@ -367,6 +400,9 @@ formEditMembro.addEventListener("submit", async (e) => {
         dataNascimento: document.getElementById("edit-data-nascimento").value,
         funcao: document.getElementById("edit-funcao").value,
         endereco: document.getElementById("edit-endereco").value,
+        // CAMPOS ADICIONADOS
+        estadoCivil: document.getElementById("edit-estado-civil").value,
+        conjuge: document.getElementById("edit-conjuge").value
     };
     
     // 3. Atualizar no Firebase
@@ -991,6 +1027,17 @@ function showMembroDetalhesModal(id) {
     document.getElementById("modal-email").textContent = membro.email || 'N/A';
     document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
     document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
+    
+    // CAMPOS ADICIONADOS
+    document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
+    const pModalConjuge = document.getElementById("p-modal-conjuge");
+    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
+        document.getElementById("modal-conjuge").textContent = membro.conjuge;
+        pModalConjuge.classList.remove("hidden");
+    } else {
+        pModalConjuge.classList.add("hidden");
+    }
+    
     document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
     
     // Define o ID para os botões de ação
@@ -1019,6 +1066,21 @@ function showMembroEditModal() {
     document.getElementById("edit-data-nascimento").value = membro.dataNascimento || '';
     document.getElementById("edit-funcao").value = membro.funcao || '';
     document.getElementById("edit-endereco").value = membro.endereco || '';
+    
+    // CAMPOS ADICIONADOS
+    const editEstadoCivil = document.getElementById("edit-estado-civil");
+    const editCampoConjuge = document.getElementById("edit-campo-conjuge");
+    const editConjugeInput = document.getElementById("edit-conjuge");
+
+    editEstadoCivil.value = membro.estadoCivil || '';
+    
+    if (membro.estadoCivil === 'Casado(a)') {
+        editConjugeInput.value = membro.conjuge || '';
+        editCampoConjuge.classList.remove("hidden");
+    } else {
+        editConjugeInput.value = '';
+        editCampoConjuge.classList.add("hidden");
+    }
     
     // Limpa erros e senha
     document.getElementById("edit-membro-password").value = "";
@@ -1241,7 +1303,8 @@ gerarRelatorioBtn.addEventListener("click", () => {
         let relatorioHTML = `
             <html>
             <head>
-                <title>Relatório Geral da Igreja</title>
+                <!-- TÍTULO ATUALIZADO -->
+                <title>Relatório GESTÃO ADCA - CAPOEIRA GRANDE</title>
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
                     @media print {
@@ -1264,7 +1327,8 @@ gerarRelatorioBtn.addEventListener("click", () => {
             <body class="bg-gray-100 p-8">
                 <div class="container mx-auto bg-white p-10 rounded shadow-lg">
                     <div class="flex justify-between items-center mb-6">
-                        <h1>Relatório Geral da Igreja</h1>
+                        <!-- TÍTULO ATUALIZADO -->
+                        <h1>Relatório GESTÃO ADCA - CAPOEIRA GRANDE</h1>
                         <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
