@@ -1,14 +1,22 @@
 /* Estilo para abas ativas e inativas */
 .tab-button.active {
-    border-bottom-color: #3b82f6;
-    /* Cor azul */
-    color: #3b82f6;
+    border-bottom-color: #ffffff;
+    /* Cor branca */
+    color: #ffffff;
     font-weight: 600;
 }
 
 .tab-button {
     border-bottom-width: 3px;
     border-bottom-color: transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.tab-button:not(.active):hover {
+    color: #dbeafe;
+    /* Azul claro */
+    border-bottom-color: #60a5fa;
+    /* Azul mais claro */
 }
 
 /* Ocultar abas por padrão */
@@ -41,9 +49,13 @@
     margin: 5% auto;
     padding: 20px;
     border: 1px solid #888;
-    width: 80%;
-    max-width: 500px;
+    width: 90%;
+    /* Ajustado para melhor responsividade */
+    /* REMOVIDO: max-width: 500px; */
+    /* Agora controlado pelo Tailwind no HTML */
     border-radius: 8px;
+    position: relative;
+    /* Adicionado para contexto de stacking */
 }
 
 .close-button {
@@ -62,49 +74,67 @@
 
 /* Spinner de carregamento */
 .spinner {
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #3b82f6;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    animation: spin 1s linear infinite;
     display: inline-block;
-    margin-right: 8px;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #fff;
+    /* Cor do spinner */
+    border-top-color: transparent;
+    /* Cor de fundo do botão */
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 0.5rem;
+    vertical-align: middle;
 }
 
-button:disabled .spinner {
-     border-top: 3px solid #ffffff;
-}
-
+/* Animação do spinner */
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-/* Toast de notificação */
+/* Estilo para Toasts (Notificações) */
 #toast-container {
     position: fixed;
-    top: 20px;
+    bottom: 20px;
     right: 20px;
-    z-index: 1000;
+    z-index: 200;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
 .toast {
-    min-width: 300px;
-    padding: 16px;
+    padding: 12px 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: white;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.toast-success {
+    background-color: #22c55e;
+    /* green-500 */
+}
+
+.toast-error {
+    background-color: #ef4444;
+    /* red-500 */
+}
+
+.toast-warning {
+    background-color: #f97316;
+    /* orange-500 */
 }
 
 @keyframes slideIn {
     from {
-        transform: translateX(400px);
+        transform: translateX(100%);
         opacity: 0;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;
@@ -116,23 +146,10 @@ button:disabled .spinner {
         transform: translateX(0);
         opacity: 1;
     }
+
     to {
-        transform: translateX(400px);
+        transform: translateX(100%);
         opacity: 0;
     }
 }
 
-.toast-success {
-    background-color: #10b981;
-    color: white;
-}
-
-.toast-error {
-    background-color: #ef4444;
-    color: white;
-}
-
-.toast-warning {
-    background-color: #f59e0b;
-    color: white;
-}
