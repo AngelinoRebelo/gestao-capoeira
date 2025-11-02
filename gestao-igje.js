@@ -226,6 +226,7 @@ onAuthStateChanged(auth, (user) => {
         document.getElementById("dizimo-data").valueAsDate = new Date();
         document.getElementById("oferta-data").valueAsDate = new Date();
         document.getElementById("fin-data").valueAsDate = new Date();
+        document.getElementById("data-chegada").valueAsDate = new Date(); // CAMPO ADICIONADO
 
     } else {
         // Usuário está deslogado
@@ -333,9 +334,19 @@ formMembro.addEventListener("submit", async (e) => {
     const dataNascimento = document.getElementById("data-nascimento").value;
     const funcao = document.getElementById("funcao").value;
     const endereco = document.getElementById("endereco").value;
-    // CAMPOS ADICIONADOS
     const estadoCivil = document.getElementById("estado-civil").value;
     const conjuge = document.getElementById("conjuge").value;
+    const dataBatismo = document.getElementById("data-batismo").value;
+    // CAMPOS ADICIONADOS
+    const dataChegada = document.getElementById("data-chegada").value;
+    const naturalidade = document.getElementById("naturalidade").value;
+    const cpf = document.getElementById("cpf").value;
+    const rg = document.getElementById("rg").value;
+    const profissao = document.getElementById("profissao").value;
+    const escolaridade = document.getElementById("escolaridade").value;
+    const igrejaVeio = document.getElementById("igreja-veio").value;
+    const cargoOcupava = document.getElementById("cargo-ocupava").value;
+
 
     try {
         const docRef = collection(db, "users", userId, "membros");
@@ -346,13 +357,23 @@ formMembro.addEventListener("submit", async (e) => {
             dataNascimento: dataNascimento,
             funcao: funcao,
             endereco: endereco,
-            // CAMPOS ADICIONADOS
             estadoCivil: estadoCivil,
-            conjuge: conjuge
+            conjuge: conjuge,
+            dataBatismo: dataBatismo,
+             // CAMPOS ADICIONADOS
+            dataChegada: dataChegada,
+            naturalidade: naturalidade,
+            cpf: cpf,
+            rg: rg,
+            profissao: profissao,
+            escolaridade: escolaridade,
+            igrejaVeio: igrejaVeio,
+            cargoOcupava: cargoOcupava
         });
 
         formMembro.reset();
         campoConjuge.classList.add("hidden"); // Esconde o campo cônjuge
+        document.getElementById("data-chegada").valueAsDate = new Date(); // Reseta data de chegada
         showToast("Membro salvo com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar membro: ", error);
@@ -400,9 +421,18 @@ formEditMembro.addEventListener("submit", async (e) => {
         dataNascimento: document.getElementById("edit-data-nascimento").value,
         funcao: document.getElementById("edit-funcao").value,
         endereco: document.getElementById("edit-endereco").value,
-        // CAMPOS ADICIONADOS
         estadoCivil: document.getElementById("edit-estado-civil").value,
-        conjuge: document.getElementById("edit-conjuge").value
+        conjuge: document.getElementById("edit-conjuge").value,
+        dataBatismo: document.getElementById("edit-data-batismo").value,
+        // CAMPOS ADICIONADOS
+        dataChegada: document.getElementById("edit-data-chegada").value,
+        naturalidade: document.getElementById("edit-naturalidade").value,
+        cpf: document.getElementById("edit-cpf").value,
+        rg: document.getElementById("edit-rg").value,
+        profissao: document.getElementById("edit-profissao").value,
+        escolaridade: document.getElementById("edit-escolaridade").value,
+        igrejaVeio: document.getElementById("edit-igreja-veio").value,
+        cargoOcupava: document.getElementById("edit-cargo-ocupava").value
     };
     
     // 3. Atualizar no Firebase
@@ -1027,9 +1057,19 @@ function showMembroDetalhesModal(id) {
     document.getElementById("modal-email").textContent = membro.email || 'N/A';
     document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
     document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
+    document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
+    document.getElementById("modal-data-batismo").textContent = formatarData(membro.dataBatismo) || 'N/A';
     
     // CAMPOS ADICIONADOS
-    document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
+    document.getElementById("modal-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
+    document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
+    document.getElementById("modal-cpf").textContent = membro.cpf || 'N/A';
+    document.getElementById("modal-rg").textContent = membro.rg || 'N/A';
+    document.getElementById("modal-profissao").textContent = membro.profissao || 'N/A';
+    document.getElementById("modal-escolaridade").textContent = membro.escolaridade || 'N/A';
+    document.getElementById("modal-igreja-veio").textContent = membro.igrejaVeio || 'N/A';
+    document.getElementById("modal-cargo-ocupava").textContent = membro.cargoOcupava || 'N/A';
+
     const pModalConjuge = document.getElementById("p-modal-conjuge");
     if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
         document.getElementById("modal-conjuge").textContent = membro.conjuge;
@@ -1066,8 +1106,18 @@ function showMembroEditModal() {
     document.getElementById("edit-data-nascimento").value = membro.dataNascimento || '';
     document.getElementById("edit-funcao").value = membro.funcao || '';
     document.getElementById("edit-endereco").value = membro.endereco || '';
+    document.getElementById("edit-data-batismo").value = membro.dataBatismo || '';
     
     // CAMPOS ADICIONADOS
+    document.getElementById("edit-data-chegada").value = membro.dataChegada || '';
+    document.getElementById("edit-naturalidade").value = membro.naturalidade || '';
+    document.getElementById("edit-cpf").value = membro.cpf || '';
+    document.getElementById("edit-rg").value = membro.rg || '';
+    document.getElementById("edit-profissao").value = membro.profissao || '';
+    document.getElementById("edit-escolaridade").value = membro.escolaridade || '';
+    document.getElementById("edit-igreja-veio").value = membro.igrejaVeio || '';
+    document.getElementById("edit-cargo-ocupava").value = membro.cargoOcupava || '';
+    
     const editEstadoCivil = document.getElementById("edit-estado-civil");
     const editCampoConjuge = document.getElementById("edit-campo-conjuge");
     const editConjugeInput = document.getElementById("edit-conjuge");
