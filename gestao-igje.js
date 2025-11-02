@@ -1207,195 +1207,178 @@ window.onclick = function (event) {
 const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
 
 gerarRelatorioBtn.addEventListener("click", () => {
-    // 1. Coletar todos os dados
-    const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
-    const totalMembros = localMembros.length;
-    
-    // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
-    const financOrdenado = [...localFinanceiro].sort((a, b) => {
-        const dataA = getDateFromInput(a.data);
-        const dataB = getDateFromInput(b.data);
-        if (!dataA) return 1;
-        if (!dataB) return -1;
-        return dataA - dataB;
-    });
-    const dizimosOrdenados = [...localDizimos].sort((a, b) => {
-        const dataA = getDateFromInput(a.data);
-        const dataB = getDateFromInput(b.data);
-        if (!dataA) return 1;
-        if (!dataB) return -1;
-        return dataA - dataB;
-    });
-    const ofertasOrdenadas = [...localOfertas].sort((a, b) => {
-        const dataA = getDateFromInput(a.data);
-        const dataB = getDateFromInput(b.data);
-        if (!dataA) return 1;
-        if (!dataB) return -1;
-        return dataA - dataB;
-    });
+    // ADICIONADO: try...catch global
+    try {
+        // 1. Coletar todos os dados
+        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
+        // REMOVIDO: const totalMembros = localMembros.length;
+        
+        // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
+        const financOrdenado = [...localFinanceiro].sort((a, b) => {
+            const dataA = getDateFromInput(a.data);
+            const dataB = getDateFromInput(b.data);
+            if (!dataA) return 1;
+            if (!dataB) return -1;
+            return dataA - dataB;
+        });
+        const dizimosOrdenados = [...localDizimos].sort((a, b) => {
+            const dataA = getDateFromInput(a.data);
+            const dataB = getDateFromInput(b.data);
+            if (!dataA) return 1;
+            if (!dataB) return -1;
+            return dataA - dataB;
+        });
+        const ofertasOrdenadas = [...localOfertas].sort((a, b) => {
+            const dataA = getDateFromInput(a.data);
+            const dataB = getDateFromInput(b.data);
+            if (!dataA) return 1;
+            if (!dataB) return -1;
+            return dataA - dataB;
+        });
 
 
-    // 3. Construir o HTML do Relatório
-    let relatorioHTML = `
-        <html>
-        <head>
-            <title>Relatório Geral da Igreja</title>
-            <script src="https://cdn.tailwindcss.com"></script>
-            <style>
-                @media print {
-                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    .no-print { display: none; }
-                }
-                body { font-family: sans-serif; }
-                h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
-                h2 { font-size: 20px; font-weight: 600; color: #1d4ed8; margin-top: 24px; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; }
-                table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-                th, td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; font-size: 14px; }
-                th { background-color: #f3f4f6; font-weight: 600; }
-                .currency { text-align: right; font-weight: 500; }
-                .currency-header { text-align: right; }
-                .entrada { color: #15803d; }
-                .saida { color: #b91c1c; }
-                .total { font-weight: bold; font-size: 16px; }
-            </style>
-        </head>
-        <body class="bg-gray-100 p-8">
-            <div class="container mx-auto bg-white p-10 rounded shadow-lg">
-                <div class="flex justify-between items-center mb-6">
-                    <h1>Relatório Geral da Igreja</h1>
-                    <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
-                </div>
-                <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
-
-                <!-- Resumo -->
-                <div class="grid grid-cols-2 gap-6 mb-8">
-                    <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                        <h3 class="text-lg font-semibold text-blue-800">Saldo Atual (Caixa)</h3>
-                        <p class="text-3xl font-bold ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">R$ ${saldoTotal.toFixed(2).replace(".", ",")}</p>
+        // 3. Construir o HTML do Relatório
+        let relatorioHTML = `
+            <html>
+            <head>
+                <title>Relatório Geral da Igreja</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <style>
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .no-print { display: none; }
+                    }
+                    body { font-family: sans-serif; }
+                    h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
+                    h2 { font-size: 20px; font-weight: 600; color: #1d4ed8; margin-top: 24px; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                    th, td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; font-size: 14px; }
+                    th { background-color: #f3f4f6; font-weight: 600; }
+                    .currency { text-align: right; font-weight: 500; }
+                    .currency-header { text-align: right; }
+                    .entrada { color: #15803d; }
+                    .saida { color: #b91c1c; }
+                    .total { font-weight: bold; font-size: 16px; }
+                </style>
+            </head>
+            <body class="bg-gray-100 p-8">
+                <div class="container mx-auto bg-white p-10 rounded shadow-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1>Relatório Geral da Igreja</h1>
+                        <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
                     </div>
-                    <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
-                        <h3 class="text-lg font-semibold text-indigo-800">Total de Membros</h3>
-                        <p class="text-3xl font-bold text-indigo-700">${totalMembros}</p>
+                    <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+
+                    <!-- Resumo -->
+                    <!-- MODIFICADO: Removido o grid e o card de membros -->
+                    <div class="mb-8">
+                        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                            <h3 class="text-lg font-semibold text-blue-800">Saldo Atual (Caixa)</h3>
+                            <p class="text-3xl font-bold ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">R$ ${saldoTotal.toFixed(2).replace(".", ",")}</p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Lista de Membros -->
-                <h2>Lista de Membros</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Função</th>
-                            <th>Telefone</th>
-                            <th>Email</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${localMembros.map(m => `
+                    <!-- Lista de Membros (REMOVIDO) -->
+                    
+                    <!-- Dízimos -->
+                    <h2>Registos de Dízimos</h2>
+                    <table>
+                        <thead>
                             <tr>
-                                <td>${m.nome}</td>
-                                <td>${m.funcao || ''}</td>
-                                <td>${m.telefone || ''}</td>
-                                <td>${m.email || ''}</td>
+                                <th>Data</th>
+                                <th>Membro</th>
+                                <th class="currency-header">Valor (R$)</th>
                             </tr>
-                        `).join('')}
-                        ${localMembros.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhum membro cadastrado.</td></tr>' : ''}
-                    </tbody>
-                </table>
-                
-                <!-- Dízimos -->
-                <h2>Registos de Dízimos</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Membro</th>
-                            <th class="currency-header">Valor (R$)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${dizimosOrdenados.map(d => `
+                        </thead>
+                        <tbody>
+                            ${dizimosOrdenados.map(d => `
+                                <tr>
+                                    <td>${formatarData(d.data)}</td>
+                                    <td>${d.membroNome}</td>
+                                    <td class="currency entrada">R$ ${(d.valor || 0).toFixed(2).replace(".", ",")}</td>
+                                </tr>
+                            `).join('')}
+                            ${dizimosOrdenados.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum dízimo registado.</td></tr>' : ''}
+                        </tbody>
+                    </table>
+                    
+                    <!-- Ofertas -->
+                    <h2>Registos de Ofertas e Outras Entradas</h2>
+                    <table>
+                        <thead>
                             <tr>
-                                <td>${formatarData(d.data)}</td>
-                                <td>${d.membroNome}</td>
-                                <td class="currency entrada">R$ ${(d.valor || 0).toFixed(2).replace(".", ",")}</td>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                                <th class="currency-header">Valor (R$)</th>
                             </tr>
-                        `).join('')}
-                        ${dizimosOrdenados.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum dízimo registado.</td></tr>' : ''}
-                    </tbody>
-                </table>
-                
-                <!-- Ofertas -->
-                <h2>Registos de Ofertas e Outras Entradas</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Tipo</th>
-                            <th>Descrição</th>
-                            <th class="currency-header">Valor (R$)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${ofertasOrdenadas.map(o => `
-                            <tr>
-                                <td>${formatarData(o.data)}</td>
-                                <td>${o.tipo}</td>
-                                <td>${o.descricao}</td>
-                                <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
-                            </tr>
-                        `).join('')}
-                        ${ofertasOrdenadas.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada.</td></tr>' : ''}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            ${ofertasOrdenadas.map(o => `
+                                <tr>
+                                    <td>${formatarData(o.data)}</td>
+                                    <td>${o.tipo}</td>
+                                    <td>${o.descricao}</td>
+                                    <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
+                                </tr>
+                            `).join('')}
+                            ${ofertasOrdenadas.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada.</td></tr>' : ''}
+                        </tbody>
+                    </table>
 
-                <!-- Extrato Financeiro -->
-                <h2>Extrato Financeiro (Caixa)</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Descrição</th>
-                            <th class="currency-header">Valor (R$)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${financOrdenado.map(f => `
+                    <!-- Extrato Financeiro -->
+                    <h2>Extrato Financeiro (Caixa)</h2>
+                    <table>
+                        <thead>
                             <tr>
-                                <td>${formatarData(f.data)}</td>
-                                <td>${f.descricao}</td>
-                                <td class="currency ${f.valor > 0 ? 'entrada' : 'saida'}">
-                                    R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th class="currency-header">Valor (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${financOrdenado.map(f => `
+                                <tr>
+                                    <td>${formatarData(f.data)}</td>
+                                    <td>${f.descricao}</td>
+                                    <td class="currency ${f.valor > 0 ? 'entrada' : 'saida'}">
+                                        R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                            ${financOrdenado.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum lançamento no caixa.</td></tr>' : ''}
+                            <!-- Linha de Saldo Total -->
+                            <tr class="total bg-gray-50">
+                                <td colspan="2" class="text-right font-bold">SALDO TOTAL</td>
+                                <td class="currency ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">
+                                    R$ ${saldoTotal.toFixed(2).replace(".", ",")}
                                 </td>
                             </tr>
-                        `).join('')}
-                        ${financOrdenado.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum lançamento no caixa.</td></tr>' : ''}
-                        <!-- Linha de Saldo Total -->
-                        <tr class="total bg-gray-50">
-                            <td colspan="2" class="text-right font-bold">SALDO TOTAL</td>
-                            <td class="currency ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">
-                                R$ ${saldoTotal.toFixed(2).replace(".", ",")}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </body>
-        </html>
-    `;
+                        </tbody>
+                    </table>
+                </div>
+            </body>
+            </html>
+        `;
 
-    // 4. Abrir numa nova janela
-    const relatorioJanela = window.open("", "_blank");
+        // 4. Abrir numa nova janela
+        const relatorioJanela = window.open("", "_blank");
 
-    // ADICIONADO: Verificação de bloqueador de pop-up
-    if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
-        console.error("Falha ao abrir janela de relatório. Provável bloqueador de pop-up.");
-        showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
-        return;
+        // Verificação de bloqueador de pop-up
+        if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
+            console.error("Falha ao abrir janela de relatório. Provável bloqueador de pop-up.");
+            showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
+            return;
+        }
+
+        relatorioJanela.document.write(relatorioHTML);
+        relatorioJanela.document.close();
+    
+    } catch (error) {
+        // Pega qualquer erro que possa ter acontecido
+        console.error("Erro ao gerar relatório:", error);
+        showToast("Ocorreu um erro inesperado ao gerar o relatório.", "error");
     }
-
-    relatorioJanela.document.write(relatorioHTML);
-    relatorioJanela.document.close();
 });
 
 
