@@ -1318,7 +1318,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                             <tr>
                                 <td>${formatarData(d.data)}</td>
                                 <td>${d.membroNome}</td>
-                                <td class="currency entrada">R$ ${d.valor.toFixed(2).replace(".", ",")}</td>
+                                <td class="currency entrada">R$ ${(d.valor || 0).toFixed(2).replace(".", ",")}</td>
                             </tr>
                         `).join('')}
                         ${dizimosOrdenados.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum dízimo registado.</td></tr>' : ''}
@@ -1342,7 +1342,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 <td>${formatarData(o.data)}</td>
                                 <td>${o.tipo}</td>
                                 <td>${o.descricao}</td>
-                                <td class="currency entrada">R$ ${o.valor.toFixed(2).replace(".", ",")}</td>
+                                <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
                             </tr>
                         `).join('')}
                         ${ofertasOrdenadas.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada.</td></tr>' : ''}
@@ -1365,7 +1365,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 <td>${formatarData(f.data)}</td>
                                 <td>${f.descricao}</td>
                                 <td class="currency ${f.valor > 0 ? 'entrada' : 'saida'}">
-                                    R$ ${f.valor.toFixed(2).replace(".", ",")}
+                                    R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
                                 </td>
                             </tr>
                         `).join('')}
@@ -1491,5 +1491,4 @@ function getDateFromInput(dataInput) {
 
 // Inicializa ícones Lucide
 lucide.createIcons();
-
 
