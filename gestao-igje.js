@@ -1386,6 +1386,14 @@ gerarRelatorioBtn.addEventListener("click", () => {
 
     // 4. Abrir numa nova janela
     const relatorioJanela = window.open("", "_blank");
+
+    // ADICIONADO: Verificação de bloqueador de pop-up
+    if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
+        console.error("Falha ao abrir janela de relatório. Provável bloqueador de pop-up.");
+        showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
+        return;
+    }
+
     relatorioJanela.document.write(relatorioHTML);
     relatorioJanela.document.close();
 });
@@ -1483,4 +1491,5 @@ function getDateFromInput(dataInput) {
 
 // Inicializa ícones Lucide
 lucide.createIcons();
+
 
