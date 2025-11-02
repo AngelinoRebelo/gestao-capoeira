@@ -626,15 +626,10 @@ function loadAllData(currentUserId) {
         const qFinanceiro = query(collection(db, "users", currentUserId, "financeiro"));
         unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
             localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Ordena por data (Timestamp)
-            localFinanceiro.sort((a, b) => {
-                const dataA = getDateFromInput(a.data);
-                const dataB = getDateFromInput(b.data);
-                if (!dataA) return 1; // Joga nulos para o fim
-                if (!dataB) return -1;
-                return dataB - dataA; // Mais recente primeiro
-            });
-            renderFinanceiro(localFinanceiro);
+            
+            // MODIFICADO: Chama a nova função de filtro/render
+            renderFiltroFinanceiro(); 
+            // renderFinanceiro(localFinanceiro); // REMOVIDO
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir financeiro:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de financeiro:", e); onDataLoaded(); }
@@ -717,18 +712,18 @@ function populateMembrosSelect(membros) {
 const listaFinanceiro = document.getElementById("lista-financeiro");
 const saldoTotalFinanceiro = document.getElementById("saldo-total-financeiro");
 
+// MODIFICADO: A função agora só renderiza a tabela com os dados filtrados
 function renderFinanceiro(transacoes) {
     listaFinanceiro.innerHTML = "";
-    let saldo = 0;
+    // let saldo = 0; // REMOVIDO
 
     if (transacoes.length === 0) {
-        listaFinanceiro.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum lançamento no caixa.</td></tr>';
-        saldoTotalFinanceiro.textContent = "R$ 0,00";
+        listaFinanceiro.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum lançamento no caixa para este mês/ano.</td></tr>';
+        // saldoTotalFinanceiro.textContent = "R$ 0,00"; // REMOVIDO
         return;
     }
     
-    // Recalcula o saldo com base nas transações (já estão ordenadas)
-    saldo = transacoes.reduce((acc, transacao) => acc + transacao.valor, 0);
+    // REMOVIDO o cálculo de saldo daqui
 
     transacoes.forEach(transacao => {
         const valor = transacao.valor;
@@ -755,10 +750,12 @@ function renderFinanceiro(transacoes) {
     adicionarListenersExcluir();
 
 
-    // Atualiza saldo total
+    // REMOVIDO: Atualização do saldo total (agora feito em renderFiltroFinanceiro)
+    /*
     const corSaldo = saldo >= 0 ? "text-blue-700" : "text-red-700";
     saldoTotalFinanceiro.className = `text-2xl font-bold ${corSaldo}`;
     saldoTotalFinanceiro.textContent = `R$ ${saldo.toFixed(2).replace(".", ",")}`;
+    */
 
     // Atualiza ícones Lucide
     lucide.createIcons();
@@ -772,6 +769,9 @@ const listaDizimos = document.getElementById("lista-dizimos");
 const filtroOfertaMes = document.getElementById("filtro-oferta-mes");
 const filtroOfertaAno = document.getElementById("filtro-oferta-ano");
 const listaOfertas = document.getElementById("lista-ofertas");
+// ADICIONADO
+const filtroFinanceiroMes = document.getElementById("filtro-financeiro-mes");
+const filtroFinanceiroAno = document.getElementById("filtro-financeiro-ano");
 
 const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const hoje = new Date();
@@ -803,11 +803,48 @@ function popularFiltros(selectMes, selectAno) {
 
 popularFiltros(filtroDizimoMes, filtroDizimoAno);
 popularFiltros(filtroOfertaMes, filtroOfertaAno);
+// ADICIONADO
+popularFiltros(filtroFinanceiroMes, filtroFinanceiroAno);
 
 filtroDizimoMes.addEventListener("change", renderFiltroDizimos);
 filtroDizimoAno.addEventListener("change", renderFiltroDizimos);
 filtroOfertaMes.addEventListener("change", renderFiltroOfertas);
 filtroOfertaAno.addEventListener("change", renderFiltroOfertas);
+// ADICIONADO
+filtroFinanceiroMes.addEventListener("change", renderFiltroFinanceiro);
+filtroFinanceiroAno.addEventListener("change", renderFiltroFinanceiro);
+
+// NOVA FUNÇÃO para filtrar e renderizar o financeiro
+function renderFiltroFinanceiro() {
+    const mes = parseInt(filtroFinanceiroMes.value);
+    const ano = parseInt(filtroFinanceiroAno.value);
+
+    // 1. Filtrar os dados
+    const dadosFiltrados = localFinanceiro.filter(d => {
+        const data = getDateFromInput(d.data);
+        if (!data) return false;
+        return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
+    });
+
+    // 2. Ordenar os dados filtrados (mais recente primeiro)
+    dadosFiltrados.sort((a, b) => {
+        const dataA = getDateFromInput(a.data);
+        const dataB = getDateFromInput(b.data);
+        if (!dataA) return 1;
+        if (!dataB) return -1;
+        return dataB - dataA;
+    });
+
+    // 3. Renderizar a tabela com os dados filtrados
+    renderFinanceiro(dadosFiltrados);
+
+    // 4. Calcular e renderizar o SALDO TOTAL (usando todos os dados)
+    const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
+    const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
+    saldoTotalFinanceiro.className = `text-2xl font-bold ${corSaldo}`;
+    saldoTotalFinanceiro.textContent = `R$ ${saldoTotal.toFixed(2).replace(".", ",")}`;
+}
+
 
 function renderFiltroDizimos() {
     const mes = parseInt(filtroDizimoMes.value);
