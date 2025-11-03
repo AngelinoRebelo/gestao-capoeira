@@ -8,14 +8,10 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Classe de utilitário para inputs de formulário */
-.form-input {
-    @apply mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500;
-}
+/* REMOVIDO: Classe .form-input que causava o erro */
 
 
 /* --- ABAS DE AUTENTICAÇÃO (LOGIN) --- */
-/* Corrigido: Botão de aba de autenticação */
 .auth-tab-button {
     border-bottom-width: 3px;
     border-bottom-color: transparent;
@@ -28,7 +24,6 @@ body {
 }
 
 /* --- ABAS DA APLICAÇÃO (CABEÇALHO) --- */
-/* Corrigido: Botão de aba da aplicação */
 .app-tab-button {
     border-bottom-width: 3px;
     border-bottom-color: transparent;
@@ -72,7 +67,6 @@ body {
     padding: 24px;
     border: 1px solid #888;
     width: 90%;
-    /* REMOVIDO: max-width fixo para permitir modais maiores */
     border-radius: 8px;
     position: relative;
     animation: fadeIn 0.3s ease-out;
@@ -187,6 +181,4 @@ body {
         transform: translateY(0);
     }
 }
-
-/* REMOVIDO: Estilos do Uploader de Foto */
 
