@@ -641,11 +641,11 @@ function loadAllData() {
         }
     };
     
-    // CORRIGIDO: Removido o basePath inválido
+    const basePath = "dadosIgreja/ADCA-CG"; // Caminho partilhado
     
     // Ouvir Membros
     try {
-        const qMembros = query(collection(db, "dadosIgreja", "ADCA-CG", "membros"));
+        const qMembros = query(collection(db, basePath, "membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
             localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             localMembros.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -657,7 +657,7 @@ function loadAllData() {
 
     // Ouvir Dízimos
     try {
-        const qDizimos = query(collection(db, "dadosIgreja", "ADCA-CG", "dizimos"));
+        const qDizimos = query(collection(db, basePath, "dizimos"));
         unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
             localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroDizimos();
@@ -667,7 +667,7 @@ function loadAllData() {
 
     // Ouvir Ofertas
     try {
-        const qOfertas = query(collection(db, "dadosIgreja", "ADCA-CG", "ofertas"));
+        const qOfertas = query(collection(db, basePath, "ofertas"));
         unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
             localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroOfertas();
@@ -678,7 +678,7 @@ function loadAllData() {
 
     // Ouvir Financeiro
     try {
-        const qFinanceiro = query(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
+        const qFinanceiro = query(collection(db, basePath, "financeiro"));
         unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
             localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroFinanceiro(); 
@@ -1006,37 +1006,50 @@ function updateDashboard() {
 
 // --- CONTROLO DOS MODAIS (JANELAS POP-UP) ---
 
+// Função auxiliar para definir textContent se o elemento existir
+function setElementText(id, text) {
+    const element = document.getElementById(id);
+    if (element) {
+        element.textContent = text || 'N/A';
+    } else {
+        console.warn(`Elemento com ID "${id}" não encontrado no HTML.`);
+    }
+}
+
 // Modal Detalhes do Membro
 function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
     if (!membro) return;
     
-    // Simplificado: Remove lógica de abas
-    document.getElementById("modal-detalhes-nome").textContent = membro.nome;
-    document.getElementById("modal-detalhes-funcao").textContent = membro.funcao || 'N/A'; // Movido
-    document.getElementById("modal-detalhes-email").textContent = membro.email || 'N/A';
-    document.getElementById("modal-detalhes-telefone").textContent = membro.telefone || 'N/A';
-    document.getElementById("modal-detalhes-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
-    document.getElementById("modal-detalhes-endereco").textContent = membro.endereco || 'N/A';
-    document.getElementById("modal-detalhes-naturalidade").textContent = membro.naturalidade || 'N/A';
-    document.getElementById("modal-detalhes-cpf").textContent = membro.cpf || 'N/A';
-    document.getElementById("modal-detalhes-rg").textContent = membro.rg || 'N/A';
-    document.getElementById("modal-detalhes-pai").textContent = membro.nomePai || 'N/A';
-    document.getElementById("modal-detalhes-mae").textContent = membro.nomeMae || 'N/A';
-    document.getElementById("modal-detalhes-estado-civil").textContent = membro.estadoCivil || 'N/A';
-    document.getElementById("modal-detalhes-conjuge").textContent = membro.conjuge || 'N/A';
-    document.getElementById("modal-detalhes-profissao").textContent = membro.profissao || 'N/A';
-    document.getElementById("modal-detalhes-escolaridade").textContent = membro.escolaridade || 'N/A';
-    document.getElementById("modal-detalhes-data-batismo").textContent = formatarData(membro.dataBatismo) || 'N/A';
-    document.getElementById("modal-detalhes-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
-    document.getElementById("modal-detalhes-igreja-anterior").textContent = membro.igrejaAnterior || 'N/A';
-    document.getElementById("modal-detalhes-cargo-anterior").textContent = membro.cargoAnterior || 'N/A';
+    // CORRIGIDO: Adicionadas verificações (setElementText) para evitar o erro
+    setElementText("modal-detalhes-nome", membro.nome);
+    setElementText("modal-detalhes-funcao", membro.funcao);
+    setElementText("modal-detalhes-email", membro.email);
+    setElementText("modal-detalhes-telefone", membro.telefone);
+    setElementText("modal-detalhes-data-nascimento", formatarData(membro.dataNascimento));
+    setElementText("modal-detalhes-endereco", membro.endereco);
+    setElementText("modal-detalhes-naturalidade", membro.naturalidade);
+    setElementText("modal-detalhes-cpf", membro.cpf);
+    setElementText("modal-detalhes-rg", membro.rg);
+    setElementText("modal-detalhes-pai", membro.nomePai);
+    setElementText("modal-detalhes-mae", membro.nomeMae);
+    setElementText("modal-detalhes-estado-civil", membro.estadoCivil);
+    setElementText("modal-detalhes-conjuge", membro.conjuge);
+    setElementText("modal-detalhes-profissao", membro.profissao);
+    setElementText("modal-detalhes-escolaridade", membro.escolaridade);
+    setElementText("modal-detalhes-data-batismo", formatarData(membro.dataBatismo));
+    setElementText("modal-detalhes-data-chegada", formatarData(membro.dataChegada));
+    setElementText("modal-detalhes-igreja-anterior", membro.igrejaAnterior);
+    setElementText("modal-detalhes-cargo-anterior", membro.cargoAnterior);
     
     // Oculta/mostra campo cônjuge
-    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
-        document.getElementById("conjuge-detalhes-container").classList.remove("hidden");
-    } else {
-        document.getElementById("conjuge-detalhes-container").classList.add("hidden");
+    const conjugeDetalhesEl = document.getElementById("conjuge-detalhes-container");
+    if (conjugeDetalhesEl) {
+        if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
+            conjugeDetalhesEl.classList.remove("hidden");
+        } else {
+            conjugeDetalhesEl.classList.add("hidden");
+        }
     }
 
     membroParaEditarId = id; 
