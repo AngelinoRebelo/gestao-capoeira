@@ -59,7 +59,7 @@
                     <div>
                         <label for="register-name" class="block text-sm font-medium text-gray-700 mb-1">Nome
                             Completo:</label>
-                        <input type="text" id="register-name" required placeholder="Ex: Lorrane"
+                        <input type="text" id="register-name" required placeholder="Ex: Gabriel Angelino"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                     </div>
                     <div>
@@ -109,22 +109,22 @@
             <!-- Abas de Navegação -->
             <nav class="container mx-auto px-4 flex space-x-1 sm:space-x-4 overflow-x-auto">
                 <!-- Classes atualizadas -->
-                <button data-tab="dashboard" class="app-tab-button active">
+                <button id="tab-btn-dashboard" data-tab="dashboard" class="app-tab-button active">
                     <i data-lucide="layout-dashboard" class="inline-block w-4 h-4 mr-1"></i> Dashboard
                 </button>
-                <button data-tab="cadastrar-membro" class="app-tab-button">
+                <button id="tab-btn-cadastrar" data-tab="cadastrar-membro" class="app-tab-button">
                     <i data-lucide="user-plus" class="inline-block w-4 h-4 mr-1"></i> Cadastrar
                 </button>
-                <button data-tab="visualizar-membros" class="app-tab-button">
+                <button id="tab-btn-visualizar" data-tab="visualizar-membros" class="app-tab-button">
                     <i data-lucide="users" class="inline-block w-4 h-4 mr-1"></i> Membros
                 </button>
-                <button data-tab="dizimos" class="app-tab-button">
+                <button id="tab-btn-dizimos" data-tab="dizimos" class="app-tab-button">
                     <i data-lucide="hand-heart" class="inline-block w-4 h-4 mr-1"></i> Dízimos
                 </button>
-                <button data-tab="ofertas" class="app-tab-button">
+                <button id="tab-btn-ofertas" data-tab="ofertas" class="app-tab-button">
                     <i data-lucide="gift" class="inline-block w-4 h-4 mr-1"></i> Ofertas
                 </button>
-                <button data-tab="financeiro" class="app-tab-button">
+                <button id="tab-btn-financeiro" data-tab="financeiro" class="app-tab-button">
                     <i data-lucide="dollar-sign" class="inline-block w-4 h-4 mr-1"></i> Financeiro
                 </button>
             </nav>
@@ -216,7 +216,7 @@
                             <!-- Coluna 1 -->
                             <div class="md:col-span-2">
                                 <label for="nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                                <!-- CORRIGIDO: Removida a classe .modal-input e substituída por classes Tailwind -->
+                                <!-- CORRIGIDO: Classes Tailwind diretas -->
                                 <input type="text" id="nome"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                     required>
@@ -684,24 +684,13 @@
     <div id="membro-detalhes-modal" class="modal">
         <div class="modal-content w-11/12 max-w-4xl">
             <span class="close-button" id="close-membro-modal">&times;</span>
-            <h2 class="text-2xl font-semibold mb-4">Detalhes do Membro</h2>
+            <h2 class="text-2xl font-semibold mb-6">Detalhes do Membro</h2>
 
-            <!-- Abas do Modal -->
-            <div class="border-b border-gray-200">
-                <nav class="flex -mb-px">
-                    <a href="#tab-pessoal"
-                        class="modal-tab-button active text-blue-600 border-b-2 border-blue-600 py-3 px-4 font-medium">
-                        Informações Pessoais
-                    </a>
-                    <a href="#tab-ministerial"
-                        class="modal-tab-button text-gray-500 hover:text-gray-700 hover:border-gray-300 py-3 px-4 font-medium border-b-2 border-transparent">
-                        Info. Ministeriais
-                    </a>
-                </nav>
-            </div>
+            <!-- REMOVIDO: Abas do Modal -->
 
-            <!-- Conteúdo Aba Pessoal -->
-            <div id="tab-pessoal" class="modal-tab-content active grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+            <!-- Conteúdo Unificado -->
+            <div id="tab-pessoal" class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+                <!-- Informações Pessoais -->
                 <div class="md:col-span-2"><strong>Nome:</strong> <span id="modal-nome"></span></div>
                 <div><strong>Data de Nasc.:</strong> <span id="modal-data-nascimento"></span></div>
                 <div><strong>Telefone:</strong> <span id="modal-telefone"></span></div>
@@ -711,6 +700,7 @@
                 <div><strong>Naturalidade:</strong> <span id="modal-naturalidade"></span></div>
                 <div class="md:col-span-3"><strong>Endereço:</strong> <span id="modal-endereco"
                         class="block whitespace-pre-wrap"></span></div>
+                
                 <!-- Filiação -->
                 <div class="md:col-span-3 h-px bg-gray-200 my-1"></div>
                 <div class="md:col-span-2"><strong>Nome do Pai:</strong> <span id="modal-nome-pai"></span></div>
@@ -718,13 +708,12 @@
                 <div class="md:col-span-2"><strong>Nome da Mãe:</strong> <span id="modal-nome-mae"></span></div>
                 <div id="modal-conjuge-container" class="hidden"><strong>Cônjuge:</strong> <span
                         id="modal-conjuge"></span></div>
-            </div>
-            <!-- Conteúdo Aba Ministerial -->
-            <div id="tab-ministerial" class="modal-tab-content grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+                
+                <!-- Info Ministeriais movidas para cá -->
+                <div class="md:col-span-3 h-px bg-gray-200 my-1"></div>
                 <div><strong>Profissão:</strong> <span id="modal-profissao"></span></div>
                 <div class="md:col-span-2"><strong>Escolaridade:</strong> <span id="modal-escolaridade"></span></div>
                 <div class="md:col-span-3"><strong>Função/Ministério:</strong> <span id="modal-funcao"></span></div>
-                <div class="md:col-span-3 h-px bg-gray-200 my-1"></div>
                 <div><strong>Data de Batismo:</strong> <span id="modal-data-batismo"></span></div>
                 <div class="md:col-span-2"><strong>Data de Chegada:</strong> <span id="modal-data-chegada"></span></div>
                 <div><strong>Igreja de Onde Veio:</strong> <span id="modal-igreja-anterior"></span></div>
