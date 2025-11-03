@@ -28,7 +28,8 @@ import {
 import {
     getStorage,
     ref,
-    uploadBytesResumable,
+    uploadBytesResumable, // Mantido (embora não usado no await)
+    uploadBytes, // CORRIGIDO: Adicionado uploadBytes
     getDownloadURL,
     deleteObject
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
@@ -412,7 +413,8 @@ formMembro.addEventListener("submit", async (e) => {
             const fotoRef = ref(storage, `fotosMembros/${novoMembroId}`);
             
             // 4. Faz o upload da foto
-            const uploadTask = await uploadBytesResumable(fotoRef, fotoParaUpload);
+            // CORRIGIDO: Trocado uploadBytesResumable por uploadBytes
+            const uploadTask = await uploadBytes(fotoRef, fotoParaUpload);
             
             // 5. Obtém o URL da foto
             const downloadURL = await getDownloadURL(uploadTask.ref);
@@ -500,7 +502,8 @@ formEditMembro.addEventListener("submit", async (e) => {
         // 3a. Lógica de Upload da Foto (se mudou)
         if (fotoParaEditar) {
             const fotoRef = ref(storage, `fotosMembros/${membroParaEditarId}`);
-            const uploadTask = await uploadBytesResumable(fotoRef, fotoParaEditar);
+            // CORRIGIDO: Trocado uploadBytesResumable por uploadBytes
+            const uploadTask = await uploadBytes(fotoRef, fotoParaEditar);
             dadosAtualizados.fotoURL = await getDownloadURL(uploadTask.ref);
         
         // 3b. Lógica de Remoção da Foto (se foi removida e não substituída)
@@ -758,9 +761,6 @@ function loadAllData(currentUserId) {
         }, (error) => { console.error("Erro ao ouvir financeiro:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de financeiro:", e); onDataLoaded(); }
 }
-
-// ... (Restante do código igual ao anterior) ...
-// (stopAllListeners, clearAllTables)
 
 // --- FUNÇÕES stopAllListeners e clearAllTables ---
 function stopAllListeners() {
