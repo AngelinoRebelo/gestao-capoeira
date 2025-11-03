@@ -24,6 +24,13 @@ import {
     writeBatch,
     updateDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+// ADICIONADO: Importações do Storage
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
 // Configuração do Firebase
 const firebaseConfig = {
@@ -36,11 +43,12 @@ const firebaseConfig = {
 };
 
 // Inicialização do Firebase
-let app, auth, db, userId;
+let app, auth, db, userId, storage; // storage adicionado
 try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
+    storage = getStorage(app); // ADICIONADO: Inicializa o Storage
     console.log("Firebase inicializado com sucesso.");
 } catch (error)
 {
@@ -54,6 +62,7 @@ let localDizimos = [];
 let localOfertas = [];
 let localFinanceiro = [];
 let unsubMembros, unsubDizimos, unsubOfertas, unsubFinanceiro;
+let userProfileUnsub; // ADICIONADO: Listener para o perfil do usuário (logo)
 
 // Objeto para guardar os dados da exclusão
 let itemParaExcluir = {
@@ -81,6 +90,11 @@ const loginTabButton = document.getElementById("login-tab-button");
 const registerTabButton = document.getElementById("register-tab-button");
 const loginTab = document.getElementById("login-tab");
 const registerTab = document.getElementById("register-tab");
+
+// ADICIONADO: DOM Elements do Logo
+const logoContainer = document.getElementById("logo-container");
+const logoUploadInput = document.getElementById("logo-upload-input");
+const appLogoImg = document.getElementById("app-logo-img");
 
 // Abas de Autenticação
 loginTabButton.addEventListener("click", () => {
@@ -162,7 +176,8 @@ registerForm.addEventListener("submit", async (e) => {
             nome: nome.trim(),
             telefone: telefone.trim(),
             email: email,
-            createdAt: Timestamp.now()
+            createdAt: Timestamp.now(),
+            logoURL: null // Adiciona o campo logoURL
         });
 
         // O onAuthStateChanged vai pegar a partir daqui
@@ -218,15 +233,40 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         // Usuário está logado
         userId = user.uid;
-        userEmailDisplay.textContent = user.email;
+        // userEmailDisplay.textContent = user.email; // REMOVIDO: Será feito pelo listener de perfil
         authScreen.style.display = "none";
         appContent.style.display = "block";
+
+        // ADICIONADO: Listener para o perfil do usuário (logoURL, email, etc.)
+        if(userProfileUnsub) userProfileUnsub(); // Para listener antigo
+        userProfileUnsub = onSnapshot(doc(db, "users", userId), (doc) => {
+            if (doc.exists()) {
+                const userData = doc.data();
+                // Atualiza o email (caso o principal mude)
+                userEmailDisplay.textContent = userData.email || user.email; 
+                // Atualiza o logo
+                if (userData.logoURL) {
+                    appLogoImg.src = userData.logoURL;
+                } else {
+                    // Fallback se não houver logo
+                    appLogoImg.src = "https://placehold.co/40x40/EBF8FF/3B82F6?text=Logo";
+                }
+            } else {
+                 // Documento do usuário ainda não existe (raro, mas pode acontecer)
+                 userEmailDisplay.textContent = user.email;
+                 appLogoImg.src = "https://placehold.co/40x40/EBF8FF/3B82F6?text=Logo";
+            }
+        }, (error) => {
+            console.error("Erro ao carregar perfil do usuário:", error);
+            userEmailDisplay.textContent = user.email; // Fallback
+        });
+
+
         loadAllData(userId); // Carrega os dados do usuário
         // Define as datas dos formulários para hoje
         document.getElementById("dizimo-data").valueAsDate = new Date();
         document.getElementById("oferta-data").valueAsDate = new Date();
         document.getElementById("fin-data").valueAsDate = new Date();
-        document.getElementById("data-chegada").valueAsDate = new Date(); // CAMPO ADICIONADO
 
     } else {
         // Usuário está deslogado
@@ -237,6 +277,68 @@ onAuthStateChanged(auth, (user) => {
         stopAllListeners(); // Para de ouvir dados
     }
 });
+
+// ADICIONADO: Listener para o Upload do Logo
+logoUploadInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file || !userId) return;
+
+    // 0. Verifica o tipo de ficheiro
+    if (!['image/png', 'image/jpeg'].includes(file.type)) {
+        showToast("Formato de ficheiro inválido. Use PNG ou JPG.", "error");
+        logoUploadInput.value = "";
+        return;
+    }
+    
+    // 0. Verifica o tamanho do ficheiro (ex: 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+        showToast("Ficheiro muito grande. Máximo 2MB.", "error");
+        logoUploadInput.value = "";
+        return;
+    }
+
+
+    // 1. Mostrar feedback de carregamento
+    showToast("A carregar logo...", "warning");
+    logoContainer.style.pointerEvents = "none"; // Desativa clique
+    logoContainer.style.opacity = "0.5";
+
+    try {
+        // 2. Definir o caminho no Storage (ex: users/USER_ID/logo.png)
+        // Usa um nome de ficheiro consistente para substituir
+        const fileExtension = file.type === 'image/png' ? 'png' : 'jpg';
+        const storageRef = ref(storage, `users/${userId}/logo.${fileExtension}`);
+
+        // 3. Fazer o upload do ficheiro
+        await uploadBytes(storageRef, file);
+
+        // 4. Obter o URL de download
+        const downloadURL = await getDownloadURL(storageRef);
+
+        // 5. Salvar o URL no documento do usuário no Firestore
+        await updateDoc(doc(db, "users", userId), {
+            logoURL: downloadURL
+        });
+        
+        // O onSnapshot do perfil vai atualizar a imagem automaticamente
+        showToast("Logo atualizado com sucesso!", "success");
+
+    } catch (error) {
+        console.error("Erro ao carregar logo:", error);
+        showToast("Erro ao carregar o logo.", "error");
+        // Verifica erros de permissão do Storage
+        if (error.code === 'storage/unauthorized') {
+             showToast("Erro: Verifique as regras de permissão do Storage.", "error");
+        }
+
+    } finally {
+        // 6. Reativar o botão
+        logoContainer.style.pointerEvents = "auto";
+        logoContainer.style.opacity = "1";
+        logoUploadInput.value = ""; // Limpa o input
+    }
+});
+
 
 // --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
 
@@ -263,32 +365,6 @@ async function reauthenticate(password) {
         }
     }
 }
-
-
-// --- LÓGICA CONDICIONAL ESTADO CIVIL ---
-const estadoCivilSelect = document.getElementById("estado-civil");
-const campoConjuge = document.getElementById("campo-conjuge");
-
-estadoCivilSelect.addEventListener("change", () => {
-    if (estadoCivilSelect.value === 'Casado(a)') {
-        campoConjuge.classList.remove("hidden");
-    } else {
-        campoConjuge.classList.add("hidden");
-        document.getElementById("conjuge").value = ""; // Limpa o campo
-    }
-});
-
-const editEstadoCivilSelect = document.getElementById("edit-estado-civil");
-const editCampoConjuge = document.getElementById("edit-campo-conjuge");
-
-editEstadoCivilSelect.addEventListener("change", () => {
-    if (editEstadoCivilSelect.value === 'Casado(a)') {
-        editCampoConjuge.classList.remove("hidden");
-    } else {
-        editCampoConjuge.classList.add("hidden");
-        document.getElementById("edit-conjuge").value = ""; // Limpa o campo
-    }
-});
 
 
 // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
@@ -328,52 +404,33 @@ formMembro.addEventListener("submit", async (e) => {
 
     toggleButtonLoading(membroSubmitBtn, true, "Salvar Membro");
 
-    const nome = document.getElementById("nome").value;
-    const email = document.getElementById("email").value;
-    const telefone = document.getElementById("telefone").value;
-    const dataNascimento = document.getElementById("data-nascimento").value;
-    const funcao = document.getElementById("funcao").value;
-    const endereco = document.getElementById("endereco").value;
-    const estadoCivil = document.getElementById("estado-civil").value;
-    const conjuge = document.getElementById("conjuge").value;
-    const dataBatismo = document.getElementById("data-batismo").value;
-    // CAMPOS ADICIONADOS
-    const dataChegada = document.getElementById("data-chegada").value;
-    const naturalidade = document.getElementById("naturalidade").value;
-    const cpf = document.getElementById("cpf").value;
-    const rg = document.getElementById("rg").value;
-    const profissao = document.getElementById("profissao").value;
-    const escolaridade = document.getElementById("escolaridade").value;
-    const igrejaVeio = document.getElementById("igreja-veio").value;
-    const cargoOcupava = document.getElementById("cargo-ocupava").value;
-
+    // Coleta todos os dados
+    const dadosMembro = {
+        nome: document.getElementById("nome").value,
+        dataNascimento: document.getElementById("data-nascimento").value,
+        dataChegada: document.getElementById("data-chegada").value,
+        telefone: document.getElementById("telefone").value,
+        email: document.getElementById("email").value,
+        naturalidade: document.getElementById("naturalidade").value,
+        cpf: document.getElementById("cpf").value,
+        rg: document.getElementById("rg").value,
+        funcao: document.getElementById("funcao").value,
+        estadoCivil: document.getElementById("estado-civil").value,
+        dataBatismo: document.getElementById("data-batismo").value,
+        conjuge: document.getElementById("conjuge").value,
+        profissao: document.getElementById("profissao").value,
+        escolaridade: document.getElementById("escolaridade").value,
+        igrejaVeio: document.getElementById("igreja-veio").value,
+        cargoOcupava: document.getElementById("cargo-ocupava").value,
+        endereco: document.getElementById("endereco").value
+    };
 
     try {
         const docRef = collection(db, "users", userId, "membros");
-        await addDoc(docRef, {
-            nome: nome,
-            email: email,
-            telefone: telefone,
-            dataNascimento: dataNascimento,
-            funcao: funcao,
-            endereco: endereco,
-            estadoCivil: estadoCivil,
-            conjuge: conjuge,
-            dataBatismo: dataBatismo,
-             // CAMPOS ADICIONADOS
-            dataChegada: dataChegada,
-            naturalidade: naturalidade,
-            cpf: cpf,
-            rg: rg,
-            profissao: profissao,
-            escolaridade: escolaridade,
-            igrejaVeio: igrejaVeio,
-            cargoOcupava: cargoOcupava
-        });
+        await addDoc(docRef, dadosMembro); // Salva o objeto completo
 
         formMembro.reset();
-        campoConjuge.classList.add("hidden"); // Esconde o campo cônjuge
-        document.getElementById("data-chegada").valueAsDate = new Date(); // Reseta data de chegada
+        document.getElementById("campo-conjuge").classList.add("hidden"); // Esconde o campo cônjuge
         showToast("Membro salvo com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar membro: ", error);
@@ -382,6 +439,20 @@ formMembro.addEventListener("submit", async (e) => {
         toggleButtonLoading(membroSubmitBtn, false, "Salvar Membro");
     }
 });
+
+// --- LÓGICA DO CAMPO CÔNJUGE (CADASTRO) ---
+const estadoCivilSelect = document.getElementById("estado-civil");
+const campoConjuge = document.getElementById("campo-conjuge");
+
+estadoCivilSelect.addEventListener("change", () => {
+    if (estadoCivilSelect.value === "Casado(a)") {
+        campoConjuge.classList.remove("hidden");
+    } else {
+        campoConjuge.classList.add("hidden");
+        document.getElementById("conjuge").value = ""; // Limpa o campo
+    }
+});
+
 
 // --- FORMULÁRIO DE MEMBROS (EDIÇÃO) ---
 
@@ -416,23 +487,22 @@ formEditMembro.addEventListener("submit", async (e) => {
     // 2. Coletar dados do formulário
     const dadosAtualizados = {
         nome: document.getElementById("edit-nome").value,
-        email: document.getElementById("edit-email").value,
-        telefone: document.getElementById("edit-telefone").value,
         dataNascimento: document.getElementById("edit-data-nascimento").value,
-        funcao: document.getElementById("edit-funcao").value,
-        endereco: document.getElementById("edit-endereco").value,
-        estadoCivil: document.getElementById("edit-estado-civil").value,
-        conjuge: document.getElementById("edit-conjuge").value,
-        dataBatismo: document.getElementById("edit-data-batismo").value,
-        // CAMPOS ADICIONADOS
         dataChegada: document.getElementById("edit-data-chegada").value,
+        telefone: document.getElementById("edit-telefone").value,
+        email: document.getElementById("edit-email").value,
         naturalidade: document.getElementById("edit-naturalidade").value,
         cpf: document.getElementById("edit-cpf").value,
         rg: document.getElementById("edit-rg").value,
+        funcao: document.getElementById("edit-funcao").value,
+        estadoCivil: document.getElementById("edit-estado-civil").value,
+        dataBatismo: document.getElementById("edit-data-batismo").value,
+        conjuge: document.getElementById("edit-conjuge").value,
         profissao: document.getElementById("edit-profissao").value,
         escolaridade: document.getElementById("edit-escolaridade").value,
         igrejaVeio: document.getElementById("edit-igreja-veio").value,
-        cargoOcupava: document.getElementById("edit-cargo-ocupava").value
+        cargoOcupava: document.getElementById("edit-cargo-ocupava").value,
+        endereco: document.getElementById("edit-endereco").value
     };
     
     // 3. Atualizar no Firebase
@@ -449,6 +519,19 @@ formEditMembro.addEventListener("submit", async (e) => {
          editMembroError.textContent = "Erro ao salvar os dados.";
     } finally {
         toggleButtonLoading(editMembroSubmitBtn, false, "Salvar Alterações");
+    }
+});
+
+// --- LÓGICA DO CAMPO CÔNJUGE (EDIÇÃO) ---
+const editEstadoCivilSelect = document.getElementById("edit-estado-civil");
+const editCampoConjuge = document.getElementById("edit-campo-conjuge");
+
+editEstadoCivilSelect.addEventListener("change", () => {
+    if (editEstadoCivilSelect.value === "Casado(a)") {
+        editCampoConjuge.classList.remove("hidden");
+    } else {
+        editCampoConjuge.classList.add("hidden");
+        document.getElementById("edit-conjuge").value = ""; // Limpa o campo
     }
 });
 
@@ -708,6 +791,7 @@ function stopAllListeners() {
     if (unsubDizimos) unsubDizimos();
     if (unsubOfertas) unsubOfertas();
     if (unsubFinanceiro) unsubFinanceiro();
+    if (userProfileUnsub) userProfileUnsub(); // ADICIONADO
     console.log("Listeners interrompidos.");
 }
 
@@ -723,6 +807,8 @@ function clearAllTables() {
     document.getElementById("entradas-mes-dashboard").textContent = "R$ 0,00";
     document.getElementById("saidas-mes-dashboard").textContent = "R$ 0,00";
     document.getElementById("total-membros-dashboard").textContent = "0";
+    // ADICIONADO: Reseta o logo
+    appLogoImg.src = "https://placehold.co/40x40/EBF8FF/3B82F6?text=Logo";
 }
 
 
@@ -1052,24 +1138,25 @@ function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
     if (!membro) return;
 
-    document.getElementById("modal-nome").textContent = membro.nome;
+    // Preenche todos os campos
+    document.getElementById("modal-nome").textContent = membro.nome || 'N/A';
     document.getElementById("modal-funcao").textContent = membro.funcao || 'N/A';
-    document.getElementById("modal-email").textContent = membro.email || 'N/A';
-    document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
     document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
-    document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
-    document.getElementById("modal-data-batismo").textContent = formatarData(membro.dataBatismo) || 'N/A';
-    
-    // CAMPOS ADICIONADOS
+    document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
+    document.getElementById("modal-email").textContent = membro.email || 'N/A';
     document.getElementById("modal-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
-    document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
     document.getElementById("modal-cpf").textContent = membro.cpf || 'N/A';
     document.getElementById("modal-rg").textContent = membro.rg || 'N/A';
+    document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
+    document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
+    document.getElementById("modal-data-batismo").textContent = formatarData(membro.dataBatismo) || 'N/A';
     document.getElementById("modal-profissao").textContent = membro.profissao || 'N/A';
     document.getElementById("modal-escolaridade").textContent = membro.escolaridade || 'N/A';
     document.getElementById("modal-igreja-veio").textContent = membro.igrejaVeio || 'N/A';
     document.getElementById("modal-cargo-ocupava").textContent = membro.cargoOcupava || 'N/A';
+    document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
 
+    // Lógica do Cônjuge
     const pModalConjuge = document.getElementById("p-modal-conjuge");
     if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
         document.getElementById("modal-conjuge").textContent = membro.conjuge;
@@ -1077,8 +1164,6 @@ function showMembroDetalhesModal(id) {
     } else {
         pModalConjuge.classList.add("hidden");
     }
-    
-    document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
     
     // Define o ID para os botões de ação
     membroParaEditarId = id; // Para edição
@@ -1101,34 +1186,27 @@ function showMembroEditModal() {
 
     // Preenche o formulário de edição
     document.getElementById("edit-nome").value = membro.nome || '';
-    document.getElementById("edit-email").value = membro.email || '';
-    document.getElementById("edit-telefone").value = membro.telefone || '';
     document.getElementById("edit-data-nascimento").value = membro.dataNascimento || '';
-    document.getElementById("edit-funcao").value = membro.funcao || '';
-    document.getElementById("edit-endereco").value = membro.endereco || '';
-    document.getElementById("edit-data-batismo").value = membro.dataBatismo || '';
-    
-    // CAMPOS ADICIONADOS
     document.getElementById("edit-data-chegada").value = membro.dataChegada || '';
+    document.getElementById("edit-telefone").value = membro.telefone || '';
+    document.getElementById("edit-email").value = membro.email || '';
     document.getElementById("edit-naturalidade").value = membro.naturalidade || '';
     document.getElementById("edit-cpf").value = membro.cpf || '';
     document.getElementById("edit-rg").value = membro.rg || '';
+    document.getElementById("edit-funcao").value = membro.funcao || '';
+    document.getElementById("edit-estado-civil").value = membro.estadoCivil || '';
+    document.getElementById("edit-data-batismo").value = membro.dataBatismo || '';
+    document.getElementById("edit-conjuge").value = membro.conjuge || '';
     document.getElementById("edit-profissao").value = membro.profissao || '';
     document.getElementById("edit-escolaridade").value = membro.escolaridade || '';
     document.getElementById("edit-igreja-veio").value = membro.igrejaVeio || '';
     document.getElementById("edit-cargo-ocupava").value = membro.cargoOcupava || '';
-    
-    const editEstadoCivil = document.getElementById("edit-estado-civil");
-    const editCampoConjuge = document.getElementById("edit-campo-conjuge");
-    const editConjugeInput = document.getElementById("edit-conjuge");
+    document.getElementById("edit-endereco").value = membro.endereco || '';
 
-    editEstadoCivil.value = membro.estadoCivil || '';
-    
-    if (membro.estadoCivil === 'Casado(a)') {
-        editConjugeInput.value = membro.conjuge || '';
+    // Lógica do Cônjuge (Edição)
+    if (membro.estadoCivil === "Casado(a)") {
         editCampoConjuge.classList.remove("hidden");
     } else {
-        editConjugeInput.value = '';
         editCampoConjuge.classList.add("hidden");
     }
     
@@ -1322,7 +1400,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
     // ADICIONADO: try...catch global
     try {
         // 1. Coletar todos os dados
-        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
+        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0);
         // REMOVIDO: const totalMembros = localMembros.length;
         
         // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
