@@ -371,8 +371,8 @@ formMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("rg").value,
         naturalidade: document.getElementById("naturalidade").value,
         endereco: document.getElementById("endereco").value,
-        nomePai: document.getElementById("nome-pai").value, // Novo
-        nomeMae: document.getElementById("nome-mae").value, // Novo
+        nomePai: document.getElementById("nome-pai").value,
+        nomeMae: document.getElementById("nome-mae").value,
         estadoCivil: document.getElementById("estado-civil").value,
         conjuge: (document.getElementById("estado-civil").value === 'Casado(a)') ? document.getElementById("conjuge").value : "",
         profissao: document.getElementById("profissao").value,
@@ -442,8 +442,8 @@ formEditMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("edit-rg").value,
         naturalidade: document.getElementById("edit-naturalidade").value,
         endereco: document.getElementById("edit-endereco").value,
-        nomePai: document.getElementById("edit-nome-pai").value, // Novo
-        nomeMae: document.getElementById("edit-nome-mae").value, // Novo
+        nomePai: document.getElementById("edit-nome-pai").value,
+        nomeMae: document.getElementById("edit-nome-mae").value,
         estadoCivil: document.getElementById("edit-estado-civil").value,
         conjuge: (document.getElementById("edit-estado-civil").value === 'Casado(a)') ? document.getElementById("edit-conjuge").value : "",
         profissao: document.getElementById("edit-profissao").value,
@@ -1028,11 +1028,9 @@ function updateDashboard() {
 // Função auxiliar para definir textContent se o elemento existir
 function setElementText(id, text) {
     const element = document.getElementById(id);
+    // CORRIGIDO: Verifica se o elemento existe ANTES de tentar definir o textContent
     if (element) {
         element.textContent = text || 'N/A';
-    } else {
-        // CORRIGIDO: Este log era a causa do erro `TypeError`
-        // console.warn(`Elemento com ID "${id}" não encontrado no HTML.`);
     }
 }
 
@@ -1302,6 +1300,8 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     @media print {
                         body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                         .no-print { display: none; }
+                        /* Evita quebras de página dentro das assinaturas */
+                        .assinatura-block { page-break-inside: avoid; }
                     }
                     body { font-family: sans-serif; }
                     h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
@@ -1316,6 +1316,9 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     .total { font-weight: bold; font-size: 16px; }
                     .resumo-final { margin-top: 24px; padding-top: 16px; border-top: 2px solid #3b82f6; }
                     .resumo-linha { display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 8px; }
+                    .assinaturas-container { margin-top: 80px; display: flex; justify-content: space-around; padding-top: 20px; }
+                    .assinatura-block { width: 280px; text-align: center; font-size: 14px; }
+                    .assinatura-linha { border-top: 1px solid #374151; margin-top: 4px; padding-top: 4px; }
                 </style>
             </head>
             <body class="bg-gray-100 p-8">
@@ -1458,6 +1461,16 @@ gerarRelatorioBtn.addEventListener("click", () => {
                             </span>
                         </div>
                     </div>
+
+                    <!-- Campos de Assinatura -->
+                    <div class="assinaturas-container">
+                        <div class="assinatura-block">
+                            <span class="assinatura-linha">Tesoureiro(a)</span>
+                        </div>
+                        <div class="assinatura-block">
+                            <span class="assinatura-linha">Pastor Local</span>
+                        </div>
+                    </div>
                 </div>
             </body>
             </html>
@@ -1488,6 +1501,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
 
 // Controla o estado de loading de um botão
 function toggleButtonLoading(button, isLoading, defaultText) {
+    if (!button) return; // Verificação de segurança
     if (isLoading) {
         button.disabled = true;
         button.innerHTML = `<span class="spinner"></span>Aguarde...`;
