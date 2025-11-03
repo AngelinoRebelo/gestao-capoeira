@@ -652,6 +652,23 @@
                                     </select>
                                 </div>
                             </div>
+
+                            <!-- (NOVO) Resumo do Mês -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 border-b pb-6">
+                                <div class="text-center md:text-left">
+                                    <h3 class="text-sm font-medium text-gray-500 uppercase">Entradas (Mês)</h3>
+                                    <p id="entradas-mes-financeiro" class="text-2xl font-bold text-green-600">R$ 0,00</p>
+                                </div>
+                                <div class="text-center md:text-left">
+                                    <h3 class="text-sm font-medium text-gray-500 uppercase">Saídas (Mês)</h3>
+                                    <p id="saidas-mes-financeiro" class="text-2xl font-bold text-red-600">R$ 0,00</p>
+                                </div>
+                                <div class="text-center md:text-right">
+                                    <h3 class="text-sm font-medium text-gray-500 uppercase">Saldo Atual (Total)</h3>
+                                    <p id="saldo-total-financeiro" class="text-2xl font-bold text-blue-700">R$ 0,00</p>
+                                </div>
+                            </div>
+                            
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
@@ -674,11 +691,6 @@
                                         <!-- Linhas do financeiro serão inseridas aqui -->
                                     </tbody>
                                 </table>
-                            </div>
-                            <!-- Saldo Total Movido para o final -->
-                            <div class="text-right mt-6 pr-4">
-                                <h3 class="text-lg font-medium text-gray-600">Saldo Atual (Total):</h3>
-                                <p id="saldo-total-financeiro" class="text-2xl font-bold text-blue-700">R$ 0,00</p>
                             </div>
                         </div>
                     </div>
