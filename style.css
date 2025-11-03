@@ -1,41 +1,47 @@
-/* Estilo para abas ativas e inativas (AUTENTICAÇÃO) */
-.auth-tab-button.active {
-    border-bottom-color: #3b82f6; /* Cor azul */
-    color: #3b82f6;
-    font-weight: 600;
-}
-.auth-tab-button {
-    border-bottom-width: 3px;
-    border-bottom-color: transparent;
-    color: #6b7280; /* Cinza */
-}
-
-/* Estilo para abas ativas e inativas (APLICAÇÃO) */
-.app-tab-button.active {
-    border-bottom-color: #ffffff; /* Cor branca */
-    color: #ffffff;
-    font-weight: 600;
-}
+/* Estilo para abas ativas e inativas (Genérico) */
+.auth-tab-button,
 .app-tab-button {
     border-bottom-width: 3px;
     border-bottom-color: transparent;
-    color: #dbeafe; /* Azul claro */
+    transition: all 0.2s ease-in-out;
+}
+
+/* Estilo para abas de AUTENTICAÇÃO (Login/Registo) */
+.auth-tab-button {
+    color: #6b7280; /* Cinza */
+}
+.auth-tab-button.active {
+    border-bottom-color: #3b82f6; /* Azul */
+    color: #3b82f6; /* Azul */
+    font-weight: 600;
+}
+
+/* Estilo para abas da APLICAÇÃO (Cabeçalho azul) */
+.app-tab-button {
+     color: #ffffff; /* Branco */
+     opacity: 0.8;
+}
+.app-tab-button.active {
+    border-bottom-color: #ffffff; /* Branco */
+    opacity: 1.0;
+    font-weight: 600;
 }
 
 
-/* Ocultar abas por padrão */
+/* Ocultar abas de conteúdo por padrão */
 .tab-content {
     display: none;
 }
 
-/* Mostrar aba ativa */
+/* Mostrar aba de conteúdo ativa */
 .tab-content.active {
     display: block;
 }
 
 /* Estilo para modal */
 .modal {
-    display: none; /* Oculto por padrão */
+    display: none;
+    /* Oculto por padrão */
     position: fixed;
     z-index: 100;
     left: 0;
@@ -43,31 +49,52 @@
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.5);
     padding-top: 2rem;
     padding-bottom: 2rem;
 }
 
 .modal-content {
     background-color: #fefefe;
-    margin: 2% auto; /* Reduzido de 5% para dar mais espaço */
+    margin: 2% auto;
     padding: 24px;
     border: 1px solid #888;
     width: 90%;
-    /* MODIFICADO: Removido max-width fixo para permitir que o Tailwind controle */
-    /* max-width: 500px; */ 
+    /* Removido max-w-md para permitir que Tailwind controle */
     border-radius: 8px;
     position: relative;
+    animation: fadeIn 0.3s ease-out;
 }
+
+/* Inputs dentro de modais */
+.modal-input {
+    @apply mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500;
+}
+
+/* Abas dentro do modal de detalhes do membro */
+.modal-tab-button {
+    @apply py-2 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300;
+    border-bottom-color: transparent;
+}
+.modal-tab-button.active {
+     @apply border-blue-500 text-blue-600;
+}
+.modal-tab-content {
+    display: none;
+}
+.modal-tab-content.active {
+    display: block;
+    padding-top: 1rem;
+}
+
 
 .close-button {
     color: #aaa;
     position: absolute;
     top: 10px;
-    right: 20px;
+    right: 15px;
     font-size: 28px;
     font-weight: bold;
-    z-index: 110; /* Para ficar acima do conteúdo */
 }
 
 .close-button:hover,
@@ -77,80 +104,87 @@
     cursor: pointer;
 }
 
-/* Toast (Notificações) */
+/* Animação Spinner */
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+/* Spinner dentro da página (ex: Dashboard loading) */
+.spinner.\!border-t-blue-600 {
+     border-top-color: #3b82f6 !important;
+     border-color: #d1d5db !important;
+}
+
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Animação Modal */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Toast (Notificação) */
 #toast-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 1.25rem;
+    right: 1.25rem;
     z-index: 200;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0.5rem;
 }
 
 .toast {
-    padding: 12px 20px;
-    border-radius: 8px;
-    color: white;
-    font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    @apply text-white py-3 px-5 rounded-lg shadow-lg;
     animation: slideIn 0.3s ease-out forwards;
+    opacity: 0;
 }
-
 .toast-success {
-    background-color: #22c55e; /* green-500 */
+    @apply bg-green-500;
 }
 .toast-error {
-    background-color: #ef4444; /* red-500 */
+    @apply bg-red-500;
 }
 .toast-warning {
-    background-color: #f97316; /* orange-500 */
+     @apply bg-yellow-500;
 }
 
 @keyframes slideIn {
     from {
-        transform: translateX(100%);
         opacity: 0;
+        transform: translateX(100%);
     }
     to {
-        transform: translateX(0);
         opacity: 1;
+        transform: translateX(0);
     }
 }
 
 @keyframes slideOut {
     from {
-        transform: translateX(0);
         opacity: 1;
+        transform: translateX(0);
     }
     to {
-        transform: translateX(100%);
         opacity: 0;
-    }
-}
-
-/* Spinner de Carregamento */
-.spinner {
-    width: 1.25rem; /* w-5 */
-    height: 1.25rem; /* h-5 */
-    border-width: 2px;
-    border-style: solid;
-    border-color: transparent;
-    border-top-color: white;
-    border-radius: 50%;
-    display: inline-block;
-    animation: spin 1s linear infinite;
-}
-.spinner-dark {
-     border-top-color: #3b82f6; /* blue-500 */
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
+        transform: translateX(100%);
     }
 }
 
