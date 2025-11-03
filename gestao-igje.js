@@ -5,7 +5,7 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    onAuthStateChanged, // Corrigido: Adicionado de volta
+    onAuthStateChanged,
     EmailAuthProvider,
     reauthenticateWithCredential
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -84,7 +84,7 @@ const registerTab = document.getElementById("auth-register-tab");
 
 // Abas da Aplicação
 const tabButtons = document.querySelectorAll(".app-tab-button");
-const tabContents = document.querySelectorAll(".app-content-tab"); // Corrigido: Adicionado de volta
+const tabContents = document.querySelectorAll(".app-content-tab"); // Corrigido
 
 // Formulários
 const formMembro = document.getElementById("form-membro");
@@ -703,8 +703,8 @@ function clearAllTables() {
     listaFinanceiro.innerHTML = "";
     dizimoMembroSelect.innerHTML = '<option value="">Selecione o Membro</option>';
     saldoTotalFinanceiro.textContent = "R$ 0,00";
-    entradasMesFinanceiro.textContent = "R$ 0,00"; // Novo
-    saidasMesFinanceiro.textContent = "R$ 0,00"; // Novo
+    entradasMesFinanceiro.textContent = "R$ 0,00";
+    saidasMesFinanceiro.textContent = "R$ 0,00";
     saldoDashboard.textContent = "R$ 0,00";
     entradasDashboard.textContent = "R$ 0,00";
     saidasDashboard.textContent = "R$ 0,00";
@@ -808,8 +808,12 @@ function popularFiltros(selectMes, selectAno) {
     });
 
     selectAno.innerHTML = "";
-    for (let i = 0; i < 3; i++) {
-        const ano = anoAtual - i;
+    // Intervalo de Anos (Ano Atual - 2 até 2027)
+    const anoInicio = anoAtual - 2;
+    const anoFim = 2027; 
+    
+    for (let i = anoInicio; i <= anoFim; i++) {
+        const ano = i;
         const option = document.createElement("option");
         option.value = ano;
         option.textContent = ano;
@@ -1027,7 +1031,6 @@ function updateDashboard() {
 // Função auxiliar para definir textContent se o elemento existir
 function setElementText(id, text) {
     const element = document.getElementById(id);
-    // CORRIGIDO: Verifica se o elemento existe ANTES de tentar definir o textContent
     if (element) {
         element.textContent = text || 'N/A';
     }
@@ -1299,7 +1302,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     @media print {
                         body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                         .no-print { display: none; }
-                        .assinatura-block { page-break-inside: avoid; }
+                        .resumo-final { page-break-inside: avoid; }
                     }
                     body { font-family: sans-serif; }
                     h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
@@ -1314,9 +1317,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     .total { font-weight: bold; font-size: 16px; }
                     .resumo-final { margin-top: 24px; padding-top: 16px; border-top: 2px solid #3b82f6; }
                     .resumo-linha { display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 8px; }
-                    .assinaturas-container { margin-top: 80px; display: flex; justify-content: space-around; padding-top: 20px; }
-                    .assinatura-block { width: 280px; text-align: center; font-size: 14px; }
-                    .assinatura-linha { border-top: 1px solid #374151; margin-top: 4px; padding-top: 4px; }
                 </style>
             </head>
             <body class="bg-gray-100 p-8">
