@@ -24,6 +24,15 @@ import {
     writeBatch,
     updateDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+// ADICIONADO: Importações do Storage (para fotos)
+import {
+    getStorage,
+    ref,
+    uploadBytesResumable,
+    getDownloadURL,
+    deleteObject
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
 
 // Configuração do Firebase
 const firebaseConfig = {
@@ -36,11 +45,12 @@ const firebaseConfig = {
 };
 
 // Inicialização do Firebase
-let app, auth, db, userId;
+let app, auth, db, storage, userId; // ADICIONADO: storage
 try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
+    storage = getStorage(app); // ADICIONADO: Inicializa o Storage
     console.log("Firebase inicializado com sucesso.");
 } catch (error)
 {
@@ -63,6 +73,10 @@ let itemParaExcluir = {
 
 // ID do membro a ser editado
 let membroParaEditarId = null;
+
+// ADICIONADO: Variáveis para guardar os ficheiros de foto
+let fotoParaUpload = null; // Ficheiro para o formulário de CADASTRO
+let fotoParaEditar = null; // Ficheiro para o formulário de EDIÇÃO
 
 // --- CONTROLE DE AUTENTICAÇÃO ---
 
@@ -108,50 +122,45 @@ registerForm.addEventListener("submit", async (e) => {
     toggleButtonLoading(registerSubmitBtn, true, "Cadastrar");
     
     const nome = document.getElementById("register-name").value;
-    const telefone = document.getElementById("register-phone").value.replace(/\D/g, ''); // Limpa formatação
+    const telefone = document.getElementById("register-phone").value;
     const email = document.getElementById("register-email").value;
     const password = document.getElementById("register-password").value;
 
-    // --- VERIFICAÇÕES DE REGISTO RESTRITO ---
-
-    // 1. Validar campos
+    // --- VERIFICAÇÕES DE REGISTO ---
     if (!nome || !telefone) {
         registerError.textContent = "Nome e Telefone são obrigatórios.";
         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
         return;
     }
 
-    // 2. Normalizar o nome para verificação
-    const nomeNormalizado = nome.trim().toLowerCase();
+    // Normaliza os inputs (minúsculas, remove espaços e traços)
+    const nomeLimpo = nome.trim().toLowerCase();
+    const telefoneLimpo = telefone.replace(/\D/g, ''); // Remove tudo que não for dígito
 
-    // 3. Definir as combinações permitidas
-    const perfisAutorizados = [
-        { nome: "gabriel angelino", telefone: "21964597378" },
-        { nome: "lorrane", telefone: "21979626240" }
-    ];
+    // Lista de utilizadores autorizados
+    const authorizedUsers = {
+        "gabriel angelino": "21964597378",
+        "lorrane": "21979626240"
+    };
 
-    // 4. Verificar se a combinação nome + telefone é válida
-    const matchValido = perfisAutorizados.some(perfil => {
-        return nomeNormalizado === perfil.nome && telefone === perfil.telefone;
-    });
-
-    if (!matchValido) {
-        registerError.textContent = "Nome ou Telefone não autorizado para cadastro.";
-        toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
-        return;
+    if (authorizedUsers[nomeLimpo] !== telefoneLimpo) {
+         registerError.textContent = "Nome e/ou Telefone não autorizados.";
+         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
+         return;
     }
 
     // --- FIM DAS VERIFICAÇÕES ---
 
     try {
-        // 5. Criar o usuário na Autenticação
+        // 1. Criar o utilizador na Autenticação
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 6. Salvar dados do perfil no Firestore (na coleção partilhada)
-        await setDoc(doc(db, "dadosIgreja/ADCA-CG/perfisUtilizadores", user.uid), {
+        // 2. Salvar dados do perfil no Firestore (para consulta futura)
+        const perfilRef = doc(db, "dadosIgreja/ADCA-CG/perfisUtilizadores", user.uid);
+        await setDoc(perfilRef, {
             nome: nome.trim(),
-            telefone: telefone,
+            telefone: telefoneLimpo,
             email: email,
             createdAt: Timestamp.now()
         });
@@ -208,16 +217,11 @@ logoutButton.addEventListener("click", async () => {
 onAuthStateChanged(auth, (user) => {
     if (user) {
         // Usuário está logado
-        userId = user.uid; // Embora não usemos para caminhos, é bom ter
+        userId = user.uid;
         userEmailDisplay.textContent = user.email;
         authScreen.style.display = "none";
         appContent.style.display = "block";
-        
-        // Esconde/Mostra abas (lógica de permissão removida, todos veem tudo)
-        document.querySelectorAll(".app-tab-button").forEach(tab => tab.style.display = "flex");
-        document.getElementById("relatorio-container").style.display = "block";
-
-        loadAllData(); // Carrega os dados partilhados
+        loadAllData(userId); // Carrega os dados do usuário
         
         // Define as datas dos formulários para hoje
         document.getElementById("dizimo-data").valueAsDate = new Date();
@@ -238,17 +242,14 @@ onAuthStateChanged(auth, (user) => {
 
 async function reauthenticate(password) {
     const user = auth.currentUser;
-    if (!user) {
-        throw new Error("Usuário não está logado.");
-    }
-    if (!user.email) {
-         throw new Error("Usuário não tem email associado (ex: anônimo).");
+    if (!user || !user.email) {
+        throw new Error("Usuário inválido ou sem email.");
     }
 
     try {
         const credential = EmailAuthProvider.credential(user.email, password);
         await reauthenticateWithCredential(user, credential);
-        return true; // Reautenticação bem-sucedida
+        return true;
     } catch (error) {
         console.error("Erro ao reautenticar:", error.code);
         if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
@@ -268,48 +269,116 @@ const tabContents = document.querySelectorAll(".tab-content:not(#login-tab):not(
 tabButtons.forEach(button => {
     button.addEventListener("click", () => {
         const targetTab = button.dataset.tab;
-
-        // Desativa todos
         tabButtons.forEach(btn => btn.classList.remove("active"));
         tabContents.forEach(content => content.classList.remove("active"));
-
-        // Ativa o clicado
         button.classList.add("active");
         document.getElementById(targetTab).classList.add("active");
 
-        // Atualiza dados se a aba for o dashboard
         if (targetTab === 'dashboard') {
             updateDashboard();
         }
-        // Atualiza ícones quando muda de aba
         lucide.createIcons();
     });
 });
+
+// --- LÓGICA DE UPLOAD DE FOTO (NOVO) ---
+
+// Uploader do CADASTRO
+const cadastroFotoContainer = document.getElementById("cadastro-foto-container");
+const cadastroFotoInput = document.getElementById("cadastro-foto-input");
+const cadastroFotoPreview = document.getElementById("cadastro-foto-preview");
+const cadastroFotoRemover = document.getElementById("cadastro-foto-remover");
+const placeholderFoto = "https://placehold.co/400x400/e2e8f0/cbd5e1?text=Sem+Foto";
+
+// Uploader da EDIÇÃO
+const editFotoContainer = document.getElementById("edit-foto-container");
+const editFotoInput = document.getElementById("edit-foto-input");
+const editFotoPreview = document.getElementById("edit-foto-preview");
+const editFotoRemover = document.getElementById("edit-foto-remover");
+
+// Ação de clicar no container (CADASTRO)
+cadastroFotoContainer.addEventListener("click", () => {
+    cadastroFotoInput.click();
+});
+
+// Ação de clicar no container (EDIÇÃO)
+editFotoContainer.addEventListener("click", () => {
+    editFotoInput.click();
+});
+
+// Ação de selecionar um ficheiro (CADASTRO)
+cadastroFotoInput.addEventListener("change", (e) => {
+    handleFotoChange(e, 'cadastro');
+});
+
+// Ação de selecionar um ficheiro (EDIÇÃO)
+editFotoInput.addEventListener("change", (e) => {
+    handleFotoChange(e, 'edit');
+});
+
+// Ação de remover foto (CADASTRO)
+cadastroFotoRemover.addEventListener("click", () => {
+    resetFotoUploader('cadastro');
+});
+
+// Ação de remover foto (EDIÇÃO)
+editFotoRemover.addEventListener("click", () => {
+    resetFotoUploader('edit');
+});
+
+
+// Função que gere a pré-visualização
+function handleFotoChange(event, tipo) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (tipo === 'cadastro') {
+        fotoParaUpload = file;
+        cadastroFotoPreview.src = URL.createObjectURL(file);
+        cadastroFotoRemover.classList.remove("hidden");
+    } else {
+        fotoParaEditar = file;
+        editFotoPreview.src = URL.createObjectURL(file);
+        editFotoRemover.classList.remove("hidden");
+    }
+}
+
+// Função que limpa o uploader
+function resetFotoUploader(tipo) {
+    if (tipo === 'cadastro') {
+        fotoParaUpload = null;
+        cadastroFotoInput.value = null; // Limpa a seleção
+        cadastroFotoPreview.src = placeholderFoto;
+        cadastroFotoRemover.classList.add("hidden");
+    } else {
+        fotoParaEditar = null;
+        editFotoInput.value = null;
+        // Na edição, resetar volta para a foto original (se houver) ou placeholder
+        const membro = localMembros.find(m => m.id === membroParaEditarId);
+        editFotoPreview.src = (membro && membro.fotoURL) ? membro.fotoURL : placeholderFoto;
+        editFotoRemover.classList.add("hidden");
+    }
+}
+
 
 // --- FORMULÁRIO DE MEMBROS (CADASTRO) ---
 
 const formMembro = document.getElementById("form-membro");
 const membroSubmitBtn = document.getElementById("membro-submit-btn");
-// Campos condicionais de Cônjuge
 const estadoCivilSelect = document.getElementById("estado-civil");
 const conjugeContainer = document.getElementById("conjuge-container");
 
 estadoCivilSelect.addEventListener("change", () => {
-    if (estadoCivilSelect.value === 'Casado(a)') {
-        conjugeContainer.classList.remove("hidden");
-    } else {
-        conjugeContainer.classList.add("hidden");
-    }
+    conjugeContainer.classList.toggle("hidden", estadoCivilSelect.value !== 'Casado(a)');
 });
-
 
 formMembro.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!auth.currentUser) return; // Verifica se está logado
+    if (!userId) return;
 
     toggleButtonLoading(membroSubmitBtn, true, "Salvar Membro");
 
-    // Coleta de todos os campos
+    // 1. Coleta de dados (sem a foto)
     const dadosMembro = {
         nome: document.getElementById("nome").value,
         dataNascimento: document.getElementById("data-nascimento").value,
@@ -319,10 +388,8 @@ formMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("rg").value,
         naturalidade: document.getElementById("naturalidade").value,
         endereco: document.getElementById("endereco").value,
-        // Filiação
-        nomePai: document.getElementById("nome-pai").value,
-        nomeMae: document.getElementById("nome-mae").value,
-        // Adicionais
+        nomePai: document.getElementById("nome-pai").value, // Corrigido ID
+        nomeMae: document.getElementById("nome-mae").value, // Corrigido ID
         estadoCivil: document.getElementById("estado-civil").value,
         conjuge: (document.getElementById("estado-civil").value === 'Casado(a)') ? document.getElementById("conjuge").value : "",
         profissao: document.getElementById("profissao").value,
@@ -332,15 +399,33 @@ formMembro.addEventListener("submit", async (e) => {
         dataChegada: document.getElementById("data-chegada").value,
         igrejaAnterior: document.getElementById("igreja-anterior").value,
         cargoAnterior: document.getElementById("cargo-anterior").value,
+        fotoURL: "" // Valor inicial
     };
 
     try {
-        // Caminho partilhado
-        const docRef = collection(db, "dadosIgreja/ADCA-CG/membros");
-        await addDoc(docRef, dadosMembro);
+        // 2. Salva o membro no Firestore (ainda sem fotoURL)
+        const docRef = await addDoc(collection(db, "dadosIgreja/ADCA-CG/membros"), dadosMembro);
+        const novoMembroId = docRef.id;
+
+        // 3. Verifica se há foto para upload
+        if (fotoParaUpload) {
+            const fotoRef = ref(storage, `fotosMembros/${novoMembroId}`);
+            
+            // 4. Faz o upload da foto
+            const uploadTask = await uploadBytesResumable(fotoRef, fotoParaUpload);
+            
+            // 5. Obtém o URL da foto
+            const downloadURL = await getDownloadURL(uploadTask.ref);
+            
+            // 6. Atualiza o membro com o URL da foto
+            await updateDoc(doc(db, "dadosIgreja/ADCA-CG/membros", novoMembroId), {
+                fotoURL: downloadURL
+            });
+        }
 
         formMembro.reset();
-        conjugeContainer.classList.add("hidden"); // Esconde o campo cônjuge
+        conjugeContainer.classList.add("hidden");
+        resetFotoUploader('cadastro'); // Limpa a foto
         showToast("Membro salvo com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar membro: ", error);
@@ -355,21 +440,16 @@ formMembro.addEventListener("submit", async (e) => {
 const formEditMembro = document.getElementById("form-edit-membro");
 const editMembroError = document.getElementById("edit-membro-error");
 const editMembroSubmitBtn = document.getElementById("edit-membro-submit-btn");
-// Campos condicionais de Cônjuge (Edição)
 const editEstadoCivilSelect = document.getElementById("edit-estado-civil");
 const editConjugeContainer = document.getElementById("edit-conjuge-container");
 
 editEstadoCivilSelect.addEventListener("change", () => {
-    if (editEstadoCivilSelect.value === 'Casado(a)') {
-        editConjugeContainer.classList.remove("hidden");
-    } else {
-        editConjugeContainer.classList.add("hidden");
-    }
+    editConjugeContainer.classList.toggle("hidden", editEstadoCivilSelect.value !== 'Casado(a)');
 });
 
 formEditMembro.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!auth.currentUser || !membroParaEditarId) return;
+    if (!userId || !membroParaEditarId) return;
     
     toggleButtonLoading(editMembroSubmitBtn, true, "Salvar Alterações");
     const password = document.getElementById("edit-membro-password").value;
@@ -385,8 +465,7 @@ formEditMembro.addEventListener("submit", async (e) => {
     try {
         await reauthenticate(password);
     } catch (error) {
-        console.error(error);
-        editMembroError.textContent = error.message; // Exibe "Senha incorreta."
+        editMembroError.textContent = error.message;
         toggleButtonLoading(editMembroSubmitBtn, false, "Salvar Alterações");
         return;
     }
@@ -401,10 +480,8 @@ formEditMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("edit-rg").value,
         naturalidade: document.getElementById("edit-naturalidade").value,
         endereco: document.getElementById("edit-endereco").value,
-        // Filiação
         nomePai: document.getElementById("edit-nome-pai").value,
         nomeMae: document.getElementById("edit-nome-mae").value,
-        // Adicionais
         estadoCivil: document.getElementById("edit-estado-civil").value,
         conjuge: (document.getElementById("edit-estado-civil").value === 'Casado(a)') ? document.getElementById("edit-conjuge").value : "",
         profissao: document.getElementById("edit-profissao").value,
@@ -418,11 +495,32 @@ formEditMembro.addEventListener("submit", async (e) => {
     
     // 3. Atualizar no Firebase
     try {
-        // Caminho partilhado
         const docRef = doc(db, "dadosIgreja/ADCA-CG/membros", membroParaEditarId);
+
+        // 3a. Lógica de Upload da Foto (se mudou)
+        if (fotoParaEditar) {
+            const fotoRef = ref(storage, `fotosMembros/${membroParaEditarId}`);
+            const uploadTask = await uploadBytesResumable(fotoRef, fotoParaEditar);
+            dadosAtualizados.fotoURL = await getDownloadURL(uploadTask.ref);
+        
+        // 3b. Lógica de Remoção da Foto (se foi removida e não substituída)
+        } else if (editFotoPreview.src.includes('placehold.co')) {
+            dadosAtualizados.fotoURL = ""; // Define como vazio
+            // Tenta apagar a foto antiga do storage
+            try {
+                const fotoRef = ref(storage, `fotosMembros/${membroParaEditarId}`);
+                await deleteObject(fotoRef);
+            } catch (error) {
+                if (error.code !== 'storage/object-not-found') {
+                    console.warn("Erro ao apagar foto antiga:", error);
+                }
+            }
+        }
+        // Se a foto não mudou, dadosAtualizados.fotoURL não é definido e o original é mantido
+
+        // 4. Atualiza o documento no Firestore
         await updateDoc(docRef, dadosAtualizados);
         
-        // Sucesso
         doCloseMembroEditModal(); 
         showToast("Membro atualizado com sucesso!", "success");
     
@@ -442,8 +540,7 @@ const dizimoSubmitBtn = document.getElementById("dizimo-submit-btn");
 
 formDizimo.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!auth.currentUser) return;
-
+    if (!userId) return;
     toggleButtonLoading(dizimoSubmitBtn, true, "Registar Dízimo");
 
     const membroSelect = document.getElementById("dizimo-membro");
@@ -459,40 +556,33 @@ formDizimo.addEventListener("submit", async (e) => {
     }
 
     try {
-        // Usar um "batch" para garantir que as duas operações ocorram
         const batch = writeBatch(db);
-
-        // 1. Cria o documento de dízimo
         const dizimoDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/dizimos"));
+        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
+
         batch.set(dizimoDocRef, {
             membroId: membroId,
             membroNome: membroNome,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            financeiroId: null // Será atualizado depois
+            financeiroId: financeiroDocRef.id // Link
         });
 
-        // 2. Cria o documento financeiro
-        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `Dízimo - ${membroNome}`,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            origemId: dizimoDocRef.id, // ID do dízimo original
-            origemTipo: "dizimo"      // Tipo da origem
+            origemId: dizimoDocRef.id,
+            origemTipo: "dizimo"
         });
 
-        // 3. Atualiza o dízimo com o ID do financeiro
-        batch.update(dizimoDocRef, { financeiroId: financeiroDocRef.id });
-
-        // 4. Executa o batch
         await batch.commit();
 
         formDizimo.reset();
-        document.getElementById("dizimo-data").valueAsDate = new Date(); // Reseta data para hoje
+        document.getElementById("dizimo-data").valueAsDate = new Date();
         showToast("Dízimo registado com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar dízimo: ", error);
@@ -509,8 +599,7 @@ const ofertaSubmitBtn = document.getElementById("oferta-submit-btn");
 
 formOferta.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!auth.currentUser) return;
-
+    if (!userId) return;
     toggleButtonLoading(ofertaSubmitBtn, true, "Registar Entrada");
 
     const tipo = document.getElementById("oferta-tipo").value;
@@ -525,40 +614,33 @@ formOferta.addEventListener("submit", async (e) => {
     }
 
     try {
-        // Usar um "batch"
         const batch = writeBatch(db);
-
-        // 1. Cria o documento de oferta
         const ofertaDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/ofertas"));
+        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
+
         batch.set(ofertaDocRef, {
             tipo: tipo,
             descricao: descricao,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            financeiroId: null // Será atualizado
+            financeiroId: financeiroDocRef.id // Link
         });
 
-        // 2. Cria o documento financeiro
-        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `${tipo} - ${descricao}`,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            origemId: ofertaDocRef.id, // ID da oferta original
-            origemTipo: "oferta"      // Tipo da origem
+            origemId: ofertaDocRef.id,
+            origemTipo: "oferta"
         });
 
-        // 3. Atualiza a oferta com o ID do financeiro
-        batch.update(ofertaDocRef, { financeiroId: financeiroDocRef.id });
-
-        // 4. Executa
         await batch.commit();
 
         formOferta.reset();
-        document.getElementById("oferta-data").valueAsDate = new Date(); // Reseta data para hoje
+        document.getElementById("oferta-data").valueAsDate = new Date();
         showToast("Entrada registada com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar oferta: ", error);
@@ -576,8 +658,7 @@ const financeiroSubmitBtn = document.getElementById("financeiro-submit-btn");
 
 formFinanceiro.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!auth.currentUser) return;
-
+    if (!userId) return;
     toggleButtonLoading(financeiroSubmitBtn, true, "Registar Saída");
 
     const descricao = document.getElementById("fin-descricao").value;
@@ -595,15 +676,15 @@ formFinanceiro.addEventListener("submit", async (e) => {
         await addDoc(colRef, {
             tipo: "saida",
             descricao: descricao,
-            valor: valor * -1, // Salva saídas como valor negativo
+            valor: valor * -1,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            origemId: null, // Saídas não têm origem em dízimo/oferta
+            origemId: null,
             origemTipo: null
         });
 
         formFinanceiro.reset();
-        document.getElementById("fin-data").valueAsDate = new Date(); // Reseta data para hoje
+        document.getElementById("fin-data").valueAsDate = new Date();
         showToast("Saída registada com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar saída: ", error);
@@ -616,16 +697,13 @@ formFinanceiro.addEventListener("submit", async (e) => {
 
 // --- CARREGAMENTO E RENDERIZAÇÃO DE DADOS ---
 
-// Função principal para carregar dados
-function loadAllData() {
-    if (!auth.currentUser) return;
+function loadAllData(currentUserId) {
+    if (!currentUserId) return;
     console.log("Carregando dados partilhados...");
     document.getElementById("dashboard-loading").innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
 
-    // Parar listeners antigos se existirem
     stopAllListeners();
-
-    let loadsPending = 4; // Membros, Dizimos, Ofertas, Financeiro
+    let loadsPending = 4;
     const onDataLoaded = () => {
         loadsPending--;
         if (loadsPending === 0) {
@@ -635,12 +713,14 @@ function loadAllData() {
         }
     };
 
+    const dbPath = "dadosIgreja/ADCA-CG"; // Caminho partilhado
+
     // Ouvir Membros
     try {
-        const qMembros = query(collection(db, "dadosIgreja/ADCA-CG/membros"));
+        const qMembros = query(collection(db, dbPath, "membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
             localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            localMembros.sort((a, b) => a.nome.localeCompare(b.nome)); // Ordena por nome
+            localMembros.sort((a, b) => a.nome.localeCompare(b.nome));
             renderMembros(localMembros);
             populateMembrosSelect(localMembros);
             onDataLoaded();
@@ -649,20 +729,20 @@ function loadAllData() {
 
     // Ouvir Dízimos
     try {
-        const qDizimos = query(collection(db, "dadosIgreja/ADCA-CG/dizimos"));
+        const qDizimos = query(collection(db, dbPath, "dizimos"));
         unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
             localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderFiltroDizimos(); // Renderiza os filtros
+            renderFiltroDizimos();
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir dízimos:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de dízimos:", e); onDataLoaded(); }
 
     // Ouvir Ofertas
     try {
-        const qOfertas = query(collection(db, "dadosIgreja/ADCA-CG/ofertas"));
+        const qOfertas = query(collection(db, dbPath, "ofertas"));
         unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
             localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderFiltroOfertas(); // Renderiza os filtros
+            renderFiltroOfertas();
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir ofertas:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de ofertas:", e); onDataLoaded(); }
@@ -670,18 +750,19 @@ function loadAllData() {
 
     // Ouvir Financeiro
     try {
-        const qFinanceiro = query(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
+        const qFinanceiro = query(collection(db, dbPath, "financeiro"));
         unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
             localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            renderFiltroFinanceiro(); 
+            renderFiltroFinanceiro();
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir financeiro:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de financeiro:", e); onDataLoaded(); }
-
 }
 
-// Parar todos os listeners
+// ... (Restante do código igual ao anterior) ...
+// (stopAllListeners, clearAllTables)
+
+// --- FUNÇÕES stopAllListeners e clearAllTables ---
 function stopAllListeners() {
     if (unsubMembros) unsubMembros();
     if (unsubDizimos) unsubDizimos();
@@ -690,7 +771,6 @@ function stopAllListeners() {
     console.log("Listeners interrompidos.");
 }
 
-// Limpar tabelas ao deslogar
 function clearAllTables() {
     document.getElementById("lista-membros").innerHTML = "";
     document.getElementById("lista-dizimos").innerHTML = "";
@@ -703,6 +783,7 @@ function clearAllTables() {
     document.getElementById("saidas-mes-dashboard").textContent = "R$ 0,00";
     document.getElementById("total-membros-dashboard").textContent = "0";
 }
+// --- FIM stopAllListeners e clearAllTables ---
 
 
 // Renderizar Tabela de Membros
@@ -716,7 +797,7 @@ filtroMembros.addEventListener("input", (e) => {
 });
 
 function renderMembros(membros) {
-    listaMembros.innerHTML = ""; // Limpa a lista
+    listaMembros.innerHTML = "";
     if (membros.length === 0) {
         listaMembros.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhum membro encontrado.</td></tr>';
         return;
@@ -724,18 +805,15 @@ function renderMembros(membros) {
     membros.forEach(membro => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50";
-        // Adiciona cálculo de idade
-        const idade = calcularIdade(membro.dataNascimento);
         tr.innerHTML = `
         <td class="px-6 py-4 whitespace-nowrap">
             <a href="#" class="text-blue-600 hover:text-blue-800 font-medium" data-id="${membro.id}">${membro.nome}</a>
         </td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${idade}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${calcularIdade(membro.dataNascimento) || 'N/A'}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.funcao || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.telefone || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.email || ''}</td>
     `;
-        // Adiciona listener para abrir modal
         tr.querySelector("a").addEventListener("click", (e) => {
             e.preventDefault();
             showMembroDetalhesModal(membro.id);
@@ -788,11 +866,7 @@ function renderFinanceiro(transacoes) {
     `;
         listaFinanceiro.appendChild(tr);
     });
-
-    // Adiciona listeners aos botões de excluir
     adicionarListenersExcluir();
-
-    // Atualiza ícones Lucide
     lucide.createIcons();
 }
 
@@ -813,7 +887,6 @@ const mesAtual = hoje.getMonth();
 const anoAtual = hoje.getFullYear();
 
 function popularFiltros(selectMes, selectAno) {
-    // Meses
     selectMes.innerHTML = "";
     meses.forEach((mes, index) => {
         const option = document.createElement("option");
@@ -822,8 +895,6 @@ function popularFiltros(selectMes, selectAno) {
         if (index === mesAtual) option.selected = true;
         selectMes.appendChild(option);
     });
-
-    // Anos (Ano atual + 2 anteriores)
     selectAno.innerHTML = "";
     for (let i = 0; i < 3; i++) {
         const ano = anoAtual - i;
@@ -846,31 +917,21 @@ filtroOfertaAno.addEventListener("change", renderFiltroOfertas);
 filtroFinanceiroMes.addEventListener("change", renderFiltroFinanceiro);
 filtroFinanceiroAno.addEventListener("change", renderFiltroFinanceiro);
 
-// NOVA FUNÇÃO para filtrar e renderizar o financeiro
 function renderFiltroFinanceiro() {
     const mes = parseInt(filtroFinanceiroMes.value);
     const ano = parseInt(filtroFinanceiroAno.value);
-
-    // 1. Filtrar os dados
     const dadosFiltrados = localFinanceiro.filter(d => {
         const data = getDateFromInput(d.data);
         if (!data) return false;
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
-
-    // 2. Ordenar os dados filtrados (mais recente primeiro)
     dadosFiltrados.sort((a, b) => {
         const dataA = getDateFromInput(a.data);
         const dataB = getDateFromInput(b.data);
-        if (!dataA) return 1;
-        if (!dataB) return -1;
+        if (!dataA) return 1; if (!dataB) return -1;
         return dataB - dataA;
     });
-
-    // 3. Renderizar a tabela com os dados filtrados
     renderFinanceiro(dadosFiltrados);
-
-    // 4. Calcular e renderizar o SALDO TOTAL (usando todos os dados)
     const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
     const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
     saldoTotalFinanceiro.className = `text-2xl font-bold ${corSaldo}`;
@@ -881,20 +942,16 @@ function renderFiltroFinanceiro() {
 function renderFiltroDizimos() {
     const mes = parseInt(filtroDizimoMes.value);
     const ano = parseInt(filtroDizimoAno.value);
-
     const dadosFiltrados = localDizimos.filter(d => {
-        const data = getDateFromInput(d.data); // <-- CORRIGIDO
-        if (!data) return false; // Ignora datas inválidas
+        const data = getDateFromInput(d.data);
+        if (!data) return false;
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
-
-    // Ordena por data
     dadosFiltrados.sort((a, b) => {
         const dataA = getDateFromInput(a.data);
         const dataB = getDateFromInput(b.data);
-        if (!dataA) return 1;
-        if (!dataB) return -1;
-        return dataA - dataB; // Mais antigo primeiro
+        if (!dataA) return 1; if (!dataB) return -1;
+        return dataA - dataB;
     });
 
     listaDizimos.innerHTML = "";
@@ -902,7 +959,6 @@ function renderFiltroDizimos() {
         listaDizimos.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registado para este mês/ano.</td></tr>';
         return;
     }
-
     dadosFiltrados.forEach(dizimo => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -917,35 +973,29 @@ function renderFiltroDizimos() {
     `;
         listaDizimos.appendChild(tr);
     });
-    adicionarListenersExcluir(); // Adiciona listeners aos novos botões
+    adicionarListenersExcluir();
     lucide.createIcons();
 }
 
 function renderFiltroOfertas() {
     const mes = parseInt(filtroOfertaMes.value);
     const ano = parseInt(filtroOfertaAno.value);
-
     const dadosFiltrados = localOfertas.filter(d => {
-        const data = getDateFromInput(d.data); // <-- CORRIGIDO
+        const data = getDateFromInput(d.data);
         if (!data) return false;
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
-
-    // Ordena por data
     dadosFiltrados.sort((a, b) => {
         const dataA = getDateFromInput(a.data);
         const dataB = getDateFromInput(b.data);
-        if (!dataA) return 1;
-        if (!dataB) return -1;
-        return dataA - dataB; // Mais antigo primeiro
+        if (!dataA) return 1; if (!dataB) return -1;
+        return dataA - dataB;
     });
-
     listaOfertas.innerHTML = "";
     if (dadosFiltrados.length === 0) {
         listaOfertas.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhuma oferta registada para este mês/ano.</td></tr>';
         return;
     }
-
     dadosFiltrados.forEach(oferta => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -961,7 +1011,7 @@ function renderFiltroOfertas() {
     `;
         listaOfertas.appendChild(tr);
     });
-    adicionarListenersExcluir(); // Adiciona listeners aos novos botões
+    adicionarListenersExcluir();
     lucide.createIcons();
 }
 
@@ -975,35 +1025,26 @@ const membrosDashboard = document.getElementById("total-membros-dashboard");
 const dashboardLoading = document.getElementById("dashboard-loading");
 
 function updateDashboard() {
-    if (!localFinanceiro || !localMembros) return; // Não atualiza se os dados não chegaram
+    if (!localFinanceiro || !localMembros) return;
 
-    // 1. Saldo Total
     const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
     const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
     saldoDashboard.className = `text-3xl font-bold ${corSaldo} mt-1`;
     saldoDashboard.textContent = `R$ ${saldoTotal.toFixed(2).replace(".", ",")}`;
-
-    // 2. Total de Membros
     membrosDashboard.textContent = localMembros.length;
-
-    // 3. Entradas e Saídas do Mês Atual
     const mesCorrente = new Date().getMonth();
     const anoCorrente = new Date().getFullYear();
-
     const transacoesMes = localFinanceiro.filter(t => {
-        const data = getDateFromInput(t.data); // <-- CORRIGIDO
+        const data = getDateFromInput(t.data);
         if (!data) return false;
         return data.getUTCMonth() === mesCorrente && data.getUTCFullYear() === anoCorrente;
     });
-
     const entradasMes = transacoesMes
         .filter(t => t.valor > 0)
         .reduce((acc, t) => acc + t.valor, 0);
-
     const saidasMes = transacoesMes
         .filter(t => t.valor < 0)
-        .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
-
+        .reduce((acc, t) => acc + t.valor, 0);
     entradasDashboard.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
     saidasDashboard.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
 }
@@ -1018,8 +1059,12 @@ function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
     if (!membro) return;
 
-    // Preenche todos os campos
-    document.getElementById("modal-nome").textContent = membro.nome || 'N/A';
+    // Preenche a foto
+    document.getElementById("modal-foto").src = membro.fotoURL || placeholderFoto;
+
+    // Preenche os dados
+    document.getElementById("modal-nome").textContent = membro.nome;
+    document.getElementById("modal-funcao").textContent = membro.funcao || 'N/A';
     document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
     document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
     document.getElementById("modal-email").textContent = membro.email || 'N/A';
@@ -1030,15 +1075,8 @@ function showMembroDetalhesModal(id) {
     document.getElementById("modal-nome-pai").textContent = membro.nomePai || 'N/A';
     document.getElementById("modal-nome-mae").textContent = membro.nomeMae || 'N/A';
     document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
-    document.getElementById("modal-profissao").textContent = membro.profissao || 'N/A';
-    document.getElementById("modal-escolaridade").textContent = membro.escolaridade || 'N/A';
-    document.getElementById("modal-funcao").textContent = membro.funcao || 'N/A';
-    document.getElementById("modal-data-batismo").textContent = formatarData(membro.dataBatismo) || 'N/A';
-    document.getElementById("modal-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
-    document.getElementById("modal-igreja-anterior").textContent = membro.igrejaAnterior || 'N/A';
-    document.getElementById("modal-cargo-anterior").textContent = membro.cargoAnterior || 'N/A';
-
-    // Campo condicional Cônjuge
+    
+    // Mostra/Esconde campo cônjuge
     const conjugeContainer = document.getElementById("modal-conjuge-container");
     if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
         document.getElementById("modal-conjuge").textContent = membro.conjuge;
@@ -1047,9 +1085,15 @@ function showMembroDetalhesModal(id) {
         conjugeContainer.classList.add("hidden");
     }
     
-    // Define o ID para os botões de ação
-    membroParaEditarId = id; // Para edição
-    itemParaExcluir.id = id; // Para exclusão
+    document.getElementById("modal-profissao").textContent = membro.profissao || 'N/A';
+    document.getElementById("modal-escolaridade").textContent = membro.escolaridade || 'N/A';
+    document.getElementById("modal-data-batismo").textContent = formatarData(membro.dataBatismo) || 'N/A';
+    document.getElementById("modal-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
+    document.getElementById("modal-igreja-anterior").textContent = membro.igrejaAnterior || 'N/A';
+    document.getElementById("modal-cargo-anterior").textContent = membro.cargoAnterior || 'N/A';
+    
+    membroParaEditarId = id;
+    itemParaExcluir.id = id;
     itemParaExcluir.tipo = 'membro';
 
     membroDetalhesModal.style.display = "block";
@@ -1067,6 +1111,7 @@ function showMembroEditModal() {
     if (!membro) return;
 
     // Preenche o formulário de edição
+    resetFotoUploader('edit'); // Reseta para a foto atual (ou placeholder)
     document.getElementById("edit-nome").value = membro.nome || '';
     document.getElementById("edit-data-nascimento").value = membro.dataNascimento || '';
     document.getElementById("edit-telefone").value = membro.telefone || '';
@@ -1079,33 +1124,30 @@ function showMembroEditModal() {
     document.getElementById("edit-nome-mae").value = membro.nomeMae || '';
     document.getElementById("edit-estado-civil").value = membro.estadoCivil || 'Solteiro(a)';
     document.getElementById("edit-conjuge").value = membro.conjuge || '';
+    
+    // Mostra/Esconde campo cônjuge
+    editConjugeContainer.classList.toggle("hidden", document.getElementById("edit-estado-civil").value !== 'Casado(a)');
+
     document.getElementById("edit-profissao").value = membro.profissao || '';
-    document.getElementById("edit-escolaridade").value = membro.escolaridade || 'Ensino Médio Completo';
+    document.getElementById("edit-escolaridade").value = membro.escolaridade || '';
     document.getElementById("edit-funcao").value = membro.funcao || '';
     document.getElementById("edit-data-batismo").value = membro.dataBatismo || '';
     document.getElementById("edit-data-chegada").value = membro.dataChegada || '';
     document.getElementById("edit-igreja-anterior").value = membro.igrejaAnterior || '';
     document.getElementById("edit-cargo-anterior").value = membro.cargoAnterior || '';
-
-    // Campo condicional Cônjuge
-    if (membro.estadoCivil === 'Casado(a)') {
-        editConjugeContainer.classList.remove("hidden");
-    } else {
-        editConjugeContainer.classList.add("hidden");
-    }
     
-    // Limpa erros e senha
     document.getElementById("edit-membro-password").value = "";
     document.getElementById("edit-membro-error").textContent = "";
 
-    // Troca os modais
     membroDetalhesModal.style.display = "none";
     membroEditModal.style.display = "block";
 }
 
+// Renomeado para evitar conflito
 function doCloseMembroEditModal() {
      membroEditModal.style.display = "none";
      membroParaEditarId = null;
+     resetFotoUploader('edit'); // Limpa o ficheiro temporário
 }
 
 showEditMembroBtn.onclick = showMembroEditModal;
@@ -1125,22 +1167,20 @@ const deleteSubmitBtn = document.getElementById("delete-submit-btn");
 
 
 function showDeleteModal() {
-    // Limpa o modal
     deleteErrorMsg.textContent = "";
     deleteCascadeWarning.textContent = "";
     document.getElementById("delete-password").value = "";
 
-    // Avisos de exclusão em cascata
     if (itemParaExcluir.tipo === 'financeiro') {
         const fin = localFinanceiro.find(f => f.id === itemParaExcluir.id);
         if (fin && fin.origemId) {
-            deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o Dízimo ou Oferta original associado a este lançamento.";
+            deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o Dízimo ou Oferta original.";
         }
     } else if (itemParaExcluir.tipo === 'dizimo' || itemParaExcluir.tipo === 'oferta') {
-        deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o lançamento no Caixa associado a este registo.";
+        deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o lançamento no Caixa associado.";
     } else if (itemParaExcluir.tipo === 'membro') {
-        deleteCascadeWarning.textContent = "Aviso: Excluir um membro NÃO apaga seus registos financeiros.";
-        membroDetalhesModal.style.display = "none"; // Fecha modal de detalhes
+        deleteCascadeWarning.textContent = "Aviso: A foto do membro também será apagada.";
+        membroDetalhesModal.style.display = "none";
     }
 
     deleteConfirmModal.style.display = "block";
@@ -1152,18 +1192,13 @@ cancelDeleteBtn.onclick = () => deleteConfirmModal.style.display = "none";
 
 function adicionarListenersExcluir() {
      document.querySelectorAll(".delete-btn").forEach(button => {
-        // Remove listener antigo para evitar duplicados
         button.removeEventListener("click", handleDeleteClick); 
-        // Adiciona novo listener
         button.addEventListener("click", handleDeleteClick);
     });
 }
 
 function handleDeleteClick(e) {
-    // Impede que o clique se propague (caso esteja dentro de outro link)
     e.stopPropagation(); 
-    
-    // Pega o botão (pode ser o ícone ou o botão)
     const button = e.currentTarget;
     itemParaExcluir.id = button.dataset.id;
     itemParaExcluir.tipo = button.dataset.tipo;
@@ -1173,7 +1208,7 @@ function handleDeleteClick(e) {
 // Processar a Exclusão (Formulário do Modal)
 deleteConfirmForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!auth.currentUser || !itemParaExcluir.id || !itemParaExcluir.tipo) return;
+    if (!userId || !itemParaExcluir.id || !itemParaExcluir.tipo) return;
 
     toggleButtonLoading(deleteSubmitBtn, true, "Excluir Permanentemente");
     const password = document.getElementById("delete-password").value;
@@ -1189,8 +1224,7 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
     try {
         await reauthenticate(password);
     } catch (error) {
-        console.error(error);
-        deleteErrorMsg.textContent = error.message; // Exibe "Senha incorreta."
+        deleteErrorMsg.textContent = error.message;
         toggleButtonLoading(deleteSubmitBtn, false, "Excluir Permanentemente");
         return;
     }
@@ -1198,60 +1232,60 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
     // 2. Executar a Exclusão
     try {
         const batch = writeBatch(db);
+        const dbPath = "dadosIgreja/ADCA-CG";
         
         if (itemParaExcluir.tipo === 'financeiro') {
-            const finDocRef = doc(db, "dadosIgreja/ADCA-CG/financeiro", itemParaExcluir.id);
+            const finDocRef = doc(db, dbPath, "financeiro", itemParaExcluir.id);
             const finData = localFinanceiro.find(f => f.id === itemParaExcluir.id);
-            
-            batch.delete(finDocRef); // Apaga o financeiro
-
-            // Se tiver origem, apaga a origem
+            batch.delete(finDocRef);
             if (finData && finData.origemId && finData.origemTipo) {
-                 const origemCollection = finData.origemTipo === 'dizimo' ? 'dizimos' : 'ofertas';
-                 const origemDocRef = doc(db, "dadosIgreja/ADCA-CG/", origemCollection, finData.origemId);
+                 const origemCol = finData.origemTipo === 'dizimo' ? 'dizimos' : 'ofertas';
+                 const origemDocRef = doc(db, dbPath, origemCol, finData.origemId);
                  batch.delete(origemDocRef);
             }
         
         } else if (itemParaExcluir.tipo === 'dizimo') {
-            const dizimoDocRef = doc(db, "dadosIgreja/ADCA-CG/dizimos", itemParaExcluir.id);
+            const dizimoDocRef = doc(db, dbPath, "dizimos", itemParaExcluir.id);
             const dizimoData = localDizimos.find(d => d.id === itemParaExcluir.id);
-            
-            batch.delete(dizimoDocRef); // Apaga o dízimo
-            
-            // Apaga o financeiro associado
+            batch.delete(dizimoDocRef);
             if (dizimoData && dizimoData.financeiroId) {
-                const finDocRef = doc(db, "dadosIgreja/ADCA-CG/financeiro", dizimoData.financeiroId);
+                const finDocRef = doc(db, dbPath, "financeiro", dizimoData.financeiroId);
                 batch.delete(finDocRef);
             }
 
         } else if (itemParaExcluir.tipo === 'oferta') {
-            const ofertaDocRef = doc(db, "dadosIgreja/ADCA-CG/ofertas", itemParaExcluir.id);
+            const ofertaDocRef = doc(db, dbPath, "ofertas", itemParaExcluir.id);
             const ofertaData = localOfertas.find(o => o.id === itemParaExcluir.id);
-
-            batch.delete(ofertaDocRef); // Apaga a oferta
-
-            // Apaga o financeiro associado
+            batch.delete(ofertaDocRef);
             if (ofertaData && ofertaData.financeiroId) {
-                const finDocRef = doc(db, "dadosIgreja/ADCA-CG/financeiro", ofertaData.financeiroId);
+                const finDocRef = doc(db, dbPath, "financeiro", ofertaData.financeiroId);
                 batch.delete(finDocRef);
             }
             
         } else if (itemParaExcluir.tipo === 'membro') {
-            // Exclusão de membro não é em batch, pois não tem cascata financeira
-            const membroDocRef = doc(db, "dadosIgreja/ADCA-CG/membros", itemParaExcluir.id);
-            await deleteDoc(membroDocRef);
+            const membroDocRef = doc(db, dbPath, "membros", itemParaExcluir.id);
+            const membroData = localMembros.find(m => m.id === itemParaExcluir.id);
             
-            // Fechamos os modais manually
-            deleteConfirmModal.style.display = "none";
-            showToast("Membro excluído com sucesso.", "success");
-            toggleButtonLoading(deleteSubmitBtn, false, "Excluir Permanentemente");
-            return; // Sai da função aqui
+            // Apaga o documento do membro
+            batch.delete(membroDocRef);
+            
+            // Apaga a foto do Storage (se existir)
+            if (membroData && membroData.fotoURL && membroData.fotoURL.includes("firebase")) {
+                 try {
+                    const fotoRef = ref(storage, `fotosMembros/${itemParaExcluir.id}`);
+                    // Não colocamos no batch, é uma operação separada
+                    await deleteObject(fotoRef);
+                 } catch (error) {
+                    if (error.code !== 'storage/object-not-found') {
+                         console.warn("Erro ao apagar foto do membro:", error);
+                    }
+                 }
+            }
         }
 
-        // 3. Commit do Batch (para fin, dizimo, oferta)
+        // 3. Commit do Batch
         await batch.commit();
         
-        // 4. Fechar modal
         deleteConfirmModal.style.display = "none";
         showToast("Registo excluído com sucesso.", "success");
 
@@ -1281,47 +1315,38 @@ window.onclick = function (event) {
 const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
 
 gerarRelatorioBtn.addEventListener("click", () => {
-    // ADICIONADO: try...catch global
     try {
-        // 1. Coletar todos os dados
         const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
         
-        // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
         const financOrdenado = [...localFinanceiro].sort((a, b) => {
-            const dataA = getDateFromInput(a.data);
-            const dataB = getDateFromInput(b.data);
-            if (!dataA) return 1;
-            if (!dataB) return -1;
-            return dataA - dataB;
+            const dataA = getDateFromInput(a.data); const dataB = getDateFromInput(b.data);
+            if (!dataA) return 1; if (!dataB) return -1; return dataA - dataB;
         });
         const dizimosOrdenados = [...localDizimos].sort((a, b) => {
-            const dataA = getDateFromInput(a.data);
-            const dataB = getDateFromInput(b.data);
-            if (!dataA) return 1;
-            if (!dataB) return -1;
-            return dataA - dataB;
+            const dataA = getDateFromInput(a.data); const dataB = getDateFromInput(b.data);
+            if (!dataA) return 1; if (!dataB) return -1; return dataA - dataB;
         });
         const ofertasOrdenadas = [...localOfertas].sort((a, b) => {
-            const dataA = getDateFromInput(a.data);
-            const dataB = getDateFromInput(b.data);
-            if (!dataA) return 1;
-            if (!dataB) return -1;
-            return dataA - dataB;
+            const dataA = getDateFromInput(a.data); const dataB = getDateFromInput(b.data);
+            if (!dataA) return 1; if (!dataB) return -1; return dataA - dataB;
         });
 
+        // CORREÇÃO: Verifica se o valor existe antes de chamar .toFixed()
+        const formatCurrency = (value) => {
+             const num = parseFloat(value);
+             if (isNaN(num)) {
+                 return "0,00";
+             }
+             return num.toFixed(2).replace(".", ",");
+        };
 
-        // 3. Construir o HTML do Relatório
         let relatorioHTML = `
             <html>
             <head>
-                <!-- TÍTULO ATUALIZADO -->
                 <title>Relatório GESTÃO ADCA - CAPOEIRA GRANDE</title>
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
-                    @media print {
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                        .no-print { display: none; }
-                    }
+                    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .no-print { display: none; } }
                     body { font-family: sans-serif; }
                     h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
                     h2 { font-size: 20px; font-weight: 600; color: #1d4ed8; margin-top: 24px; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; }
@@ -1338,96 +1363,63 @@ gerarRelatorioBtn.addEventListener("click", () => {
             <body class="bg-gray-100 p-8">
                 <div class="container mx-auto bg-white p-10 rounded shadow-lg">
                     <div class="flex justify-between items-center mb-6">
-                        <!-- TÍTULO ATUALIZADO -->
                         <h1>Relatório GESTÃO ADCA - CAPOEIRA GRANDE</h1>
                         <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
-
-                    <!-- Resumo -->
-                    <!-- MODIFICADO: Removido o card de membros -->
                     <div class="mb-8">
                         <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
                             <h3 class="text-lg font-semibold text-blue-800">Saldo Atual (Caixa)</h3>
-                            <p class="text-3xl font-bold ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">R$ ${saldoTotal.toFixed(2).replace(".", ",")}</p>
+                            <p class="text-3xl font-bold ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">R$ ${formatCurrency(saldoTotal)}</p>
                         </div>
                     </div>
-                    
-                    <!-- Dízimos -->
                     <h2>Registos de Dízimos</h2>
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Membro</th>
-                                <th class="currency-header">Valor (R$)</th>
-                            </tr>
-                        </thead>
+                        <thead> <tr> <th>Data</th> <th>Membro</th> <th class="currency-header">Valor (R$)</th> </tr> </thead>
                         <tbody>
                             ${dizimosOrdenados.map(d => `
                                 <tr>
                                     <td>${formatarData(d.data)}</td>
                                     <td>${d.membroNome}</td>
-                                    <!-- CORRIGIDO: Adicionado (d.valor || 0) -->
-                                    <td class="currency entrada">R$ ${(d.valor || 0).toFixed(2).replace(".", ",")}</td>
+                                    <td class="currency entrada">R$ ${formatCurrency(d.valor)}</td>
                                 </tr>
                             `).join('')}
                             ${dizimosOrdenados.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum dízimo registado.</td></tr>' : ''}
                         </tbody>
                     </table>
-                    
-                    <!-- Ofertas -->
                     <h2>Registos de Ofertas e Outras Entradas</h2>
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Descrição</th>
-                                <th class="currency-header">Valor (R$)</th>
-                            </tr>
-                        </thead>
+                        <thead> <tr> <th>Data</th> <th>Tipo</th> <th>Descrição</th> <th class="currency-header">Valor (R$)</th> </tr> </thead>
                         <tbody>
                             ${ofertasOrdenadas.map(o => `
                                 <tr>
                                     <td>${formatarData(o.data)}</td>
                                     <td>${o.tipo}</td>
                                     <td>${o.descricao}</td>
-                                    <!-- CORRIGIDO: Adicionado (o.valor || 0) -->
-                                    <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
+                                    <td class="currency entrada">R$ ${formatCurrency(o.valor)}</td>
                                 </tr>
                             `).join('')}
                             ${ofertasOrdenadas.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada.</td></tr>' : ''}
                         </tbody>
                     </table>
-
-                    <!-- Extrato Financeiro -->
                     <h2>Extrato Financeiro (Caixa)</h2>
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Descrição</th>
-                                <th class="currency-header">Valor (R$)</th>
-                            </tr>
-                        </thead>
+                        <thead> <tr> <th>Data</th> <th>Descrição</th> <th class="currency-header">Valor (R$)</th> </tr> </thead>
                         <tbody>
                             ${financOrdenado.map(f => `
                                 <tr>
                                     <td>${formatarData(f.data)}</td>
                                     <td>${f.descricao}</td>
-                                    <!-- CORRIGIDO: Adicionado (f.valor || 0) -->
                                     <td class="currency ${f.valor > 0 ? 'entrada' : 'saida'}">
-                                        R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
+                                        R$ ${formatCurrency(f.valor)}
                                     </td>
                                 </tr>
                             `).join('')}
                             ${financOrdenado.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum lançamento no caixa.</td></tr>' : ''}
-                            <!-- Linha de Saldo Total -->
                             <tr class="total bg-gray-50">
                                 <td colspan="2" class="text-right font-bold">SALDO TOTAL</td>
                                 <td class="currency ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">
-                                    R$ ${saldoTotal.toFixed(2).replace(".", ",")}
+                                    R$ ${formatCurrency(saldoTotal)}
                                 </td>
                             </tr>
                         </tbody>
@@ -1437,30 +1429,23 @@ gerarRelatorioBtn.addEventListener("click", () => {
             </html>
         `;
 
-        // 4. Abrir numa nova janela
         const relatorioJanela = window.open("", "_blank");
-
-        // Verificação de bloqueador de pop-up
         if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
             console.error("Falha ao abrir janela de relatório. Provável bloqueador de pop-up.");
             showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
             return;
         }
-
         relatorioJanela.document.write(relatorioHTML);
         relatorioJanela.document.close();
-    
     } catch (error) {
-        // Pega qualquer erro que possa ter acontecido
-        console.error("Erro ao gerar relatório:", error);
-        showToast("Ocorreu um erro inesperado ao gerar o relatório.", "error");
+        console.error("Erro CRÍTICO ao gerar relatório:", error);
+        showToast("Erro inesperado ao gerar relatório. Verifique a consola.", "error");
     }
 });
 
 
 // --- FUNÇÕES UTILITÁRIAS ---
 
-// Controla o estado de loading de um botão
 function toggleButtonLoading(button, isLoading, defaultText) {
     if (isLoading) {
         button.disabled = true;
@@ -1471,16 +1456,12 @@ function toggleButtonLoading(button, isLoading, defaultText) {
     }
 }
 
-// Mostra um toast de notificação
 const toastContainer = document.getElementById("toast-container");
 function showToast(message, type = 'success') {
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
-    
     toastContainer.appendChild(toast);
-
-    // Remove o toast após 3 segundos
     setTimeout(() => {
         toast.style.animation = "slideOut 0.3s ease-out forwards";
         setTimeout(() => {
@@ -1489,28 +1470,20 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-
-// Função de formatação de data
 function formatarData(dataString) {
-    // Se for um Timestamp do Firebase, converte para Date
     if (dataString && typeof dataString.toDate === 'function') {
         dataString = dataString.toDate();
     }
-    // Se for um objeto Date
     else if (dataString instanceof Date) {
-         // Não faz nada, já é um Date
+         // Já é Date
     }
-    // Se for uma string (ex: '2025-11-01')
     else if (typeof dataString === 'string' && dataString.includes('-')) {
-         dataString = getDateFromInput(dataString); // Usa a função robusta
+         dataString = getDateFromInput(dataString);
     } 
-    // Se for inválido ou nulo
     else {
-        return 'N/A'; // Retorna 'N/A' se a data for inválida
+        return 'N/A';
     }
-    
     try {
-        // Formata para dd/mm/aaaa
         return dataString.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
     } catch (e) {
         console.warn("Erro ao formatar data:", dataString, e);
@@ -1518,24 +1491,17 @@ function formatarData(dataString) {
     }
 }
 
-// Converte string 'aaaa-mm-dd' ou Timestamp para um Date UTC
-// CORRIGIDO para ser mais robusto
 function getDateFromInput(dataInput) {
     try {
-        // Se for um Timestamp do Firebase
         if (dataInput && typeof dataInput.toDate === 'function') {
-            return dataInput.toDate(); // Retorna o objeto Date
+            return dataInput.toDate();
         }
-        // Se já for um objeto Date
         if (dataInput instanceof Date) {
-            return dataInput; // Corrigido: dataInput
+            return dataInput;
         }
-        // Se for uma string (ex: '2025-11-01')
         if (typeof dataInput === 'string' && dataInput.includes('-')) {
             const parts = dataInput.split('-');
             if (parts.length === 3) {
-                // Ano, Mês (base 0), Dia
-                // Garante que seja UTC para evitar problemas de fuso
                 return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
             }
         }
@@ -1543,26 +1509,24 @@ function getDateFromInput(dataInput) {
         console.error("Data inválida:", dataInput, e);
         return null;
     }
-    // Fallback para data inválida ou formato desconhecido
     return null;
 }
 
-// Calcula a idade
+// NOVA FUNÇÃO para calcular idade
 function calcularIdade(dataNascimento) {
-    if (!dataNascimento) return "N/A";
+    if (!dataNascimento) return null;
     
     const dataNasc = getDateFromInput(dataNascimento);
-    if (!dataNasc) return "N/A";
+    if (!dataNasc) return null;
 
     const hoje = new Date();
-    let idade = hoje.getFullYear() - dataNasc.getUTCFullYear();
-    const m = hoje.getMonth() - dataNasc.getUTCMonth();
+    let idade = hoje.getFullYear() - dataNasc.getFullYear();
+    const m = hoje.getMonth() - dataNasc.getUTCMonth(); // Usa UTCMonth
     
-    if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getUTCDate())) {
+    if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getUTCDate())) { // Usa UTCDate
         idade--;
     }
-    
-    return idade >= 0 ? idade : "N/A";
+    return idade;
 }
 
 
