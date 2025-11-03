@@ -84,7 +84,7 @@ const registerTab = document.getElementById("auth-register-tab");
 
 // Abas da Aplicação
 const tabButtons = document.querySelectorAll(".app-tab-button");
-const tabContents = document.querySelectorAll(".app-content-tab"); // Corrigido
+const tabContents = document.querySelectorAll(".app-content-tab"); 
 
 // Formulários
 const formMembro = document.getElementById("form-membro");
@@ -327,7 +327,7 @@ tabButtons.forEach(button => {
 
         // Desativa todos
         tabButtons.forEach(btn => btn.classList.remove("active"));
-        tabContents.forEach(content => content.classList.remove("active")); // Corrigido
+        tabContents.forEach(content => content.classList.remove("active")); 
 
         // Ativa o clicado
         button.classList.add("active");
@@ -893,6 +893,20 @@ function renderFiltroDizimos() {
     `;
         listaDizimos.appendChild(tr);
     });
+    
+    // Total do Mês (Dízimos)
+    const totalDizimosMes = dadosFiltrados.reduce((acc, dizimo) => acc + (dizimo.valor || 0), 0);
+    const trTotal = document.createElement("tr");
+    trTotal.className = "bg-gray-100 font-bold border-t-2"; 
+    trTotal.innerHTML = `
+        <td colspan="2" class="px-6 py-3 text-right text-sm text-gray-800 uppercase tracking-wider">Total do Mês:</td>
+        <td class="px-6 py-3 whitespace-nowrap text-sm text-green-700 font-medium">
+            R$ ${totalDizimosMes.toFixed(2).replace(".", ",")}
+        </td>
+        <td class="px-6 py-3"></td>
+    `;
+    listaDizimos.appendChild(trTotal);
+
     adicionarListenersExcluir();
     lucide.createIcons();
 }
@@ -936,6 +950,20 @@ function renderFiltroOfertas() {
     `;
         listaOfertas.appendChild(tr);
     });
+    
+    // Total do Mês (Ofertas)
+    const totalOfertasMes = dadosFiltrados.reduce((acc, oferta) => acc + (oferta.valor || 0), 0);
+    const trTotal = document.createElement("tr");
+    trTotal.className = "bg-gray-100 font-bold border-t-2";
+    trTotal.innerHTML = `
+        <td colspan="3" class="px-6 py-3 text-right text-sm text-gray-800 uppercase tracking-wider">Total do Mês:</td>
+        <td class="px-6 py-3 whitespace-nowrap text-sm text-green-700 font-medium">
+            R$ ${totalOfertasMes.toFixed(2).replace(".", ",")}
+        </td>
+        <td class="px-6 py-3"></td>
+    `;
+    listaOfertas.appendChild(trTotal);
+
     adicionarListenersExcluir();
     lucide.createIcons();
 }
