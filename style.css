@@ -1,23 +1,27 @@
-/* Estilo para abas ativas e inativas */
-.tab-button.active {
-    border-bottom-color: #ffffff;
-    /* Cor branca */
+/* Estilo para abas ativas e inativas (AUTENTICAÇÃO) */
+.auth-tab-button.active {
+    border-bottom-color: #3b82f6; /* Cor azul */
+    color: #3b82f6;
+    font-weight: 600;
+}
+.auth-tab-button {
+    border-bottom-width: 3px;
+    border-bottom-color: transparent;
+    color: #6b7280; /* Cinza */
+}
+
+/* Estilo para abas ativas e inativas (APLICAÇÃO) */
+.app-tab-button.active {
+    border-bottom-color: #ffffff; /* Cor branca */
     color: #ffffff;
     font-weight: 600;
 }
-
-.tab-button {
+.app-tab-button {
     border-bottom-width: 3px;
     border-bottom-color: transparent;
-    transition: all 0.2s ease-in-out;
+    color: #dbeafe; /* Azul claro */
 }
 
-.tab-button:not(.active):hover {
-    color: #dbeafe;
-    /* Azul claro */
-    border-bottom-color: #60a5fa;
-    /* Azul mais claro */
-}
 
 /* Ocultar abas por padrão */
 .tab-content {
@@ -31,8 +35,7 @@
 
 /* Estilo para modal */
 .modal {
-    display: none;
-    /* Oculto por padrão */
+    display: none; /* Oculto por padrão */
     position: fixed;
     z-index: 100;
     left: 0;
@@ -41,28 +44,30 @@
     height: 100%;
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.4);
-    padding-top: 60px;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
 }
 
 .modal-content {
     background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
+    margin: 2% auto; /* Reduzido de 5% para dar mais espaço */
+    padding: 24px;
     border: 1px solid #888;
     width: 90%;
-    /* Ajustado para melhor responsividade */
-    /* REMOVIDO: max-width: 500px; */
-    /* Agora controlado pelo Tailwind no HTML */
+    /* MODIFICADO: Removido max-width fixo para permitir que o Tailwind controle */
+    /* max-width: 500px; */ 
     border-radius: 8px;
     position: relative;
-    /* Adicionado para contexto de stacking */
 }
 
 .close-button {
     color: #aaa;
-    float: right;
+    position: absolute;
+    top: 10px;
+    right: 20px;
     font-size: 28px;
     font-weight: bold;
+    z-index: 110; /* Para ficar acima do conteúdo */
 }
 
 .close-button:hover,
@@ -72,32 +77,10 @@
     cursor: pointer;
 }
 
-/* Spinner de carregamento */
-.spinner {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    border: 2px solid #fff;
-    /* Cor do spinner */
-    border-top-color: transparent;
-    /* Cor de fundo do botão */
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    margin-right: 0.5rem;
-    vertical-align: middle;
-}
-
-/* Animação do spinner */
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Estilo para Toasts (Notificações) */
+/* Toast (Notificações) */
 #toast-container {
     position: fixed;
-    bottom: 20px;
+    top: 20px;
     right: 20px;
     z-index: 200;
     display: flex;
@@ -108,25 +91,20 @@
 .toast {
     padding: 12px 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     color: white;
     font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     animation: slideIn 0.3s ease-out forwards;
 }
 
 .toast-success {
-    background-color: #22c55e;
-    /* green-500 */
+    background-color: #22c55e; /* green-500 */
 }
-
 .toast-error {
-    background-color: #ef4444;
-    /* red-500 */
+    background-color: #ef4444; /* red-500 */
 }
-
 .toast-warning {
-    background-color: #f97316;
-    /* orange-500 */
+    background-color: #f97316; /* orange-500 */
 }
 
 @keyframes slideIn {
@@ -134,7 +112,6 @@
         transform: translateX(100%);
         opacity: 0;
     }
-
     to {
         transform: translateX(0);
         opacity: 1;
@@ -146,12 +123,34 @@
         transform: translateX(0);
         opacity: 1;
     }
-
     to {
         transform: translateX(100%);
         opacity: 0;
     }
 }
 
-/* REMOVIDO: Estilos do Uploader de Logo */
+/* Spinner de Carregamento */
+.spinner {
+    width: 1.25rem; /* w-5 */
+    height: 1.25rem; /* h-5 */
+    border-width: 2px;
+    border-style: solid;
+    border-color: transparent;
+    border-top-color: white;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+.spinner-dark {
+     border-top-color: #3b82f6; /* blue-500 */
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
 
