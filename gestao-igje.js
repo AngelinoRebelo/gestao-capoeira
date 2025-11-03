@@ -126,16 +126,39 @@ registerForm.addEventListener("submit", async (e) => {
         return;
     }
 
-    // 2. Verificar lista de nomes permitidos (case-insensitive)
-    const allowedNames = ["pr. gabriel", "miss. lorrane", "prb. leandro"];
-    if (!allowedNames.includes(nome.trim().toLowerCase())) {
-        registerError.textContent = "Nome não autorizado para cadastro.";
+    // 2. Verificar a COMBINAÇÃO de Nome e Telefone
+    // Limpa os dados para comparação
+    const nomeLimpo = nome.trim().toLowerCase();
+    const telefoneLimpo = telefone.replace(/\D/g, ''); 
+
+    // Mapeamento dos utilizadores permitidos (nome em minúsculo -> telefone limpo)
+    const allowedUsers = {
+        "lorrane": "21979626240",
+        "gabriel angelino": "21964597378"
+    };
+    
+    // Verifica se o nome existe no mapa E se o telefone corresponde
+    if (allowedUsers[nomeLimpo] !== telefoneLimpo) {
+        registerError.textContent = "A combinação de nome e telefone não é válida.";
         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
         return;
     }
+    
+    // 3. Verificar se o telefone já está em uso (verificação de unicidade)
+    try {
+        const q = query(collection(db, "users"), where("telefone", "==", telefone.trim()));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+            registerError.textContent = "Este número de telefone já está cadastrado.";
+            toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
+            return;
+        }
+    } catch (error) {
+         // Ignora este erro se as regras do firestore não permitirem a leitura (continuar para cadastro)
+         console.warn("Não foi possível verificar o telefone (pode ser regra de segurança):", error.message);
+    }
 
-    // 3. REMOVIDO: Verificação de telefone (dependia de regras que removemos)
-   
     // --- FIM DAS NOVAS VERIFICAÇÕES ---
 
     try {
@@ -143,15 +166,19 @@ registerForm.addEventListener("submit", async (e) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 5. REMOVIDO: Salvar dados do perfil no Firestore
-        /*
-        await setDoc(doc(db, "users", user.uid), {
-            nome: nome.trim(),
-            telefone: telefone.trim(),
-            email: email,
-            createdAt: Timestamp.now()
-        });
-        */
+        // 5. Salvar dados do perfil no Firestore
+        // (Opcional, mas útil se você quiser associar o telefone ao UID)
+        try {
+            await setDoc(doc(db, "users", user.uid), {
+                nome: nome.trim(),
+                telefone: telefone.trim(),
+                email: email,
+                createdAt: Timestamp.now()
+            });
+        } catch (e) {
+             console.warn("Não foi possível salvar o perfil do usuário (pode ser regra de segurança):", e.message);
+        }
+        
 
         // O onAuthStateChanged vai pegar a partir daqui
         
@@ -210,7 +237,6 @@ onAuthStateChanged(auth, (user) => {
         authScreen.style.display = "none";
         appContent.style.display = "block";
         loadAllData(userId); // Carrega os dados do usuário
-        // REMOVIDO: loadUserProfile(user);
         
         // Define as datas dos formulários para hoje
         document.getElementById("dizimo-data").valueAsDate = new Date();
@@ -224,9 +250,9 @@ onAuthStateChanged(auth, (user) => {
         appContent.style.display = "none";
         clearAllTables(); // Limpa dados da tela
         stopAllListeners(); // Para de ouvir dados
-        // REMOVIDO: Limpeza do logo
     }
 });
+
 
 // --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
 
@@ -257,8 +283,7 @@ async function reauthenticate(password) {
 
 // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
 
-// MODIFICADO: Seletor atualizado para "app-tab-button"
-const tabButtons = document.querySelectorAll(".app-tab-button");
+const tabButtons = document.querySelectorAll(".app-tab-button"); // Corrigido
 const tabContents = document.querySelectorAll(".tab-content:not(#login-tab):not(#register-tab)");
 
 tabButtons.forEach(button => {
@@ -657,7 +682,7 @@ function loadAllData(currentUserId) {
     try {
         // MODIFICADO: Remove "users" e "userId" do caminho
         const qOfertas = query(collection(db, dbPath, "ofertas"));
-        unsubOfertas = onSnapshot(qDizimos, (snapshot) => {
+        unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
             localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroOfertas(); // Renderiza os filtros
             onDataLoaded();
@@ -1016,12 +1041,12 @@ function showMembroDetalhesModal(id) {
     // Preenche todos os campos
     document.getElementById("modal-nome").textContent = membro.nome || 'N/A';
     document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
-    document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
-    document.getElementById("modal-cpf").textContent = membro.cpf || 'N/A';
-    document.getElementById("modal-rg").textContent = membro.rg || 'N/A';
-    document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
     document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
     document.getElementById("modal-email").textContent = membro.email || 'N/A';
+    document.getElementById("modal-cpf").textContent = membro.cpf || 'N/A';
+    document.getElementById("modal-rg").textContent = membro.rg || 'N/A';
+    document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
+    document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
     document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
     document.getElementById("modal-profissao").textContent = membro.profissao || 'N/A';
     document.getElementById("modal-escolaridade").textContent = membro.escolaridade || 'N/A';
@@ -1030,14 +1055,14 @@ function showMembroDetalhesModal(id) {
     document.getElementById("modal-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
     document.getElementById("modal-igreja-anterior").textContent = membro.igrejaAnterior || 'N/A';
     document.getElementById("modal-cargo-anterior").textContent = membro.cargoAnterior || 'N/A';
-    
-    // Campo condicional Cônjuge
-    const conjugeContainer = document.getElementById("modal-conjuge-container");
+
+    // Campo Cônjuge (condicional)
+    const conjugeDetalhesContainer = document.getElementById("modal-conjuge-container");
     if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
         document.getElementById("modal-conjuge").textContent = membro.conjuge;
-        conjugeContainer.classList.remove("hidden");
+        conjugeDetalhesContainer.classList.remove("hidden");
     } else {
-        conjugeContainer.classList.add("hidden");
+        conjugeDetalhesContainer.classList.add("hidden");
     }
     
     // Define o ID para os botões de ação
@@ -1068,21 +1093,20 @@ function showMembroEditModal() {
     document.getElementById("edit-rg").value = membro.rg || '';
     document.getElementById("edit-naturalidade").value = membro.naturalidade || '';
     document.getElementById("edit-endereco").value = membro.endereco || '';
-    document.getElementById("edit-estado-civil").value = membro.estadoCivil || 'Solteiro(a)';
+    document.getElementById("edit-estado-civil").value = membro.estadoCivil || '';
+    document.getElementById("edit-conjuge").value = membro.conjuge || '';
     document.getElementById("edit-profissao").value = membro.profissao || '';
-    document.getElementById("edit-escolaridade").value = membro.escolaridade || 'Não Alfabetizado';
+    document.getElementById("edit-escolaridade").value = membro.escolaridade || '';
     document.getElementById("edit-funcao").value = membro.funcao || '';
     document.getElementById("edit-data-batismo").value = membro.dataBatismo || '';
     document.getElementById("edit-data-chegada").value = membro.dataChegada || '';
     document.getElementById("edit-igreja-anterior").value = membro.igrejaAnterior || '';
     document.getElementById("edit-cargo-anterior").value = membro.cargoAnterior || '';
     
-    // Campo condicional Cônjuge
+    // Mostra/Esconde campo Cônjuge
     if (membro.estadoCivil === 'Casado(a)') {
-        document.getElementById("edit-conjuge").value = membro.conjuge || '';
         editConjugeContainer.classList.remove("hidden");
     } else {
-         document.getElementById("edit-conjuge").value = '';
         editConjugeContainer.classList.add("hidden");
     }
 
@@ -1283,7 +1307,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
     // ADICIONADO: try...catch global
     try {
         // 1. Coletar todos os dados
-        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0); // Verificação
+        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
         
         // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
         const financOrdenado = [...localFinanceiro].sort((a, b) => {
@@ -1313,7 +1337,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
         let relatorioHTML = `
             <html>
             <head>
-                <!-- TÍTULO ATUALIZADO -->
                 <title>Relatório GESTÃO ADCA - CAPOEIRA GRANDE</title>
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
@@ -1337,14 +1360,12 @@ gerarRelatorioBtn.addEventListener("click", () => {
             <body class="bg-gray-100 p-8">
                 <div class="container mx-auto bg-white p-10 rounded shadow-lg">
                     <div class="flex justify-between items-center mb-6">
-                        <!-- TÍTULO ATUALIZADO -->
                         <h1>Relatório GESTÃO ADCA - CAPOEIRA GRANDE</h1>
                         <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
                     <!-- Resumo -->
-                    <!-- MODIFICADO: Removido o card de membros -->
                     <div class="mb-8">
                         <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
                             <h3 class="text-lg font-semibold text-blue-800">Saldo Atual (Caixa)</h3>
@@ -1367,7 +1388,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 <tr>
                                     <td>${formatarData(d.data)}</td>
                                     <td>${d.membroNome}</td>
-                                    <!-- CORRIGIDO: Adicionado (d.valor || 0) -->
                                     <td class="currency entrada">R$ ${(d.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
@@ -1392,7 +1412,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                     <td>${formatarData(o.data)}</td>
                                     <td>${o.tipo}</td>
                                     <td>${o.descricao}</td>
-                                    <!-- CORRIGIDO: Adicionado (o.valor || 0) -->
                                     <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
@@ -1415,7 +1434,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 <tr>
                                     <td>${formatarData(f.data)}</td>
                                     <td>${f.descricao}</td>
-                                    <!-- CORRIGIDO: Adicionado (f.valor || 0) -->
                                     <td class="currency ${f.valor > 0 ? 'entrada' : 'saida'}">
                                         R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
                                     </td>
@@ -1549,5 +1567,4 @@ function getDateFromInput(dataInput) {
 
 // Inicializa ícones Lucide
 lucide.createIcons();
-
 
