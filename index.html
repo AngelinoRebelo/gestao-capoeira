@@ -4,20 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- TÍTULO ATUALIZADO -->
     <title>GESTÃO ADCA - CAPOEIRA GRANDE</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- CSS Personalizado -->
+    <!-- Link para o CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="bg-gray-100 font-sans antialiased text-gray-800">
 
     <!-- Tela de Autenticação (Login/Cadastro) -->
-    <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gray-200">
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gray-200 p-4">
         <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
             <!-- Abas de Login / Cadastro -->
             <div class="flex border-b mb-4">
@@ -30,7 +29,6 @@
             <!-- Conteúdo das Abas de Autenticação -->
             <!-- Formulário de Login -->
             <div id="login-tab" class="tab-content active">
-                <!-- TÍTULO ATUALIZADO -->
                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Aceder à GESTÃO ADCA</h2>
                 <form id="login-form">
                     <div class="mb-4">
@@ -44,7 +42,7 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <button type="submit" id="login-submit-btn"
-                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150">
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 h-10 flex items-center justify-center">
                         Entrar
                     </button>
                     <p id="login-error" class="text-red-500 text-sm mt-4 text-center"></p>
@@ -53,34 +51,36 @@
 
             <!-- Formulário de Cadastro (Primeiro Acesso) -->
             <div id="register-tab" class="tab-content">
-                <h2 class="text-2xl font-bold mb-6 text-center text-green-600">Criar Conta (Acesso Restrito)</h2>
+                <h2 class="text-2xl font-bold mb-6 text-center text-green-600">Criar Conta (Primeiro Acesso)</h2>
                 <form id="register-form">
-                     <div class="mb-4">
-                        <label for="register-name" class="block text-sm font-medium text-gray-700 mb-1">Nome Completo (Autorizado):</label>
-                        <input type="text" id="register-name" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                            placeholder="Ex: Pr. Gabriel">
-                    </div>
-                     <div class="mb-4">
-                        <label for="register-phone" class="block text-sm font-medium text-gray-700 mb-1">Nº de Telefone:</label>
-                        <input type="tel" id="register-phone" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                            placeholder="(xx) xxxxx-xxxx">
-                    </div>
-                    <div class="mb-4">
-                        <label for="register-email" class="block text-sm font-medium text-gray-700 mb-1">Email:</label>
-                        <input type="email" id="register-email" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
-                    </div>
-                    <div class="mb-4">
-                        <label for="register-password"
-                            class="block text-sm font-medium text-gray-700 mb-1">Senha (mín. 6
-                            caracteres):</label>
-                        <input type="password" id="register-password" required minlength="6"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label for="register-name" class="block text-sm font-medium text-gray-700 mb-1">Nome
+                                Completo (Autorizado):</label>
+                            <input type="text" id="register-name" required placeholder="Ex: Pr. Gabriel"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <div>
+                            <label for="register-phone" class="block text-sm font-medium text-gray-700 mb-1">Nº de
+                                Telefone (Celular):</label>
+                            <input type="tel" id="register-phone" required placeholder="(XX) XXXXX-XXXX"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <div>
+                            <label for="register-email"
+                                class="block text-sm font-medium text-gray-700 mb-1">Email:</label>
+                            <input type="email" id="register-email" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <div>
+                            <label for="register-password" class="block text-sm font-medium text-gray-700 mb-1">Senha
+                                (mín. 6 caracteres):</label>
+                            <input type="password" id="register-password" required minlength="6"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        </div>
                     </div>
                     <button type="submit" id="register-submit-btn"
-                        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150">
+                        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150 mt-6 h-10 flex items-center justify-center">
                         Cadastrar
                     </button>
                     <p id="register-error" class="text-red-500 text-sm mt-4 text-center"></p>
@@ -93,22 +93,12 @@
     <!-- Conteúdo Principal do Aplicativo (Oculto até o login) -->
     <div id="app-content" class="hidden">
         <!-- Cabeçalho -->
-        <header class="bg-blue-600 text-white shadow-md">
+        <header class="bg-blue-600 text-white shadow-md sticky top-0 z-50">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-                <!-- TÍTULO E LOGO ATUALIZADOS -->
+                <!-- LOGO REMOVIDO E TÍTULO RESTAURADO -->
+                <h1 class="text-xl md:text-2xl font-bold">GESTÃO ADCA - CAPOEIRA GRANDE</h1>
                 <div class="flex items-center">
-                    <!-- ATUALIZADO: Logo agora é um uploader interativo -->
-                    <label for="logo-upload-input" id="logo-container" class="relative cursor-pointer mr-3" title="Mudar logo">
-                        <img id="app-logo-img" src="https://placehold.co/40x40/EBF8FF/3B82F6?text=Logo" alt="Logo ADCA" class="h-10 w-10 rounded-md block">
-                        <div id="logo-overlay">
-                            <i data-lucide="upload" class="w-4 h-4"></i>
-                        </div>
-                        <input type="file" id="logo-upload-input" accept="image/png, image/jpeg" class="hidden">
-                    </label>
-                    <h1 class="text-2xl font-bold">GESTÃO ADCA - CAPOEIRA GRANDE</h1>
-                </div>
-                <div>
-                    <span id="user-email-display" class="text-sm mr-4"></span>
+                    <span id="user-email-display" class="text-sm hidden md:inline mr-4"></span>
                     <button id="logout-button"
                         class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm font-medium transition duration-150">
                         Sair
@@ -198,31 +188,29 @@
 
                 <!-- Botão de Relatório -->
                 <div class="mt-8 bg-white p-6 rounded-lg shadow-lg text-center">
-                    <h3 class="text-xl font-semibold mb-4">Relatório Geral</h3>
-                    <p class="text-gray-600 mb-4">Gere um relatório completo de todas as finanças e membros para
+                    <h3 class="text-xl font-semibold mb-4">Relatório Financeiro</h3>
+                    <p class="text-gray-600 mb-4">Gere um relatório financeiro (dízimos, ofertas e saídas) para
                         impressão.</p>
                     <button id="gerar-relatorio-btn"
                         class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
                         <i data-lucide="printer" class="inline-block w-4 h-4 mr-2"></i>
-                        Gerar Relatório Completo
+                        Gerar Relatório
                     </button>
                 </div>
 
                 <!-- Aviso de Carregamento -->
-                <p id="dashboard-loading" class="text-gray-500 mt-4 flex items-center justify-center"></p>
+                <p id="dashboard-loading"
+                    class="text-gray-500 mt-4 h-6 flex items-center justify-center space-x-2"></p>
             </div>
 
             <!-- (ABA) Cadastrar Membro -->
             <div id="cadastrar-membro" class="tab-content">
-                <!-- ATUALIZADO: max-w-4xl para mais espaço -->
-                <div class="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto"> 
+                <div class="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
                     <h2 class="text-2xl font-semibold mb-6">Cadastrar Novo Membro</h2>
                     <form id="form-membro">
-                        <!-- ATUALIZADO: grid-cols-3 para mais campos -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            
                             <!-- Coluna 1 -->
-                            <div>
+                            <div class="md:col-span-2">
                                 <label for="nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
                                 <input type="text" id="nome"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -234,126 +222,129 @@
                                 <input type="date" id="data-nascimento"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <!-- CAMPO ADICIONADO -->
-                             <div>
-                                <label for="data-chegada" class="block text-sm font-medium text-gray-700">Data de Chegada na Igreja</label>
-                                <input type="date" id="data-chegada"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                             <div>
+
+                            <!-- Coluna 2 -->
+                            <div>
                                 <label for="telefone" class="block text-sm font-medium text-gray-700">Telefone</label>
                                 <input type="tel" id="telefone"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <div>
+                            <div class="md:col-span-2">
                                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
                                 <input type="email" id="email"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                           
-                            <!-- CAMPO ADICIONADO -->
-                            <div>
-                                <label for="naturalidade" class="block text-sm font-medium text-gray-700">Naturalidade</label>
-                                <input type="text" id="naturalidade"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Ex: Rio de Janeiro - RJ">
-                            </div>
-                            <!-- CAMPO ADICIONADO -->
+
+                            <!-- Coluna 3 -->
                             <div>
                                 <label for="cpf" class="block text-sm font-medium text-gray-700">CPF</label>
                                 <input type="text" id="cpf"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                             <!-- CAMPO ADICIONADO -->
                             <div>
                                 <label for="rg" class="block text-sm font-medium text-gray-700">RG</label>
                                 <input type="text" id="rg"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-
-                            <!-- Coluna 2 -->
                             <div>
-                                <label for="funcao" class="block text-sm font-medium text-gray-700">Função /
-                                    Ministério</label>
-                                <input type="text" id="funcao"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Ex: Pastor, Diácono, Líder Louvor, Membro">
+                                <label for="naturalidade"
+                                    class="block text-sm font-medium text-gray-700">Naturalidade</label>
+                                <input type="text" id="naturalidade"
+                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
+
+                            <!-- Coluna 4 (Endereço) -->
+                            <div class="md:col-span-3">
+                                <label for="endereco" class="block text-sm font-medium text-gray-700">Endereço
+                                    Completo</label>
+                                <textarea id="endereco" rows="2"
+                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            </div>
+
+                            <!-- Coluna 5 -->
                             <div>
-                                <label for="estado-civil" class="block text-sm font-medium text-gray-700">Estado
-                                    Civil</label>
+                                <label for="estado-civil"
+                                    class="block text-sm font-medium text-gray-700">Estado Civil</label>
                                 <select id="estado-civil"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Selecione...</option>
+                                    <option value="">Selecione</option>
                                     <option value="Solteiro(a)">Solteiro(a)</option>
                                     <option value="Casado(a)">Casado(a)</option>
                                     <option value="Divorciado(a)">Divorciado(a)</option>
                                     <option value="Viúvo(a)">Viúvo(a)</option>
                                 </select>
                             </div>
-                            <div>
-                                <label for="data-batismo" class="block text-sm font-medium text-gray-700">Data de
-                                    Batismo</label>
-                                <input type="date" id="data-batismo"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                             <!-- Campo Cônjuge (condicional) -->
-                            <div id="campo-conjuge" class="hidden">
+                            <div id="conjuge-container" class="md:col-span-2 hidden">
                                 <label for="conjuge" class="block text-sm font-medium text-gray-700">Nome do
                                     Cônjuge</label>
                                 <input type="text" id="conjuge"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
 
-                            <!-- CAMPO ADICIONADO -->
+                            <!-- Coluna 6 -->
                             <div>
                                 <label for="profissao" class="block text-sm font-medium text-gray-700">Profissão</label>
                                 <input type="text" id="profissao"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-
-                            <!-- CAMPO ADICIONADO -->
-                            <div>
-                                <label for="escolaridade" class="block text-sm font-medium text-gray-700">Escolaridade</label>
-                                <select id="escolaridade"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Selecione...</option>
-                                    <option value="Fundamental Incompleto">Fundamental Incompleto</option>
-                                    <option value="Fundamental Completo">Fundamental Completo</option>
-                                    <option value="Médio Incompleto">Médio Incompleto</option>
-                                    <option value="Médio Completo">Médio Completo</option>
-                                    <option value="Superior Incompleto">Superior Incompleto</option>
-                                    <option value="Superior Completo">Superior Completo</option>
-                                    <option value="Pós-graduação">Pós-graduação</option>
-                                </select>
+                            <div class="md:col-span-2">
+                                <label for="escolaridade"
+                                    class="block text-sm font-medium text-gray-700">Escolaridade</label>
+                                <input type="text" id="escolaridade"
+                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Ex: Ensino Médio Completo, Superior Incompleto...">
                             </div>
 
-                            <!-- CAMPO ADICIONADO -->
-                            <div>
-                                <label for="igreja-veio" class="block text-sm font-medium text-gray-700">Igreja de onde veio</label>
-                                <input type="text" id="igreja-veio"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <!-- Coluna 7 (Igreja) -->
+                            <div class="md:col-span-3 border-t border-gray-200 pt-6 mt-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label for="funcao" class="block text-sm font-medium text-gray-700">Função /
+                                            Ministério</label>
+                                        <input type="text" id="funcao"
+                                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Ex: Pastor, Diácono, Membro">
+                                    </div>
+                                    <div>
+                                        <label for="data-batismo"
+                                            class="block text-sm font-medium text-gray-700">Data Batismo
+                                            nas Águas</label>
+                                        <input type="date" id="data-batismo"
+                                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="data-chegada"
+                                            class="block text-sm font-medium text-gray-700">Data de
+                                            Chegada</label>
+                                        <input type="date" id="data-chegada"
+                                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                </div>
                             </div>
-
-                            <!-- CAMPO ADICIONADO -->
-                             <div>
-                                <label for="cargo-ocupava" class="block text-sm font-medium text-gray-700">Cargo que ocupava</label>
-                                <input type="text" id="cargo-ocupava"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-
-
-                            <!-- Coluna 3 -->
                             <div class="md:col-span-3">
-                                <label for="endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
-                                <textarea id="endereco" rows="3"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="igreja-anterior"
+                                            class="block text-sm font-medium text-gray-700">Igreja de
+                                            Onde Veio</label>
+                                        <input type="text" id="igreja-anterior"
+                                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    <div>
+                                        <label for="cargo-anterior"
+                                            class="block text-sm font-medium text-gray-700">Cargo que
+                                            Ocupava</label>
+                                        <input type="text" id="cargo-anterior"
+                                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                </div>
                             </div>
+
                         </div>
 
                         <div class="mt-8 flex justify-end">
                             <button type="submit" id="membro-submit-btn"
-                                class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
+                                class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 h-10 flex items-center justify-center">
                                 Salvar Membro
                             </button>
                         </div>
@@ -432,7 +423,7 @@
                                 </div>
                                 <div class="mt-6">
                                     <button type="submit" id="dizimo-submit-btn"
-                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
+                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 h-10 flex items-center justify-center">
                                         Registar Dízimo
                                     </button>
                                 </div>
@@ -526,7 +517,7 @@
                                 </div>
                                 <div class="mt-6">
                                     <button type="submit" id="oferta-submit-btn"
-                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
+                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 h-10 flex items-center justify-center">
                                         Registar Entrada
                                     </button>
                                 </div>
@@ -612,7 +603,7 @@
                                 </div>
                                 <div class="mt-6">
                                     <button type="submit" id="financeiro-submit-btn"
-                                        class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150">
+                                        class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150 h-10 flex items-center justify-center">
                                         Registar Saída
                                     </button>
                                 </div>
@@ -623,7 +614,7 @@
                     <div class="lg:col-span-2">
                         <div class="bg-white p-6 rounded-lg shadow-lg">
                             <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                                <h2 class="text-2xl font-semibold">Extrato do Caixa</h2>
+                                <h2 class="text-2xl font-semibold">Extrato do Caixa Mensal</h2>
                                 <div class="flex gap-4">
                                     <select id="filtro-financeiro-mes"
                                         class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
@@ -658,11 +649,10 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <!-- Saldo Total Movido para o Fim -->
-                            <div class="text-right mt-6">
-                                <h3 class="text-lg font-medium text-gray-600">Saldo Atual Total:</h3>
-                                <p id="saldo-total-financeiro"
-                                    class="text-2xl font-bold text-blue-700">R$ 0,00</p>
+
+                            <div class="text-right mt-6 pt-4 border-t">
+                                <h3 class="text-lg font-medium text-gray-600">Saldo Total (Geral):</h3>
+                                <p id="saldo-total-financeiro" class="text-2xl font-bold text-blue-700">R$ 0,00</p>
                             </div>
                         </div>
                     </div>
@@ -675,46 +665,78 @@
 
     <!-- Modal: Detalhes do Membro -->
     <div id="membro-detalhes-modal" class="modal">
-        <!-- ATUALIZADO: max-w-3xl para mais espaço -->
-        <div class="modal-content max-w-3xl">
+        <div class="modal-content max-w-4xl"> <!-- Tamanho aumentado -->
             <span class="close-button" id="close-membro-modal">&times;</span>
             <h2 class="text-2xl font-semibold mb-6">Detalhes do Membro</h2>
-            <!-- ATUALIZADO: grid-cols-3 para mais campos -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
-                <p><strong>Nome:</strong> <span id="modal-nome"></span></p>
-                <p><strong>Função:</strong> <span id="modal-funcao"></span></p>
-                <p><strong>Data de Nascimento:</strong> <span id="modal-data-nascimento"></span></p>
-                
-                <p><strong>Telefone:</strong> <span id="modal-telefone"></span></p>
-                <p><strong>Email:</strong> <span id="modal-email"></span></p>
-                <p><strong>Data de Chegada:</strong> <span id="modal-data-chegada"></span></p>
-                
-                <p><strong>CPF:</strong> <span id="modal-cpf"></span></p>
-                <p><strong>RG:</strong> <span id="modal-rg"></span></p>
-                <p><strong>Naturalidade:</strong> <span id="modal-naturalidade"></span></p>
-
-                <p><strong>Estado Civil:</strong> <span id="modal-estado-civil"></span></p>
-                <p id="p-modal-conjuge" class="hidden"><strong>Cônjuge:</strong> <span id="modal-conjuge"></span></p>
-                <p><strong>Data de Batismo:</strong> <span id="modal-data-batismo"></span></p>
-
-                <p><strong>Profissão:</strong> <span id="modal-profissao"></span></p>
-                <p><strong>Escolaridade:</strong> <span id="modal-escolaridade"></span></p>
-                <p>&nbsp;</p> <!-- Espaçador -->
-
-                <p><strong>Igreja de onde veio:</strong> <span id="modal-igreja-veio"></span></p>
-                <p><strong>Cargo que ocupava:</strong> <span id="modal-cargo-ocupava"></span></p>
-                <p>&nbsp;</Gg> <!-- Espaçador -->
-
-                <p class="md:col-span-3"><strong>Endereço:</strong> <span id="modal-endereco" class="block whitespace-pre-wrap"></span></p>
+            <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+                    <!-- Dados Pessoais -->
+                    <div class="md:col-span-2">
+                        <p><strong>Nome:</strong> <span id="modal-nome"></span></p>
+                    </div>
+                    <div>
+                        <p><strong>Data de Nascimento:</strong> <span id="modal-data-nascimento"></span></p>
+                    </div>
+                    <div>
+                        <p><strong>CPF:</strong> <span id="modal-cpf"></span></p>
+                    </div>
+                    <div>
+                        <p><strong>RG:</strong> <span id="modal-rg"></span></p>
+                    </div>
+                    <div>
+                        <p><strong>Naturalidade:</strong> <span id="modal-naturalidade"></span></p>
+                    </div>
+                    <!-- Contato -->
+                    <div class="md:col-span-3 pt-4 border-t">
+                        <p><strong>Telefone:</strong> <span id="modal-telefone"></span></p>
+                    </div>
+                    <div class="md:col-span-3">
+                        <p><strong>Email:</strong> <span id="modal-email"></span></p>
+                    </div>
+                    <div class="md:col-span-3">
+                        <p><strong>Endereço:</strong> <span id="modal-endereco"
+                                class="block whitespace-pre-wrap"></span></p>
+                    </div>
+                    <!-- Estado Civil -->
+                    <div class="md:col-span-3 pt-4 border-t">
+                        <p><strong>Estado Civil:</strong> <span id="modal-estado-civil"></span></p>
+                    </div>
+                    <div id="modal-conjuge-container" class="md:col-span-3 hidden">
+                        <p><strong>Cônjuge:</strong> <span id="modal-conjuge"></span></p>
+                    </div>
+                    <!-- Profissional -->
+                    <div class="md:col-span-3 pt-4 border-t">
+                        <p><strong>Profissão:</strong> <span id="modal-profissao"></span></p>
+                    </div>
+                    <div class="md:col-span-3">
+                        <p><strong>Escolaridade:</strong> <span id="modal-escolaridade"></span></p>
+                    </div>
+                    <!-- Eclesiástico -->
+                    <div class="md:col-span-3 pt-4 border-t">
+                        <p><strong>Função/Ministério:</strong> <span id="modal-funcao"></span></p>
+                    </div>
+                    <div>
+                        <p><strong>Data de Batismo:</strong> <span id="modal-data-batismo"></span></p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p><strong>Data de Chegada:</strong> <span id="modal-data-chegada"></span></p>
+                    </div>
+                    <div>
+                        <p><strong>Igreja Anterior:</strong> <span id="modal-igreja-anterior"></span></p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p><strong>Cargo Anterior:</strong> <span id="modal-cargo-anterior"></span></p>
+                    </div>
+                </div>
             </div>
-            <div class="mt-6 flex justify-end gap-2">
+            <div class="mt-8 pt-4 border-t flex justify-end space-x-2">
                 <button id="show-delete-membro-btn"
                     class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150">
-                    Excluir Membro
+                    <i data-lucide="trash-2" class="inline-block w-4 h-4 mr-1"></i> Excluir Membro
                 </button>
-                 <button id="show-edit-membro-btn"
+                <button id="show-edit-membro-btn"
                     class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150">
-                    Editar Informações
+                    <i data-lucide="edit" class="inline-block w-4 h-4 mr-1"></i> Editar Informações
                 </button>
             </div>
         </div>
@@ -722,148 +744,165 @@
 
     <!-- Modal: Editar Membro -->
     <div id="membro-edit-modal" class="modal">
-        <!-- ATUALIZADO: max-w-3xl para mais espaço -->
-        <div class="modal-content max-w-3xl">
+        <div class="modal-content max-w-4xl">
             <span class="close-button" id="close-membro-edit-modal">&times;</span>
-            <h2 class="text-2xl font-semibold mb-6">Editar Membro</h2>
+            <h2 class="text-2xl font-semibold mb-6">Editar Informações do Membro</h2>
             <form id="form-edit-membro">
-                <!-- ATUALIZADO: grid-cols-3 e overflow -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto pr-2">
-                    <div>
-                        <label for="edit-nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                        <input type="text" id="edit-nome"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            required>
-                    </div>
-                    <div>
-                        <label for="edit-data-nascimento" class="block text-sm font-medium text-gray-700">Data de
-                            Nascimento</label>
-                        <input type="date" id="edit-data-nascimento"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <!-- CAMPO ADICIONADO -->
-                    <div>
-                        <label for="edit-data-chegada" class="block text-sm font-medium text-gray-700">Data de Chegada</label>
-                        <input type="date" id="edit-data-chegada"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label for="edit-telefone" class="block text-sm font-medium text-gray-700">Telefone</label>
-                        <input type="tel" id="edit-telefone"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label for="edit-email" class="block text-sm font-medium text-gray-700">Email</label>
-                        <input type="email" id="edit-email"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <!-- CAMPO ADICIONADO -->
-                    <div>
-                        <label for="edit-naturalidade" class="block text-sm font-medium text-gray-700">Naturalidade</label>
-                        <input type="text" id="edit-naturalidade"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <!-- CAMPO ADICIONADO -->
-                    <div>
-                        <label for="edit-cpf" class="block text-sm font-medium text-gray-700">CPF</label>
-                        <input type="text" id="edit-cpf"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <!-- CAMPO ADICIONADO -->
-                    <div>
-                        <label for="edit-rg" class="block text-sm font-medium text-gray-700">RG</label>
-                        <input type="text" id="edit-rg"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                     <div>
-                        <label for="edit-funcao" class="block text-sm font-medium text-gray-700">Função /
-                            Ministério</label>
-                        <input type="text" id="edit-funcao"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label for="edit-estado-civil" class="block text-sm font-medium text-gray-700">Estado
-                            Civil</label>
-                        <select id="edit-estado-civil"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Selecione...</option>
-                            <option value="Solteiro(a)">Solteiro(a)</option>
-                            <option value="Casado(a)">Casado(a)</option>
-                            <option value="Divorciado(a)">Divorciado(a)</option>
-                            <option value="Viúvo(a)">Viúvo(a)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="edit-data-batismo" class="block text-sm font-medium text-gray-700">Data de
-                            Batismo</label>
-                        <input type="date" id="edit-data-batismo"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <!-- Campo Cônjuge (condicional) estado-->
-                    <div id="edit-campo-conjuge" class="hidden">
-                        <label for="edit-conjuge" class="block text-sm font-medium text-gray-700">Nome do
-                            Cônjuge</label>
-                        <input type="text" id="edit-conjuge"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                     <!-- CAMPO ADICIONADO -->
-                    <div>
-                        <label for="edit-profissao" class="block text-sm font-medium text-gray-700">Profissão</label>
-                        <input type="text" id="edit-profissao"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <!-- CAMPO ADICIONADO -->
-                    <div>
-                        <label for="edit-escolaridade" class="block text-sm font-medium text-gray-700">Escolaridade</label>
-                        <select id="edit-escolaridade"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Selecione...</option>
-                            <option value="Fundamental Incompleto">Fundamental Incompleto</option>
-                            <option value="Fundamental Completo">Fundamental Completo</option>
-                            <option value="Médio Incompleto">Médio Incompleto</option>
-                            <option value="Médio Completo">Médio Completo</option>
-                            <option value="Superior Incompleto">Superior Incompleto</option>
-                            <option value="Superior Completo">Superior Completo</option>
-                            <option value="Pós-graduação">Pós-graduação</option>
-                        </select>
-                    </div>
-                     <!-- CAMPO ADICIONADO -->
-                    <div>
-                        <label for="edit-igreja-veio" class="block text-sm font-medium text-gray-700">Igreja de onde veio</label>
-                        <input type="text" id="edit-igreja-veio"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <!-- CAMPO ADICIONADO -->
-                     <div>
-                        <label for="edit-cargo-ocupava" class="block text-sm font-medium text-gray-700">Cargo que ocupava</label>
-                        <input type="text" id="edit-cargo-ocupava"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
+                <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Coluna 1 -->
+                        <div class="md:col-span-2">
+                            <label for="edit-nome" class="block text-sm font-medium text-gray-700">Nome
+                                Completo</label>
+                            <input type="text" id="edit-nome"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                required>
+                        </div>
+                        <div>
+                            <label for="edit-data-nascimento"
+                                class="block text-sm font-medium text-gray-700">Data de
+                                Nascimento</label>
+                            <input type="date" id="edit-data-nascimento"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
 
-                    <div class="md:col-span-3">
-                        <label for="edit-endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
-                        <textarea id="edit-endereco" rows="3"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        <!-- Coluna 2 -->
+                        <div>
+                            <label for="edit-telefone"
+                                class="block text-sm font-medium text-gray-700">Telefone</label>
+                            <input type="tel" id="edit-telefone"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="edit-email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" id="edit-email"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Coluna 3 -->
+                        <div>
+                            <label for="edit-cpf" class="block text-sm font-medium text-gray-700">CPF</label>
+                            <input type="text" id="edit-cpf"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="edit-rg" class="block text-sm font-medium text-gray-700">RG</label>
+                            <input type="text" id="edit-rg"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="edit-naturalidade"
+                                class="block text-sm font-medium text-gray-700">Naturalidade</label>
+                            <input type="text" id="edit-naturalidade"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Coluna 4 (Endereço) -->
+                        <div class="md:col-span-3">
+                            <label for="edit-endereco" class="block text-sm font-medium text-gray-700">Endereço
+                                Completo</label>
+                            <textarea id="edit-endereco" rows="2"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        </div>
+
+                        <!-- Coluna 5 -->
+                        <div>
+                            <label for="edit-estado-civil" class="block text-sm font-medium text-gray-700">Estado
+                                Civil</label>
+                            <select id="edit-estado-civil"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Selecione</option>
+                                <option value="Solteiro(a)">Solteiro(a)</option>
+                                <option value="Casado(a)">Casado(a)</option>
+                                <option value="Divorciado(a)">Divorciado(a)</option>
+                                <option value="Viúvo(a)">Viúvo(a)</option>
+                            </select>
+                        </div>
+                        <div id="edit-conjuge-container" class="md:col-span-2 hidden">
+                            <label for="edit-conjuge" class="block text-sm font-medium text-gray-700">Nome do
+                                Cônjuge</label>
+                            <input type="text" id="edit-conjuge"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Coluna 6 -->
+                        <div>
+                            <label for="edit-profissao"
+                                class="block text-sm font-medium text-gray-700">Profissão</label>
+                            <input type="text" id="edit-profissao"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="edit-escolaridade"
+                                class="block text-sm font-medium text-gray-700">Escolaridade</label>
+                            <input type="text" id="edit-escolaridade"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Coluna 7 (Igreja) -->
+                        <div class="md:col-span-3 border-t border-gray-200 pt-6 mt-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label for="edit-funcao" class="block text-sm font-medium text-gray-700">Função /
+                                        Ministério</label>
+                                    <input type="text" id="edit-funcao"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="edit-data-batismo"
+                                        class="block text-sm font-medium text-gray-700">Data Batismo
+                                        nas Águas</label>
+                                    <input type="date" id="edit-data-batismo"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="edit-data-chegada"
+                                        class="block text-sm font-medium text-gray-700">Data de
+                                        Chegada</label>
+                                    <input type="date" id="edit-data-chegada"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="md:col-span-3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="edit-igreja-anterior"
+                                        class="block text-sm font-medium text-gray-700">Igreja de
+                                        Onde Veio</label>
+                                    <input type="text" id="edit-igreja-anterior"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="edit-cargo-anterior"
+                                        class="block text-sm font-medium text-gray-700">Cargo que
+                                        Ocupava</label>
+                                    <input type="text" id="edit-cargo-anterior"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
                 <!-- Confirmação de Senha -->
-                <div class="mt-6 border-t pt-6">
+                <div class="mt-6 pt-6 border-t">
                     <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Confirme sua
-                        Senha</label>
+                        Senha para Salvar</label>
                     <input type="password" id="edit-membro-password"
-                        class="mt-1 block w-full max-w-sm border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        class="mt-1 block w-full max-w-xs border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500"
                         required>
                     <p id="edit-membro-error" class="text-red-500 text-sm mt-2"></p>
                 </div>
-
-                <div class="mt-6 flex justify-end gap-2">
+                <!-- Botões de Ação -->
+                <div class="mt-8 flex justify-end space-x-2">
                     <button type="button" id="cancel-edit-membro-btn"
                         class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150">
                         Cancelar
                     </button>
                     <button type="submit" id="edit-membro-submit-btn"
-                        class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150">
+                        class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 h-10 flex items-center justify-center">
                         Salvar Alterações
                     </button>
                 </div>
@@ -871,17 +910,17 @@
         </div>
     </div>
 
+
     <!-- Modal: Confirmação de Exclusão (Universal) -->
     <div id="delete-confirm-modal" class="modal">
-        <!-- ATUALIZADO: max-w-md para manter este modal pequeno -->
-        <div class="modal-content max-w-md">
+        <div class="modal-content max-w-lg">
             <span class="close-button" id="close-delete-modal">&times;</span>
             <h2 class="text-xl font-semibold mb-4 text-red-600">Confirmar Exclusão</h2>
             <p class="mb-4">Tem certeza que deseja excluir este registo? Esta ação é irreversível.</p>
             <p id="delete-cascade-warning" class="text-yellow-700 font-medium mb-4"></p>
             <form id="delete-confirm-form">
                 <label for="delete-password" class="block text-sm font-medium text-gray-700">Para confirmar, digite
-                    sua senha:</label>
+                    sua senha de login:</label>
                 <input type="password" id="delete-password"
                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500"
                     required>
@@ -892,7 +931,7 @@
                         Cancelar
                     </button>
                     <button type="submit" id="delete-submit-btn"
-                        class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150">
+                        class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 h-10 flex items-center justify-center">
                         Excluir Permanentemente
                     </button>
                 </div>
@@ -900,11 +939,12 @@
         </div>
     </div>
 
-    <!-- Container de Toasts (Notificações) -->
+    <!-- Toast Container -->
     <div id="toast-container"></div>
 
-    <!-- Script da Aplicação -->
-    <script src="gestao-igje.js" type="module"></script>
+
+    <!-- Firebase e JS -->
+    <script type="module" src="gestao-igje.js"></script>
     <script>
         // Inicializa ícones Lucide
         lucide.createIcons();
@@ -912,5 +952,4 @@
 </body>
 
 </html>
-
 
