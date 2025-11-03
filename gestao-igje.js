@@ -37,6 +37,9 @@ const firebaseConfig = {
 
 // Inicialização do Firebase
 let app, auth, db, userId;
+// ADICIONADO: Caminho partilhado para o banco de dados
+const dbPath = "dadosIgreja/ADCA-CG"; 
+
 try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
@@ -324,7 +327,8 @@ formMembro.addEventListener("submit", async (e) => {
     };
 
     try {
-        const docRef = collection(db, "users", userId, "membros");
+        // MODIFICADO: Remove "users" e "userId" do caminho
+        const docRef = collection(db, dbPath, "membros");
         await addDoc(docRef, dadosMembro);
 
         formMembro.reset();
@@ -402,7 +406,8 @@ formEditMembro.addEventListener("submit", async (e) => {
     
     // 3. Atualizar no Firebase
     try {
-        const docRef = doc(db, "users", userId, "membros", membroParaEditarId);
+        // MODIFICADO: Remove "users" e "userId" do caminho
+        const docRef = doc(db, dbPath, "membros", membroParaEditarId);
         await updateDoc(docRef, dadosAtualizados);
         
         // Sucesso
@@ -446,7 +451,8 @@ formDizimo.addEventListener("submit", async (e) => {
         const batch = writeBatch(db);
 
         // 1. Cria o documento de dízimo
-        const dizimoDocRef = doc(collection(db, "users", userId, "dizimos"));
+        // MODIFICADO: Remove "users" e "userId" do caminho
+        const dizimoDocRef = doc(collection(db, dbPath, "dizimos"));
         batch.set(dizimoDocRef, {
             membroId: membroId,
             membroNome: membroNome,
@@ -457,7 +463,8 @@ formDizimo.addEventListener("submit", async (e) => {
         });
 
         // 2. Cria o documento financeiro
-        const financeiroDocRef = doc(collection(db, "users", userId, "financeiro"));
+        // MODIFICADO: Remove "users" e "userId" do caminho
+        const financeiroDocRef = doc(collection(db, dbPath, "financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `Dízimo - ${membroNome}`,
@@ -512,7 +519,8 @@ formOferta.addEventListener("submit", async (e) => {
         const batch = writeBatch(db);
 
         // 1. Cria o documento de oferta
-        const ofertaDocRef = doc(collection(db, "users", userId, "ofertas"));
+        // MODIFICADO: Remove "users" e "userId" do caminho
+        const ofertaDocRef = doc(collection(db, dbPath, "ofertas"));
         batch.set(ofertaDocRef, {
             tipo: tipo,
             descricao: descricao,
@@ -523,7 +531,8 @@ formOferta.addEventListener("submit", async (e) => {
         });
 
         // 2. Cria o documento financeiro
-        const financeiroDocRef = doc(collection(db, "users", userId, "financeiro"));
+        // MODIFICADO: Remove "users" e "userId" do caminho
+        const financeiroDocRef = doc(collection(db, dbPath, "financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `${tipo} - ${descricao}`,
@@ -574,7 +583,8 @@ formFinanceiro.addEventListener("submit", async (e) => {
     }
 
     try {
-        const colRef = collection(db, "users", userId, "financeiro");
+        // MODIFICADO: Remove "users" e "userId" do caminho
+        const colRef = collection(db, dbPath, "financeiro");
         await addDoc(colRef, {
             tipo: "saida",
             descricao: descricao,
@@ -621,7 +631,8 @@ function loadAllData(currentUserId) {
 
     // Ouvir Membros
     try {
-        const qMembros = query(collection(db, "users", currentUserId, "membros"));
+        // MODIFICADO: Remove "users" e "userId" do caminho
+        const qMembros = query(collection(db, dbPath, "membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
             localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             localMembros.sort((a, b) => a.nome.localeCompare(b.nome)); // Ordena por nome
@@ -633,7 +644,8 @@ function loadAllData(currentUserId) {
 
     // Ouvir Dízimos
     try {
-        const qDizimos = query(collection(db, "users", currentUserId, "dizimos"));
+        // MODIFICADO: Remove "users" e "userId" do caminho
+        const qDizimos = query(collection(db, dbPath, "dizimos"));
         unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
             localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroDizimos(); // Renderiza os filtros
@@ -643,8 +655,9 @@ function loadAllData(currentUserId) {
 
     // Ouvir Ofertas
     try {
-        const qOfertas = query(collection(db, "users", currentUserId, "ofertas"));
-        unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
+        // MODIFICADO: Remove "users" e "userId" do caminho
+        const qOfertas = query(collection(db, dbPath, "ofertas"));
+        unsubOfertas = onSnapshot(qDizimos, (snapshot) => {
             localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroOfertas(); // Renderiza os filtros
             onDataLoaded();
@@ -654,7 +667,8 @@ function loadAllData(currentUserId) {
 
     // Ouvir Financeiro
     try {
-        const qFinanceiro = query(collection(db, "users", currentUserId, "financeiro"));
+        // MODIFICADO: Remove "users" e "userId" do caminho
+        const qFinanceiro = query(collection(db, dbPath, "financeiro"));
         unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
             localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
@@ -1178,7 +1192,8 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
         const batch = writeBatch(db);
         
         if (itemParaExcluir.tipo === 'financeiro') {
-            const finDocRef = doc(db, "users", userId, "financeiro", itemParaExcluir.id);
+            // MODIFICADO: Remove "users" e "userId" do caminho
+            const finDocRef = doc(db, dbPath, "financeiro", itemParaExcluir.id);
             const finData = localFinanceiro.find(f => f.id === itemParaExcluir.id);
             
             batch.delete(finDocRef); // Apaga o financeiro
@@ -1186,37 +1201,43 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
             // Se tiver origem, apaga a origem
             if (finData && finData.origemId && finData.origemTipo) {
                  const origemCollection = finData.origemTipo === 'dizimo' ? 'dizimos' : 'ofertas';
-                 const origemDocRef = doc(db, "users", userId, origemCollection, finData.origemId);
+                 // MODIFICADO: Remove "users" e "userId" do caminho
+                 const origemDocRef = doc(db, dbPath, origemCollection, finData.origemId);
                  batch.delete(origemDocRef);
             }
         
         } else if (itemParaExcluir.tipo === 'dizimo') {
-            const dizimoDocRef = doc(db, "users", userId, "dizimos", itemParaExcluir.id);
+            // MODIFICADO: Remove "users" e "userId" do caminho
+            const dizimoDocRef = doc(db, dbPath, "dizimos", itemParaExcluir.id);
             const dizimoData = localDizimos.find(d => d.id === itemParaExcluir.id);
             
             batch.delete(dizimoDocRef); // Apaga o dízimo
             
             // Apaga o financeiro associado
             if (dizimoData && dizimoData.financeiroId) {
-                const finDocRef = doc(db, "users", userId, "financeiro", dizimoData.financeiroId);
+                // MODIFICADO: Remove "users" e "userId" do caminho
+                const finDocRef = doc(db, dbPath, "financeiro", dizimoData.financeiroId);
                 batch.delete(finDocRef);
             }
 
         } else if (itemParaExcluir.tipo === 'oferta') {
-            const ofertaDocRef = doc(db, "users", userId, "ofertas", itemParaExcluir.id);
+            // MODIFICADO: Remove "users" e "userId" do caminho
+            const ofertaDocRef = doc(db, dbPath, "ofertas", itemParaExcluir.id);
             const ofertaData = localOfertas.find(o => o.id === itemParaExcluir.id);
 
             batch.delete(ofertaDocRef); // Apaga a oferta
 
             // Apaga o financeiro associado
             if (ofertaData && ofertaData.financeiroId) {
-                const finDocRef = doc(db, "users", userId, "financeiro", ofertaData.financeiroId);
+                // MODIFICADO: Remove "users" e "userId" do caminho
+                const finDocRef = doc(db, dbPath, "financeiro", ofertaData.financeiroId);
                 batch.delete(finDocRef);
             }
             
         } else if (itemParaExcluir.tipo === 'membro') {
             // Exclusão de membro não é em batch, pois não tem cascata financeira
-            const membroDocRef = doc(db, "users", userId, "membros", itemParaExcluir.id);
+            // MODIFICADO: Remove "users" e "userId" do caminho
+            const membroDocRef = doc(db, dbPath, "membros", itemParaExcluir.id);
             await deleteDoc(membroDocRef);
             
             // Fechamos os modais manually
@@ -1528,4 +1549,5 @@ function getDateFromInput(dataInput) {
 
 // Inicializa ícones Lucide
 lucide.createIcons();
+
 
