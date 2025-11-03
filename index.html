@@ -97,7 +97,14 @@
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
                 <!-- TÍTULO E LOGO ATUALIZADOS -->
                 <div class="flex items-center">
-                    <img src="adca.png" alt="Logo ADCA" class="h-10 w-10 mr-3 rounded-md">
+                    <!-- ATUALIZADO: Logo agora é um uploader interativo -->
+                    <label for="logo-upload-input" id="logo-container" class="relative cursor-pointer mr-3" title="Mudar logo">
+                        <img id="app-logo-img" src="https://placehold.co/40x40/EBF8FF/3B82F6?text=Logo" alt="Logo ADCA" class="h-10 w-10 rounded-md block">
+                        <div id="logo-overlay">
+                            <i data-lucide="upload" class="w-4 h-4"></i>
+                        </div>
+                        <input type="file" id="logo-upload-input" accept="image/png, image/jpeg" class="hidden">
+                    </label>
                     <h1 class="text-2xl font-bold">GESTÃO ADCA - CAPOEIRA GRANDE</h1>
                 </div>
                 <div>
@@ -905,4 +912,5 @@
 </body>
 
 </html>
+
 
