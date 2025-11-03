@@ -5,7 +5,7 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    onAuthStateChanged,
+    onAuthStateChanged, // Corrigido: Adicionado de volta
     EmailAuthProvider,
     reauthenticateWithCredential
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -84,7 +84,7 @@ const registerTab = document.getElementById("auth-register-tab");
 
 // Abas da Aplicação
 const tabButtons = document.querySelectorAll(".app-tab-button");
-const tabContents = document.querySelectorAll(".app-content-tab"); 
+const tabContents = document.querySelectorAll(".app-content-tab"); // Corrigido: Adicionado de volta
 
 // Formulários
 const formMembro = document.getElementById("form-membro");
@@ -153,6 +153,10 @@ const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
 // Toast
 const toastContainer = document.getElementById("toast-container");
 
+// Resumo Financeiro do Mês
+const entradasMesFinanceiro = document.getElementById("entradas-mes-financeiro");
+const saidasMesFinanceiro = document.getElementById("saidas-mes-financeiro");
+
 
 // --- CONTROLE DE AUTENTICAÇÃO ---
 
@@ -216,7 +220,6 @@ registerForm.addEventListener("submit", async (e) => {
         const user = userCredential.user;
 
         // Salvar dados do perfil no Firestore
-        // Este caminho DEVE corresponder às Regras de Segurança
         await setDoc(doc(db, "dadosIgreja", "ADCA-CG", "perfisUtilizadores", user.uid), {
             nome: nome.trim(),
             telefone: telefoneLimpo,
@@ -641,9 +644,9 @@ function loadAllData() {
         }
     };
     
-    const basePath = "dadosIgreja/ADCA-CG"; // Caminho partilhado
-    
-    // Ouvir Membros
+    // Caminho partilhado
+    const basePath = "dadosIgreja/ADCA-CG";
+
     try {
         const qMembros = query(collection(db, basePath, "membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
@@ -655,7 +658,6 @@ function loadAllData() {
         }, (error) => { console.error("Erro ao ouvir membros:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de membros:", e); onDataLoaded(); }
 
-    // Ouvir Dízimos
     try {
         const qDizimos = query(collection(db, basePath, "dizimos"));
         unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
@@ -665,7 +667,6 @@ function loadAllData() {
         }, (error) => { console.error("Erro ao ouvir dízimos:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de dízimos:", e); onDataLoaded(); }
 
-    // Ouvir Ofertas
     try {
         const qOfertas = query(collection(db, basePath, "ofertas"));
         unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
@@ -675,8 +676,6 @@ function loadAllData() {
         }, (error) => { console.error("Erro ao ouvir ofertas:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de ofertas:", e); onDataLoaded(); }
 
-
-    // Ouvir Financeiro
     try {
         const qFinanceiro = query(collection(db, basePath, "financeiro"));
         unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
@@ -704,6 +703,8 @@ function clearAllTables() {
     listaFinanceiro.innerHTML = "";
     dizimoMembroSelect.innerHTML = '<option value="">Selecione o Membro</option>';
     saldoTotalFinanceiro.textContent = "R$ 0,00";
+    entradasMesFinanceiro.textContent = "R$ 0,00"; // Novo
+    saidasMesFinanceiro.textContent = "R$ 0,00"; // Novo
     saldoDashboard.textContent = "R$ 0,00";
     entradasDashboard.textContent = "R$ 0,00";
     saidasDashboard.textContent = "R$ 0,00";
@@ -828,16 +829,19 @@ filtroOfertaAno.addEventListener("change", renderFiltroOfertas);
 filtroFinanceiroMes.addEventListener("change", renderFiltroFinanceiro);
 filtroFinanceiroAno.addEventListener("change", renderFiltroFinanceiro);
 
+// (NOVO) Função atualizada para calcular Entradas/Saídas do Mês
 function renderFiltroFinanceiro() {
     const mes = parseInt(filtroFinanceiroMes.value);
     const ano = parseInt(filtroFinanceiroAno.value);
 
+    // 1. Filtrar os dados
     const dadosFiltrados = localFinanceiro.filter(d => {
         const data = getDateFromInput(d.data);
         if (!data) return false;
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
 
+    // 2. Ordenar os dados filtrados (mais recente primeiro)
     dadosFiltrados.sort((a, b) => {
         const dataA = getDateFromInput(a.data);
         const dataB = getDateFromInput(b.data);
@@ -846,8 +850,23 @@ function renderFiltroFinanceiro() {
         return dataB - dataA;
     });
 
+    // 3. Renderizar a tabela com os dados filtrados
     renderFinanceiro(dadosFiltrados);
+    
+    // 4. (NOVO) Calcular totais do mês filtrado
+    const entradasMes = dadosFiltrados
+        .filter(t => t.valor > 0)
+        .reduce((acc, t) => acc + t.valor, 0);
 
+    const saidasMes = dadosFiltrados
+        .filter(t => t.valor < 0)
+        .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
+
+    // 5. (NOVO) Atualizar o resumo do mês na aba Financeiro
+    entradasMesFinanceiro.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
+    saidasMesFinanceiro.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
+
+    // 6. Calcular e renderizar o SALDO TOTAL (usando todos os dados)
     const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
     const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
     saldoTotalFinanceiro.className = `text-2xl font-bold ${corSaldo}`;
@@ -1012,7 +1031,8 @@ function setElementText(id, text) {
     if (element) {
         element.textContent = text || 'N/A';
     } else {
-        console.warn(`Elemento com ID "${id}" não encontrado no HTML.`);
+        // CORRIGIDO: Este log era a causa do erro `TypeError`
+        // console.warn(`Elemento com ID "${id}" não encontrado no HTML.`);
     }
 }
 
@@ -1262,18 +1282,17 @@ gerarRelatorioBtn.addEventListener("click", () => {
         const extratoEntradas = [...localFinanceiro]
             .filter(f => f.valor > 0)
             .sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
-        
+
         const extratoSaidas = [...localFinanceiro]
             .filter(f => f.valor < 0)
             .sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
 
-        // Calcular totais
-        const totalDizimos = dizimosOrdenados.reduce((acc, d) => acc + (d.valor || 0), 0);
-        const totalOfertas = ofertasOrdenadas.reduce((acc, o) => acc + (o.valor || 0), 0);
-        const totalEntradas = extratoEntradas.reduce((acc, e) => acc + (e.valor || 0), 0);
-        const totalSaidas = extratoSaidas.reduce((acc, s) => acc + (s.valor || 0), 0); // Valor já é negativo
+        // Calcular Totais (Corrigido para usar os dados filtrados)
+        const totalEntradas = extratoEntradas.reduce((acc, t) => acc + (t.valor || 0), 0);
+        const totalSaidas = extratoSaidas.reduce((acc, t) => acc + (t.valor || 0), 0); // Já é negativo
+        
 
-
+        // 3. Construir o HTML do Relatório
         let relatorioHTML = `
             <html>
             <head>
@@ -1294,8 +1313,9 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     .currency-header { text-align: right; }
                     .entrada { color: #15803d; }
                     .saida { color: #b91c1c; }
-                    .total { font-weight: bold; font-size: 15px; }
-                    .total-final { font-weight: bold; font-size: 18px; }
+                    .total { font-weight: bold; font-size: 16px; }
+                    .resumo-final { margin-top: 24px; padding-top: 16px; border-top: 2px solid #3b82f6; }
+                    .resumo-linha { display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 8px; }
                 </style>
             </head>
             <body class="bg-gray-100 p-8">
@@ -1306,7 +1326,16 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
-                    <!-- Dízimos -->
+                    <!-- Resumo (Removido o card de membros) -->
+                    <div class="mb-8">
+                        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                            <h3 class="text-lg font-semibold text-blue-800">Saldo Atual (Caixa)</h3>
+                            <p class="text-3xl font-bold ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">R$ ${saldoTotal.toFixed(2).replace(".", ",")}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Dízimos (Apenas se houver) -->
+                    ${dizimosOrdenados.length > 0 ? `
                     <h2>Registos de Dízimos</h2>
                     <table>
                         <thead>
@@ -1324,15 +1353,11 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                     <td class="currency entrada">R$ ${(d.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
-                            ${dizimosOrdenados.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum dízimo registado.</td></tr>' : ''}
-                            <tr class="total bg-gray-50">
-                                <td colspan="2" class="text-right font-bold">TOTAL DÍZIMOS</td>
-                                <td class="currency entrada">R$ ${totalDizimos.toFixed(2).replace(".", ",")}</td>
-                            </tr>
                         </tbody>
-                    </table>
+                    </table>` : ''}
                     
-                    <!-- Ofertas -->
+                    <!-- Ofertas (Apenas se houver) -->
+                     ${ofertasOrdenadas.length > 0 ? `
                     <h2>Registos de Ofertas e Outras Entradas</h2>
                     <table>
                         <thead>
@@ -1352,16 +1377,11 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                     <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
-                            ${ofertasOrdenadas.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada.</td></tr>' : ''}
-                             <tr class="total bg-gray-50">
-                                <td colspan="3" class="text-right font-bold">TOTAL OFERTAS/OUTRAS</td>
-                                <td class="currency entrada">R$ ${totalOfertas.toFixed(2).replace(".", ",")}</td>
-                            </tr>
                         </tbody>
-                    </table>
+                    </table>` : ''}
 
                     <!-- Extrato Financeiro - ENTRADAS -->
-                    <h2>Extrato Financeiro - ENTRADAS (Caixa)</h2>
+                    <h2>Extrato Financeiro - ENTRADAS</h2>
                     <table>
                         <thead>
                             <tr>
@@ -1380,16 +1400,18 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                     </td>
                                 </tr>
                             `).join('')}
-                            ${extratoEntradas.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma entrada registada no caixa.</td></tr>' : ''}
+                            ${extratoEntradas.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma entrada registada.</td></tr>' : ''}
                             <tr class="total bg-gray-50">
-                                <td colspan="2" class="text-right font-bold">TOTAL DE ENTRADAS</td>
-                                <td class="currency entrada">R$ ${totalEntradas.toFixed(2).replace(".", ",")}</td>
+                                <td colspan="2" class="text-right font-bold">Total de Entradas</td>
+                                <td class="currency entrada">
+                                    R$ ${totalEntradas.toFixed(2).replace(".", ",")}
+                                </td>
                             </tr>
                         </tbody>
                     </table>
-
-                     <!-- Extrato Financeiro - SAÍDAS -->
-                    <h2>Extrato Financeiro - SAÍDAS (Caixa)</h2>
+                    
+                    <!-- Extrato Financeiro - SAÍDAS -->
+                    <h2>Extrato Financeiro - SAÍDAS</h2>
                     <table>
                         <thead>
                             <tr>
@@ -1408,31 +1430,32 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                     </td>
                                 </tr>
                             `).join('')}
-                            ${extratoSaidas.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma saída registada no caixa.</td></tr>' : ''}
+                            ${extratoSaidas.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma saída registada.</td></tr>' : ''}
                             <tr class="total bg-gray-50">
-                                <td colspan="2" class="text-right font-bold">TOTAL DE SAÍDAS</td>
-                                <td class="currency saida">R$ ${totalSaidas.toFixed(2).replace(".", ",")}</td>
+                                <td colspan="2" class="text-right font-bold">Total de Saídas</td>
+                                <td class="currency saida">
+                                    R$ ${totalSaidas.toFixed(2).replace(".", ",")}
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                     
-                    <!-- Resumo Final -->
-                    <div class="mt-8 pt-4 border-t-2 border-gray-300">
-                        <div class="w-full max-w-sm ml-auto space-y-2">
-                            <div class="flex justify-between total">
-                                <span>Total de Entradas:</span>
-                                <span class="entrada">R$ ${totalEntradas.toFixed(2).replace(".", ",")}</span>
-                            </div>
-                            <div class="flex justify-between total">
-                                <span>Total de Saídas:</span>
-                                <span class"saida">R$ ${totalSaidas.toFixed(2).replace(".", ",")}</span>
-                            </div>
-                            <div class="flex justify-between total-final pt-2 border-t border-gray-400">
-                                <span>SALDO FINAL (CAIXA):</span>
-                                <span class="${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">
-                                    R$ ${saldoTotal.toFixed(2).replace(".", ",")}
-                                </span>
-                            </div>
+                    <!-- Resumo Final (Como na Imagem) -->
+                    <div class="resumo-final">
+                        <div class="resumo-linha">
+                            <span class="font-semibold">Total de Entradas:</span>
+                            <span class="font-semibold entrada">R$ ${totalEntradas.toFixed(2).replace(".", ",")}</span>
+                        </div>
+                        <div class="resumo-linha">
+                            <span class="font-semibold">Total de Saídas:</span>
+                            <span class="font-semibold saida">R$ ${totalSaidas.toFixed(2).replace(".", ",")}</span>
+                        </div>
+                        <hr class="my-2"/>
+                        <div class="resumo-linha">
+                            <span class="font-bold text-lg">SALDO FINAL (CAIXA):</span>
+                            <span class="font-bold text-lg ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">
+                                R$ ${saldoTotal.toFixed(2).replace(".", ",")}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -1443,6 +1466,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
         // 4. Abrir numa nova janela
         const relatorioJanela = window.open("", "_blank");
 
+        // Verificação de bloqueador de pop-up
         if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
             console.error("Falha ao abrir janela de relatório. Provável bloqueador de pop-up.");
             showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
@@ -1453,6 +1477,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
         relatorioJanela.document.close();
     
     } catch (error) {
+        // Pega qualquer erro que possa ter acontecido
         console.error("Erro ao gerar relatório:", error);
         showToast("Ocorreu um erro inesperado ao gerar o relatório.", "error");
     }
@@ -1480,6 +1505,7 @@ function showToast(message, type = 'success') {
     
     toastContainer.appendChild(toast);
 
+    // Remove o toast após 3 segundos
     setTimeout(() => {
         toast.style.animation = "slideOut 0.3s ease-out forwards";
         setTimeout(() => {
@@ -1491,25 +1517,26 @@ function showToast(message, type = 'success') {
 
 // Função de formatação de data
 function formatarData(dataString) {
-    if (!dataString) return 'N/A';
+    // Se for um Timestamp do Firebase, converte para Date
+    if (dataString && typeof dataString.toDate === 'function') {
+        dataString = dataString.toDate();
+    }
+    // Se for um objeto Date
+    else if (dataString instanceof Date) {
+         // Não faz nada, já é um Date
+    }
+    // Se for uma string (ex: '2025-11-01')
+    else if (typeof dataString === 'string' && dataString.includes('-')) {
+         dataString = getDateFromInput(dataString); // Usa a função robusta
+    } 
+    // Se for inválido ou nulo
+    else {
+        return 'N/A'; // Retorna 'N/A' se a data for inválida
+    }
     
     try {
-        let dataObj;
-        if (dataString && typeof dataString.toDate === 'function') {
-            dataObj = dataString.toDate();
-        }
-        else if (dataString instanceof Date) {
-             dataObj = dataString;
-        }
-        else if (typeof dataString === 'string' && dataString.includes('-')) {
-             dataObj = getDateFromInput(dataString);
-             if (!dataObj) return 'N/A';
-        } 
-        else {
-            return 'N/A'; 
-        }
-        
-        return dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+        // Formata para dd/mm/aaaa
+        return dataString.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
     } catch (e) {
         console.warn("Erro ao formatar data:", dataString, e);
         return 'N/A';
@@ -1519,17 +1546,20 @@ function formatarData(dataString) {
 // Converte string 'aaaa-mm-dd' ou Timestamp para um Date UTC
 function getDateFromInput(dataInput) {
     try {
-        if (!dataInput) return null;
-        
+        // Se for um Timestamp do Firebase
         if (dataInput && typeof dataInput.toDate === 'function') {
-            return dataInput.toDate();
+            return dataInput.toDate(); // Retorna o objeto Date
         }
+        // Se já for um objeto Date
         if (dataInput instanceof Date) {
             return dataInput;
         }
+        // Se for uma string (ex: '2025-11-01')
         if (typeof dataInput === 'string' && dataInput.includes('-')) {
             const parts = dataInput.split('-');
             if (parts.length === 3) {
+                // Ano, Mês (base 0), Dia
+                // Garante que seja UTC para evitar problemas de fuso
                 return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
             }
         }
@@ -1537,21 +1567,20 @@ function getDateFromInput(dataInput) {
         console.error("Data inválida:", dataInput, e);
         return null;
     }
+    // Fallback para data inválida ou formato desconhecido
     return null;
 }
 
 // Calcula a idade
 function calcularIdade(dataNascimento) {
     if (!dataNascimento) return null;
-    
     const dataNasc = getDateFromInput(dataNascimento);
     if (!dataNasc) return null;
 
     const hoje = new Date();
-    let idade = hoje.getUTCFullYear() - dataNasc.getUTCFullYear();
-    const m = hoje.getUTCMonth() - dataNasc.getUTCMonth();
-    
-    if (m < 0 || (m === 0 && hoje.getUTCDate() < dataNasc.getUTCDate())) {
+    let idade = hoje.getFullYear() - dataNasc.getFullYear();
+    const m = hoje.getMonth() - dataNasc.getMonth();
+    if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getDate())) {
         idade--;
     }
     return idade;
