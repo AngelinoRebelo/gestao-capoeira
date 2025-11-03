@@ -77,10 +77,10 @@ const userEmailDisplay = document.getElementById("user-email-display");
 const logoutButton = document.getElementById("logout-button");
 const loginSubmitBtn = document.getElementById("login-submit-btn");
 const registerSubmitBtn = document.getElementById("register-submit-btn");
-const loginTabButton = document.getElementById("auth-login-tab-button"); // Corrigido
-const registerTabButton = document.getElementById("auth-register-tab-button"); // Corrigido
-const loginTab = document.getElementById("auth-login-tab"); // Corrigido
-const registerTab = document.getElementById("auth-register-tab"); // Corrigido
+const loginTabButton = document.getElementById("auth-login-tab-button");
+const registerTabButton = document.getElementById("auth-register-tab-button");
+const loginTab = document.getElementById("auth-login-tab");
+const registerTab = document.getElementById("auth-register-tab");
 
 // Abas da Aplicação
 const tabButtons = document.querySelectorAll(".app-tab-button");
@@ -641,11 +641,11 @@ function loadAllData() {
         }
     };
     
-    const basePath = collection(db, "dadosIgreja", "ADCA-CG");
-
+    // CORRIGIDO: Removido o basePath inválido
+    
     // Ouvir Membros
     try {
-        const qMembros = query(collection(basePath, "membros"));
+        const qMembros = query(collection(db, "dadosIgreja", "ADCA-CG", "membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
             localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             localMembros.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -657,7 +657,7 @@ function loadAllData() {
 
     // Ouvir Dízimos
     try {
-        const qDizimos = query(collection(basePath, "dizimos"));
+        const qDizimos = query(collection(db, "dadosIgreja", "ADCA-CG", "dizimos"));
         unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
             localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroDizimos();
@@ -667,7 +667,7 @@ function loadAllData() {
 
     // Ouvir Ofertas
     try {
-        const qOfertas = query(collection(basePath, "ofertas"));
+        const qOfertas = query(collection(db, "dadosIgreja", "ADCA-CG", "ofertas"));
         unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
             localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroOfertas();
@@ -678,7 +678,7 @@ function loadAllData() {
 
     // Ouvir Financeiro
     try {
-        const qFinanceiro = query(collection(basePath, "financeiro"));
+        const qFinanceiro = query(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
         unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
             localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroFinanceiro(); 
@@ -1384,7 +1384,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                             </div>
                             <div class="flex justify-between total">
                                 <span>Total de Saídas:</span>
-                                <span class="saida">R$ ${totalSaidas.toFixed(2).replace(".", ",")}</span>
+                                <span class"saida">R$ ${totalSaidas.toFixed(2).replace(".", ",")}</span>
                             </div>
                             <div class="flex justify-between total-final pt-2 border-t border-gray-400">
                                 <span>SALDO FINAL (CAIXA):</span>
