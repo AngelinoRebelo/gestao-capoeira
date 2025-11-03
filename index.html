@@ -2,36 +2,36 @@
 <html lang="pt-br">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Título Atualizado -->
+    <!-- TÍTULO ATUALIZADO -->
     <title>GESTÃO ADCA - CAPOEIRA GRANDE</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- CSS Personalizado -->
-    <link rel="stylesheet" href="style.css">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="bg-gray-100 font-sans antialiased text-gray-800">
-
-    <!-- Toast Container -->
-    <div id="toast-container"></div>
 
     <!-- Tela de Autenticação (Login/Cadastro) -->
     <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gray-200">
         <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
             <!-- Abas de Login / Cadastro -->
             <div class="flex border-b mb-4">
-                <!-- Classes atualizadas -->
-                <button id="login-tab-button" class="auth-tab-button active">Acesso</button>
-                <button id="register-tab-button" class="auth-tab-button">Primeiro Acesso</button>
+                <!-- MODIFICADO: Adicionado 'auth-tab-button' -->
+                <button id="login-tab-button"
+                    class="auth-tab-button flex-1 py-2 px-4 text-center text-lg active">Acesso</button>
+                <button id="register-tab-button"
+                    class="auth-tab-button flex-1 py-2 px-4 text-center text-lg">Primeiro Acesso</button>
             </div>
 
             <!-- Conteúdo das Abas de Autenticação -->
             <!-- Formulário de Login -->
             <div id="login-tab" class="tab-content active">
+                <!-- TÍTULO ATUALIZADO -->
                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Aceder à GESTÃO ADCA</h2>
                 <form id="login-form">
                     <div class="mb-4">
@@ -44,8 +44,8 @@
                         <input type="password" id="login-password" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <button type="submit" id="login-submit-btn"
-                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 flex items-center justify-center">
+                    <button id="login-submit-btn" type="submit"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150">
                         Entrar
                     </button>
                     <p id="login-error" class="text-red-500 text-sm mt-4 text-center"></p>
@@ -55,36 +55,40 @@
             <!-- Formulário de Cadastro (Primeiro Acesso) -->
             <div id="register-tab" class="tab-content">
                 <h2 class="text-2xl font-bold mb-6 text-center text-green-600">Criar Conta</h2>
-                <form id="register-form" class="space-y-4">
-                    <div>
+                <form id="register-form">
+                    <!-- CAMPOS ADICIONADOS: Nome e Telefone -->
+                    <div class="mb-4">
                         <label for="register-name" class="block text-sm font-medium text-gray-700 mb-1">Nome
                             Completo:</label>
-                        <input type="text" id="register-name" required placeholder="Ex: Gabriel Angelino"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        <input type="text" id="register-name" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                            placeholder="Ex: Gabriel Angelino">
                     </div>
-                    <div>
+                    <div class="mb-4">
                         <label for="register-phone" class="block text-sm font-medium text-gray-700 mb-1">Nº de
-                            Telefone (com DDD):</label>
-                        <input type="tel" id="register-phone" required placeholder="Ex: 21912345678"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            Telefone:</label>
+                        <input type="tel" id="register-phone" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                            placeholder="Ex: 21979626240 (só números)">
                     </div>
-                    <div>
+                    <!-- Campos existentes -->
+                    <div class="mb-4">
                         <label for="register-email" class="block text-sm font-medium text-gray-700 mb-1">Email:</label>
                         <input type="email" id="register-email" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                     </div>
-                    <div>
+                    <div class="mb-4">
                         <label for="register-password"
                             class="block text-sm font-medium text-gray-700 mb-1">Senha (mín. 6
                             caracteres):</label>
                         <input type="password" id="register-password" required minlength="6"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                     </div>
-                    <button type="submit" id="register-submit-btn"
-                        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150 flex items-center justify-center">
+                    <button id="register-submit-btn" type="submit"
+                        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150">
                         Cadastrar
                     </button>
-                    <p id="register-error" class="text-red-500 text-sm pt-2 text-center"></p>
+                    <p id="register-error" class="text-red-500 text-sm mt-4 text-center"></p>
                 </form>
             </div>
         </div>
@@ -96,10 +100,13 @@
         <!-- Cabeçalho -->
         <header class="bg-blue-600 text-white shadow-md">
             <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-                <!-- Título Atualizado -->
-                <h1 class="text-xl sm:text-2xl font-bold">GESTÃO ADCA - CAPOEIRA GRANDE</h1>
-                <div class="flex items-center">
-                    <span id="user-email-display" class="text-sm hidden sm:inline mr-4"></span>
+                <!-- TÍTULO ATUALIZADO -->
+                <div class="flex items-center gap-3">
+                    <!-- REMOVIDO: Logo estático -->
+                    <h1 class="text-2xl font-bold">GESTÃO ADCA - CAPOEIRA GRANDE</h1>
+                </div>
+                <div>
+                    <span id="user-email-display" class="text-sm mr-4"></span>
                     <button id="logout-button"
                         class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm font-medium transition duration-150">
                         Sair
@@ -107,25 +114,31 @@
                 </div>
             </div>
             <!-- Abas de Navegação -->
-            <nav class="container mx-auto px-4 flex space-x-1 sm:space-x-4 overflow-x-auto">
-                <!-- Classes atualizadas -->
-                <button id="tab-btn-dashboard" data-tab="dashboard" class="app-tab-button active">
+            <nav class="container mx-auto px-4 flex space-x-4 overflow-x-auto">
+                <!-- MODIFICADO: Adicionado 'app-tab-button' e IDs -->
+                <button id="tab-btn-dashboard" data-tab="dashboard"
+                    class="app-tab-button py-3 px-3 text-sm font-medium text-white active">
                     <i data-lucide="layout-dashboard" class="inline-block w-4 h-4 mr-1"></i> Dashboard
                 </button>
-                <button id="tab-btn-cadastrar" data-tab="cadastrar-membro" class="app-tab-button">
-                    <i data-lucide="user-plus" class="inline-block w-4 h-4 mr-1"></i> Cadastrar
+                <button id="tab-btn-cadastrar-membro" data-tab="cadastrar-membro"
+                    class="app-tab-button py-3 px-3 text-sm font-medium text-white">
+                    <i data-lucide="user-plus" class="inline-block w-4 h-4 mr-1"></i> Cadastrar Membro
                 </button>
-                <button id="tab-btn-visualizar" data-tab="visualizar-membros" class="app-tab-button">
-                    <i data-lucide="users" class="inline-block w-4 h-4 mr-1"></i> Membros
+                <button id="tab-btn-visualizar-membros" data-tab="visualizar-membros"
+                    class="app-tab-button py-3 px-3 text-sm font-medium text-white">
+                    <i data-lucide="users" class="inline-block w-4 h-4 mr-1"></i> Visualizar Membros
                 </button>
-                <button id="tab-btn-dizimos" data-tab="dizimos" class="app-tab-button">
+                <button id="tab-btn-dizimos" data-tab="dizimos"
+                    class="app-tab-button py-3 px-3 text-sm font-medium text-white">
                     <i data-lucide="hand-heart" class="inline-block w-4 h-4 mr-1"></i> Dízimos
                 </button>
-                <button id="tab-btn-ofertas" data-tab="ofertas" class="app-tab-button">
-                    <i data-lucide="gift" class="inline-block w-4 h-4 mr-1"></i> Ofertas
+                <button id="tab-btn-ofertas" data-tab="ofertas"
+                    class="app-tab-button py-3 px-3 text-sm font-medium text-white">
+                    <i data-lucide="gift" class="inline-block w-4 h-4 mr-1"></i> Ofertas e Outras
                 </button>
-                <button id="tab-btn-financeiro" data-tab="financeiro" class="app-tab-button">
-                    <i data-lucide="dollar-sign" class="inline-block w-4 h-4 mr-1"></i> Financeiro
+                <button id="tab-btn-financeiro" data-tab="financeiro"
+                    class="app-tab-button py-3 px-3 text-sm font-medium text-white">
+                    <i data-lucide="dollar-sign" class="inline-block w-4 h-4 mr-1"></i> Financeiro (Caixa)
                 </button>
             </nav>
         </header>
@@ -189,7 +202,7 @@
                 </div>
 
                 <!-- Botão de Relatório -->
-                <div id="relatorio-container" class="mt-8 bg-white p-6 rounded-lg shadow-lg text-center">
+                <div id="card-relatorio" class="mt-8 bg-white p-6 rounded-lg shadow-lg text-center">
                     <h3 class="text-xl font-semibold mb-4">Relatório Geral</h3>
                     <p class="text-gray-600 mb-4">Gere um relatório completo de todas as finanças e membros para
                         impressão.</p>
@@ -206,20 +219,39 @@
 
             <!-- (ABA) Cadastrar Membro -->
             <div id="cadastrar-membro" class="tab-content">
-                <div class="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
+                <div class="bg-white p-6 rounded-lg shadow-lg max-w-6xl mx-auto">
                     <h2 class="text-2xl font-semibold mb-6">Cadastrar Novo Membro</h2>
-                    <form id="form-membro">
-                        <!-- Seção Informações Pessoais -->
-                        <h3 class="text-lg font-medium text-blue-700 border-b border-blue-200 pb-2 mb-4">Informações
-                            Pessoais</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <!-- Coluna 1 -->
+                    <!-- MODIFICADO: Formulário agora tem 3 colunas para a foto -->
+                    <form id="form-membro" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                        <!-- Coluna 1: Foto -->
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Foto do Membro</label>
+                            <div id="cadastro-foto-container" class="photo-uploader-container">
+                                <!-- O input real fica escondido -->
+                                <input type="file" id="cadastro-foto-input" class="hidden" accept="image/png, image/jpeg">
+                                <!-- O que o utilizador vê -->
+                                <img id="cadastro-foto-preview" src="https://placehold.co/400x400/e2e8f0/cbd5e1?text=Sem+Foto"
+                                    alt="Foto do Membro" class="photo-preview">
+                                <div class="photo-overlay">
+                                    <i data-lucide="upload" class="w-8 h-8 mb-1"></i>
+                                    Inserir foto
+                                </div>
+                            </div>
+                            <button type="button" id="cadastro-foto-remover" class="mt-2 text-sm text-red-600 hover:text-red-800 hidden">
+                                <i data-lucide="x" class="w-4 h-4 inline-block mr-1"></i>Remover Foto
+                            </button>
+                        </div>
+                        
+                        <!-- Coluna 2 & 3: Informações -->
+                        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            
+                            <!-- Subcoluna 1 -->
+                            <h3 class="md:col-span-2 text-lg font-semibold text-blue-700 border-b pb-2">Informações Pessoais</h3>
                             <div class="md:col-span-2">
                                 <label for="nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                                <!-- CORRIGIDO: Classes Tailwind diretas -->
-                                <input type="text" id="nome"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    required>
+                                <input type="text" id="nome" required
+                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
                                 <label for="data-nascimento" class="block text-sm font-medium text-gray-700">Data de
@@ -232,57 +264,50 @@
                                 <input type="tel" id="telefone"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <div>
+                            <div class="md:col-span-2">
                                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
                                 <input type="email" id="email"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div class="hidden">
-                                <!-- Campo oculto para espaçamento -->
                             </div>
                             <div>
                                 <label for="cpf" class="block text-sm font-medium text-gray-700">CPF</label>
                                 <input type="text" id="cpf"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <div>
+                             <div>
                                 <label for="rg" class="block text-sm font-medium text-gray-700">RG</label>
                                 <input type="text" id="rg"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <div>
-                                <label for="naturalidade"
-                                    class="block text-sm font-medium text-gray-700">Naturalidade</label>
+                             <div>
+                                <label for="naturalidade" class="block text-sm font-medium text-gray-700">Naturalidade</label>
                                 <input type="text" id="naturalidade"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Ex: Rio de Janeiro - RJ">
                             </div>
-                            <div class="md:col-span-3">
+                            <div class="md:col-span-2">
                                 <label for="endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
                                 <textarea id="endereco" rows="2"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
                             </div>
                             <!-- Filiação -->
-                            <div class="md:col-span-3 h-px bg-gray-200 my-2"></div>
                             <div>
                                 <label for="nome-pai" class="block text-sm font-medium text-gray-700">Nome do Pai</label>
                                 <input type="text" id="nome-pai"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <div class="md:col-span-2">
+                            <div>
                                 <label for="nome-mae" class="block text-sm font-medium text-gray-700">Nome da Mãe</label>
                                 <input type="text" id="nome-mae"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                        </div>
 
-                        <!-- Seção Informações Adicionais -->
-                        <h3 class="text-lg font-medium text-blue-700 border-b border-blue-200 pb-2 mb-4 mt-8">Informações
-                            Adicionais e Ministeriais</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                            <!-- Subcoluna 2 -->
+                            <h3 class="md:col-span-2 text-lg font-semibold text-blue-700 border-b pb-2 mt-4">Informações Adicionais e Ministeriais</h3>
+                            
                             <div>
-                                <label for="estado-civil" class="block text-sm font-medium text-gray-700">Estado
-                                    Civil</label>
+                                <label for="estado-civil" class="block text-sm font-medium text-gray-700">Estado Civil</label>
                                 <select id="estado-civil"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     <option>Solteiro(a)</option>
@@ -291,74 +316,58 @@
                                     <option>Viúvo(a)</option>
                                 </select>
                             </div>
-                            <div id="conjuge-container" class="md:col-span-2 hidden">
-                                <label for="conjuge" class="block text-sm font-medium text-gray-700">Nome do
-                                    Cônjuge</label>
+                            <div id="conjuge-container" class="hidden">
+                                <label for="conjuge" class="block text-sm font-medium text-gray-700">Nome do Cônjuge</label>
                                 <input type="text" id="conjuge"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <div class="md:col-span-3 h-px bg-gray-200 my-2"></div>
+
                             <div>
-                                <label for="profissao"
-                                    class="block text-sm font-medium text-gray-700">Profissão</label>
+                                <label for="profissao" class="block text-sm font-medium text-gray-700">Profissão</label>
                                 <input type="text" id="profissao"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
-                                <label for="escolaridade"
-                                    class="block text-sm font-medium text-gray-700">Escolaridade</label>
-                                <select id="escolaridade"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                    <option>Não Alfabetizado</option>
-                                    <option>Fundamental Incompleto</option>
-                                    <option>Fundamental Completo</option>
-                                    <option>Ensino Médio Incompleto</option>
-                                    <option selected>Ensino Médio Completo</option>
-                                    <option>Superior Incompleto</option>
-                                    <option>Superior Completo</option>
-                                    <option>Pós-graduação</option>
-                                </select>
+                                <label for="escolaridade" class="block text-sm font-medium text-gray-700">Escolaridade</label>
+                                <input type="text" id="escolaridade"
+                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Ex: Ensino Médio Completo">
                             </div>
+                             
                             <div>
                                 <label for="funcao" class="block text-sm font-medium text-gray-700">Função /
-                                    Ministério</label>
+                                    Ministério</LabeL>
                                 <input type="text" id="funcao"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Ex: Diácono, Líder Louvor, Membro">
+                                    placeholder="Ex: Pastor, Diácono, Líder Louvor, Membro">
                             </div>
-                            <div class="md:col-span-3 h-px bg-gray-200 my-2"></div>
                             <div>
-                                <label for="data-batismo" class="block text-sm font-medium text-gray-700">Data de
-                                    Batismo</label>
+                                <label for="data-batismo" class="block text-sm font-medium text-gray-700">Data de Batismo (Águas)</label>
                                 <input type="date" id="data-batismo"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <div>
-                                <label for="data-chegada" class="block text-sm font-medium text-gray-700">Data de
-                                    Chegada na Igreja</label>
+                             <div>
+                                <label for="data-chegada" class="block text-sm font-medium text-gray-700">Data de Chegada (Igreja)</label>
                                 <input type="date" id="data-chegada"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <div class="hidden">
-                                <!-- Campo oculto para espaçamento -->
-                            </div>
                             <div>
-                                <label for="igreja-anterior" class="block text-sm font-medium text-gray-700">Igreja de
-                                    Onde Veio</label>
+                                <label for="igreja-anterior" class="block text-sm font-medium text-gray-700">Igreja de Onde Veio</label>
                                 <input type="text" id="igreja-anterior"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <div class="md:col-span-2">
-                                <label for="cargo-anterior" class="block text-sm font-medium text-gray-700">Cargo que
-                                    Ocupava</label>
+                            <div>
+                                <label for="cargo-anterior" class="block text-sm font-medium text-gray-700">Cargo que Ocupava</label>
                                 <input type="text" id="cargo-anterior"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                        </div>
 
-                        <div class="mt-8 flex justify-end">
-                            <button type="submit" id="membro-submit-btn"
-                                class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center">
+                        </div> <!-- Fim da sub-grid de informações -->
+                        
+                        <!-- Botão de Salvar -->
+                        <div class="md:col-span-3 flex justify-end mt-6">
+                            <button id="membro-submit-btn" type="submit"
+                                class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
                                 Salvar Membro
                             </button>
                         </div>
@@ -382,7 +391,7 @@
                                         Nome</th>
                                     <th scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Idade</th>
+                                        Idade</th> <!-- NOVA COLUNA -->
                                     <th scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Função</th>
@@ -439,8 +448,8 @@
                                         required>
                                 </div>
                                 <div class="mt-6">
-                                    <button type="submit" id="dizimo-submit-btn"
-                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center">
+                                    <button id="dizimo-submit-btn" type="submit"
+                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
                                         Registar Dízimo
                                     </button>
                                 </div>
@@ -533,8 +542,8 @@
                                         required>
                                 </div>
                                 <div class="mt-6">
-                                    <button type="submit" id="oferta-submit-btn"
-                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center">
+                                    <button id="oferta-submit-btn" type="submit"
+                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
                                         Registar Entrada
                                     </button>
                                 </div>
@@ -619,8 +628,8 @@
                                         required>
                                 </div>
                                 <div class="mt-6">
-                                    <button type="submit" id="financeiro-submit-btn"
-                                        class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150 flex items-center justify-center">
+                                    <button id="financeiro-submit-btn" type="submit"
+                                        class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150">
                                         Registar Saída
                                     </button>
                                 </div>
@@ -633,13 +642,12 @@
                             <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
                                 <h2 class="text-2xl font-semibold">Extrato do Caixa</h2>
                                 <div class="flex gap-4">
+                                    <!-- Filtros de Mês/Ano -->
                                     <select id="filtro-financeiro-mes"
                                         class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                        <!-- Opções de mês -->
                                     </select>
                                     <select id="filtro-financeiro-ano"
                                         class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                        <!-- Opções de ano -->
                                     </select>
                                 </div>
                             </div>
@@ -666,9 +674,9 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <!-- Saldo Total no Final -->
+                            <!-- Saldo Total movido para o final -->
                             <div class="text-right mt-6">
-                                <h3 class="text-lg font-medium text-gray-600">Saldo Total (Caixa):</h3>
+                                <h3 class="text-lg font-medium text-gray-600">Saldo Total (Geral):</h3>
                                 <p id="saldo-total-financeiro" class="text-2xl font-bold text-blue-700">R$ 0,00</p>
                             </div>
                         </div>
@@ -682,49 +690,57 @@
 
     <!-- Modal: Detalhes do Membro -->
     <div id="membro-detalhes-modal" class="modal">
-        <div class="modal-content w-11/12 max-w-4xl">
+        <!-- MODIFICADO: Aumentado o max-width para acomodar a foto -->
+        <div class="modal-content w-11/12 max-w-5xl">
             <span class="close-button" id="close-membro-modal">&times;</span>
             <h2 class="text-2xl font-semibold mb-6">Detalhes do Membro</h2>
 
-            <!-- REMOVIDO: Abas do Modal -->
-
-            <!-- Conteúdo Unificado -->
-            <div id="tab-pessoal" class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
-                <!-- Informações Pessoais -->
-                <!-- MODIFICADO: Nome e Função agora estão no topo -->
-                <div><strong>Nome:</strong> <span id="modal-nome"></span></div>
-                <div class="md:col-span-2"><strong>Função/Ministério:</strong> <span id="modal-funcao"></span></div>
-                
-                <div><strong>Data de Nasc.:</strong> <span id="modal-data-nascimento"></span></div>
-                <div><strong>Telefone:</strong> <span id="modal-telefone"></span></div>
-                <div class="md:col-span-2"><strong>Email:</strong> <span id="modal-email"></span></div>
-                <div><strong>CPF:</strong> <span id="modal-cpf"></span></div>
-                <div><strong>RG:</strong> <span id="modal-rg"></span></div>
-                <div><strong>Naturalidade:</strong> <span id="modal-naturalidade"></span></div>
-                <div class="md:col-span-3"><strong>Endereço:</strong> <span id="modal-endereco"
-                        class="block whitespace-pre-wrap"></span></div>
-                
-                <!-- Filiação -->
-                <div class="md:col-span-3 h-px bg-gray-200 my-1"></div>
-                <div class="md:col-span-2"><strong>Nome do Pai:</strong> <span id="modal-nome-pai"></span></div>
-                <div><strong>Estado Civil:</strong> <span id="modal-estado-civil"></span></div>
-                <div class="md:col-span-2"><strong>Nome da Mãe:</strong> <span id="modal-nome-mae"></span></div>
-                <div id="modal-conjuge-container" class="hidden"><strong>Cônjuge:</strong> <span
-                        id="modal-conjuge"></span></div>
-                
-                <!-- Info Ministeriais movidas para cá -->
-                <div class="md:col-span-3 h-px bg-gray-200 my-1"></div>
-                <div><strong>Profissão:</strong> <span id="modal-profissao"></span></div>
-                <div class="md:col-span-2"><strong>Escolaridade:</strong> <span id="modal-escolaridade"></span></div>
-                <!-- REMOVIDO: Campo Função/Ministério movido para o topo -->
-                <div><strong>Data de Batismo:</strong> <span id="modal-data-batismo"></span></div>
-                <div class="md:col-span-2"><strong>Data de Chegada:</strong> <span id="modal-data-chegada"></span></div>
-                <div><strong>Igreja de Onde Veio:</strong> <span id="modal-igreja-anterior"></span></div>
-                <div class="md:col-span-2"><strong>Cargo que Ocupava:</strong> <span id="modal-cargo-anterior"></span>
+            <!-- Layout de Foto + Detalhes -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Coluna da Foto -->
+                <div class="md:col-span-1">
+                    <img id="modal-foto" src="https://placehold.co/400x400/e2e8f0/cbd5e1?text=Sem+Foto"
+                         alt="Foto do Membro" class="w-full h-auto object-cover rounded-lg shadow-md aspect-square">
                 </div>
-            </div>
+                
+                <!-- Coluna de Detalhes -->
+                <div class="md:col-span-2">
+                    <!-- Conteúdo Unificado -->
+                    <div id="tab-pessoal" class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+                        <!-- Informações Pessoais -->
+                        <div><strong>Nome:</strong> <span id="modal-nome"></span></div>
+                        <div class="md:col-span-2"><strong>Função/Ministério:</strong> <span id="modal-funcao"></span></div>
+                        
+                        <div><strong>Data de Nasc.:</strong> <span id="modal-data-nascimento"></span></div>
+                        <div><strong>Telefone:</strong> <span id="modal-telefone"></span></div>
+                        <div class="md:col-span-2"><strong>Email:</strong> <span id="modal-email"></span></div>
+                        <div><strong>CPF:</strong> <span id="modal-cpf"></span></div>
+                        <div><strong>RG:</strong> <span id="modal-rg"></span></div>
+                        <div><strong>Naturalidade:</strong> <span id="modal-naturalidade"></span></div>
+                        <div class="md:col-span-3"><strong>Endereço:</strong> <span id="modal-endereco"
+                                class="block whitespace-pre-wrap"></span></div>
+                        
+                        <!-- Filiação -->
+                        <div class="md:col-span-3 h-px bg-gray-200 my-1"></div>
+                        <div><strong>Nome do Pai:</strong> <span id="modal-nome-pai"></span></div>
+                        <div class="md:col-span-2"><strong>Nome da Mãe:</strong> <span id="modal-nome-mae"></span></div>
+                        <div><strong>Estado Civil:</strong> <span id="modal-estado-civil"></span></div>
+                        <div id="modal-conjuge-container" class="md:col-span-2 hidden"><strong>Cônjuge:</strong> <span id="modal-conjuge"></span></div>
 
-            <div class="mt-6 flex justify-end pt-4 border-t">
+                        <!-- Info Adicionais -->
+                        <div class="md:col-span-3 h-px bg-gray-200 my-1"></div>
+                        <div><strong>Profissão:</strong> <span id="modal-profissao"></span></div>
+                        <div class="md:col-span-2"><strong>Escolaridade:</strong> <span id="modal-escolaridade"></span></div>
+                        <div><strong>Data de Batismo:</strong> <span id="modal-data-batismo"></span></div>
+                        <div class="md:col-span-2"><strong>Data de Chegada:</strong> <span id="modal-data-chegada"></span></div>
+                        <div><strong>Igreja de Onde Veio:</strong> <span id="modal-igreja-anterior"></span></div>
+                        <div class="md:col-span-2"><strong>Cargo que Ocupava:</strong> <span id="modal-cargo-anterior"></span></div>
+                    </div>
+                </div>
+            </div> <!-- Fim da grid Foto + Detalhes -->
+            
+            <!-- Botões de Ação -->
+            <div class="mt-8 flex justify-end border-t pt-4">
                 <button id="show-delete-membro-btn"
                     class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 mr-2">
                     Excluir Membro
@@ -737,22 +753,39 @@
         </div>
     </div>
 
+
     <!-- Modal: Editar Membro -->
     <div id="membro-edit-modal" class="modal">
-        <div class="modal-content w-11/12 max-w-4xl">
+        <!-- MODIFICADO: Aumentado o max-width -->
+        <div class="modal-content w-11/12 max-w-5xl">
             <span class="close-button" id="close-membro-edit-modal">&times;</span>
             <h2 class="text-2xl font-semibold mb-6">Editar Informações do Membro</h2>
-            <form id="form-edit-membro">
-                <!-- Seção Informações Pessoais -->
-                <h3 class="text-lg font-medium text-blue-700 border-b border-blue-200 pb-2 mb-4">Informações
-                    Pessoais</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Coluna 1 -->
+            
+            <form id="form-edit-membro" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Coluna 1: Foto -->
+                <div class="md:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Foto do Membro</label>
+                    <div id="edit-foto-container" class="photo-uploader-container">
+                        <input type="file" id="edit-foto-input" class="hidden" accept="image/png, image/jpeg">
+                        <img id="edit-foto-preview" src="https://placehold.co/400x400/e2e8f0/cbd5e1?text=Sem+Foto"
+                            alt="Foto do Membro" class="photo-preview">
+                        <div class="photo-overlay">
+                            <i data-lucide="upload" class="w-8 h-8 mb-1"></i>
+                            Alterar foto
+                        </div>
+                    </div>
+                    <button type="button" id="edit-foto-remover" class="mt-2 text-sm text-red-600 hover:text-red-800 hidden">
+                        <i data-lucide="x" class="w-4 h-4 inline-block mr-1"></i>Remover Foto
+                    </button>
+                </div>
+
+                <!-- Coluna 2 & 3: Informações -->
+                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <h3 class="md:col-span-2 text-lg font-semibold text-blue-700 border-b pb-2">Informações Pessoais</h3>
                     <div class="md:col-span-2">
                         <label for="edit-nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                        <input type="text" id="edit-nome"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            required>
+                        <input type="text" id="edit-nome" required
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label for="edit-data-nascimento" class="block text-sm font-medium text-gray-700">Data de
@@ -765,13 +798,10 @@
                         <input type="tel" id="edit-telefone"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <div>
+                    <div class="md:col-span-2">
                         <label for="edit-email" class="block text-sm font-medium text-gray-700">Email</label>
                         <input type="email" id="edit-email"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div class="hidden">
-                        <!-- Campo oculto para espaçamento -->
                     </div>
                     <div>
                         <label for="edit-cpf" class="block text-sm font-medium text-gray-700">CPF</label>
@@ -784,38 +814,31 @@
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label for="edit-naturalidade"
-                            class="block text-sm font-medium text-gray-700">Naturalidade</label>
+                        <label for="edit-naturalidade" class="block text-sm font-medium text-gray-700">Naturalidade</label>
                         <input type="text" id="edit-naturalidade"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Ex: Rio de Janeiro - RJ">
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <div class="md:col-span-3">
+                    <div class="md:col-span-2">
                         <label for="edit-endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
                         <textarea id="edit-endereco" rows="2"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
                     </div>
                     <!-- Filiação -->
-                    <div class="md:col-span-3 h-px bg-gray-200 my-2"></div>
                     <div>
                         <label for="edit-nome-pai" class="block text-sm font-medium text-gray-700">Nome do Pai</label>
                         <input type="text" id="edit-nome-pai"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <div class="md:col-span-2">
+                    <div>
                         <label for="edit-nome-mae" class="block text-sm font-medium text-gray-700">Nome da Mãe</label>
                         <input type="text" id="edit-nome-mae"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                </div>
-
-                <!-- Seção Informações Adicionais -->
-                <h3 class="text-lg font-medium text-blue-700 border-b border-blue-200 pb-2 mb-4 mt-8">Informações
-                    Adicionais e Ministeriais</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <h3 class="md:col-span-2 text-lg font-semibold text-blue-700 border-b pb-2 mt-4">Informações Adicionais e Ministeriais</h3>
+                    
                     <div>
-                        <label for="edit-estado-civil" class="block text-sm font-medium text-gray-700">Estado
-                            Civil</label>
+                        <label for="edit-estado-civil" class="block text-sm font-medium text-gray-700">Estado Civil</label>
                         <select id="edit-estado-civil"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             <option>Solteiro(a)</option>
@@ -824,88 +847,71 @@
                             <option>Viúvo(a)</option>
                         </select>
                     </div>
-                    <div id="edit-conjuge-container" class="md:col-span-2 hidden">
-                        <label for="edit-conjuge" class="block text-sm font-medium text-gray-700">Nome do
-                            Cônjuge</label>
+                    <div id="edit-conjuge-container" class="hidden">
+                        <label for="edit-conjuge" class="block text-sm font-medium text-gray-700">Nome do Cônjuge</label>
                         <input type="text" id="edit-conjuge"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <div class="md:col-span-3 h-px bg-gray-200 my-2"></div>
+                    
                     <div>
-                        <label for="edit-profissao"
-                            class="block text-sm font-medium text-gray-700">Profissão</label>
+                        <label for="edit-profissao" class="block text-sm font-medium text-gray-700">Profissão</label>
                         <input type="text" id="edit-profissao"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label for="edit-escolaridade"
-                            class="block text-sm font-medium text-gray-700">Escolaridade</label>
-                        <select id="edit-escolaridade"
+                        <label for="edit-escolaridade" class="block text-sm font-medium text-gray-700">Escolaridade</label>
+                        <input type="text" id="edit-escolaridade"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option>Não Alfabetizado</option>
-                            <option>Fundamental Incompleto</option>
-                            <option>Fundamental Completo</option>
-                            <option>Ensino Médio Incompleto</option>
-                            <option>Ensino Médio Completo</option>
-                            <option>Superior Incompleto</option>
-                            <option>Superior Completo</option>
-                            <option>Pós-graduação</option>
-                        </select>
                     </div>
+                        
                     <div>
                         <label for="edit-funcao" class="block text-sm font-medium text-gray-700">Função /
-                            Ministério</label>
+                            Ministério</LabeL>
                         <input type="text" id="edit-funcao"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Ex: Diácono, Líder Louvor, Membro">
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <div class="md:col-span-3 h-px bg-gray-200 my-2"></div>
                     <div>
-                        <label for="edit-data-batismo" class="block text-sm font-medium text-gray-700">Data de
-                            Batismo</label>
+                        <label for="edit-data-batismo" class="block text-sm font-medium text-gray-700">Data de Batismo (Águas)</label>
                         <input type="date" id="edit-data-batismo"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label for="edit-data-chegada" class="block text-sm font-medium text-gray-700">Data de
-                            Chegada na Igreja</label>
+                        <label for="edit-data-chegada" class="block text-sm font-medium text-gray-700">Data de Chegada (Igreja)</label>
                         <input type="date" id="edit-data-chegada"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <div class="hidden">
-                        <!-- Campo oculto para espaçamento -->
-                    </div>
                     <div>
-                        <label for="edit-igreja-anterior" class="block text-sm font-medium text-gray-700">Igreja de
-                            Onde Veio</label>
+                        <label for="edit-igreja-anterior" class="block text-sm font-medium text-gray-700">Igreja de Onde Veio</label>
                         <input type="text" id="edit-igreja-anterior"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <div class="md:col-span-2">
-                        <label for="edit-cargo-anterior" class="block text-sm font-medium text-gray-700">Cargo que
-                            Ocupava</label>
+                    <div>
+                        <label for="edit-cargo-anterior" class="block text-sm font-medium text-gray-700">Cargo que Ocupava</label>
                         <input type="text" id="edit-cargo-anterior"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                </div>
+                </div> <!-- Fim da sub-grid -->
 
                 <!-- Confirmação de Senha -->
-                <div class="mt-8 pt-6 border-t">
-                    <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Confirme sua
-                        Senha</label>
+                <div class="md:col-span-3 mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Confirmação de Segurança</h3>
+                    <p class="text-sm text-gray-600 mb-4">Para salvar as alterações, por favor, insira sua senha de
+                        login.</p>
+                    <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Senha:</label>
                     <input type="password" id="edit-membro-password"
-                        class="mt-1 block w-full max-w-xs border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        class="mt-1 block w-full max-w-sm border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500"
                         required>
                     <p id="edit-membro-error" class="text-red-500 text-sm mt-2"></p>
                 </div>
 
-                <div class="mt-6 flex justify-end">
-                    <button type="button" id="cancel-edit-membro-btn"
+                <!-- Botões de Ação -->
+                <div class="md:col-span-3 flex justify-end">
+                    <button id="cancel-edit-membro-btn" type="button"
                         class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150 mr-2">
                         Cancelar
                     </button>
-                    <button type="submit" id="edit-membro-submit-btn"
-                        class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center">
+                    <button id="edit-membro-submit-btn" type="submit"
+                        class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150">
                         Salvar Alterações
                     </button>
                 </div>
@@ -920,8 +926,8 @@
             <span class="close-button" id="close-delete-modal">&times;</span>
             <h2 class="text-xl font-semibold mb-4 text-red-600">Confirmar Exclusão</h2>
             <p class="mb-4">Tem certeza que deseja excluir este registo? Esta ação é irreversível.</p>
-            <p id="delete-cascade-warning" class="text-yellow-700 font-medium mb-4"></p>
-            <p class="mb-2">Para confirmar, digite sua senha de login:</p>
+            <p id="delete-cascade-warning" class="text-yellow-700 font-medium"></p>
+            <p class="mb-4">Para confirmar, digite sua senha de login:</p>
             <form id="delete-confirm-form">
                 <label for="delete-password" class="block text-sm font-medium text-gray-700">Senha:</label>
                 <input type="password" id="delete-password"
@@ -933,8 +939,8 @@
                         class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150 mr-2">
                         Cancelar
                     </button>
-                    <button type="submit" id="delete-submit-btn"
-                        class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 flex items-center justify-center">
+                    <button id="delete-submit-btn" type="submit"
+                        class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150">
                         Excluir Permanentemente
                     </button>
                 </div>
@@ -943,15 +949,14 @@
     </div>
 
 
-    <!-- Script JS -->
-    <script type="module" src="gestao-igje.js"></script>
+    <!-- Toast (Notificações) -->
+    <div id="toast-container"></div>
 
-    <!-- Inicializa Lucide Icons -->
-    <script>
-        lucide.createIcons();
-    </script>
+
+    <!-- Scripts -->
+    <!-- MODIFICADO: Corrigido o </Tscript> para </script> -->
+    <script type="module" src="gestao-igje.js"></script>
 </body>
 
 </html>
-
 
