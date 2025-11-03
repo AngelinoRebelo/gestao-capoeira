@@ -22,7 +22,8 @@ import {
     getDocs,
     where,
     writeBatch,
-    updateDoc
+    updateDoc,
+    getDoc // Importar getDoc para ler o perfil
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Configuração do Firebase
@@ -53,7 +54,8 @@ let localMembros = [];
 let localDizimos = [];
 let localOfertas = [];
 let localFinanceiro = [];
-let unsubMembros, unsubDizimos, unsubOfertas, unsubFinanceiro;
+let userRole = 'unknown'; // 'admin', 'membro', or 'unknown'
+let unsubMembros, unsubDizimos, unsubOfertas, unsubFinanceiro, unsubPerfil;
 
 // Objeto para guardar os dados da exclusão
 let itemParaExcluir = {
@@ -63,6 +65,11 @@ let itemParaExcluir = {
 
 // ID do membro a ser editado
 let membroParaEditarId = null;
+
+// --- CAMINHO PARTILHADO DO BANCO DE DADOS ---
+// Define um caminho único para todos os utilizadores
+const dbPath = "dadosIgreja/ADCA-CG";
+
 
 // --- CONTROLE DE AUTENTICAÇÃO ---
 
@@ -107,67 +114,57 @@ registerForm.addEventListener("submit", async (e) => {
     registerError.textContent = "";
     toggleButtonLoading(registerSubmitBtn, true, "Cadastrar");
     
-    // Campos novos
+    // Campos
     const nome = document.getElementById("register-name").value;
     const telefone = document.getElementById("register-phone").value;
-    // Campos existentes
     const email = document.getElementById("register-email").value;
     const password = document.getElementById("register-password").value;
 
-    // --- INÍCIO DAS NOVAS VERIFICAÇÕES ---
-
-    // 1. Validar campos
-    if (!nome || !telefone) {
-        registerError.textContent = "Nome e Telefone são obrigatórios.";
-        toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
-        return;
-    }
-
-    // 2. Verificar a COMBINAÇÃO de Nome e Telefone
-    // Limpa os dados para comparação
-    const nomeLimpo = nome.trim().toLowerCase();
-    const telefoneLimpo = telefone.replace(/\D/g, ''); // Remove não-dígitos
-
-    // Mapeamento dos utilizadores permitidos (nome em minúsculo -> telefone limpo)
-    const allowedUsers = {
+    // --- INÍCIO DAS VERIFICAÇÕES DE REGISTO ---
+    
+    // Normalizar nome (minúsculas, sem acentos) e telefone (só números)
+    const nomeNorm = nome.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const telNorm = telefone.trim().replace(/\D/g, ""); // Remove tudo exceto números
+    
+    // Define a função (role) e verifica se é permitido
+    let roleParaSalvar = 'unknown';
+    const usuariosPermitidos = {
+        "gabriel angelino": "21964597378",
         "lorrane": "21979626240",
-        "gabriel angelino": "21964597378"
+        "vitoria": "21988611788" // Adicionada Vitoria
     };
-    
-    // Verifica se o nome existe no mapa E se o telefone corresponde
-    if (allowedUsers[nomeLimpo] !== telefoneLimpo) {
-        registerError.textContent = "A combinação de nome e telefone não é válida.";
+
+    if (nomeNorm === "gabriel angelino" && telNorm === "21964597378") {
+        roleParaSalvar = 'admin';
+    } else if (nomeNorm === "lorrane" && telNorm === "21979626240") {
+        roleParaSalvar = 'admin';
+    } else if (nomeNorm === "vitoria" && telNorm === "21988611788") {
+        roleParaSalvar = 'membro'; // Vitoria é 'membro'
+    }
+
+    if (roleParaSalvar === 'unknown') {
+        registerError.textContent = "Nome ou Telefone não autorizado para cadastro.";
         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
         return;
     }
-    
-    // 3. Verificar se o telefone já está em uso (verificação de unicidade)
-    try {
-        // Como agora os dados são partilhados, não podemos verificar unicidade
-        // na coleção 'users'. Esta verificação não é mais necessária
-        // pois a validação acima já restringe quem pode criar.
-        // Se a regra fosse "telefone único", precisaríamos de uma coleção 'telefones'
-        // mas para este caso (apenas 2 utilizadores), está ok.
-    } catch (error) {
-         // Apenas um aviso, não bloqueia o cadastro
-         console.warn("Não foi possível verificar o telefone (pode ser regra de segurança):", error.message);
-    }
 
-    // --- FIM DAS NOVAS VERIFICAÇÕES ---
+    // --- FIM DAS VERIFICAÇÕES ---
 
     try {
-        // 4. Criar o usuário na Autenticação
+        // 1. Criar o usuário na Autenticação
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 5. Salvar dados do perfil no Firestore (na coleção partilhada)
-        // Opcional, mas bom para referência
-        await setDoc(doc(db, "dadosIgreja", "ADCA-CG", "perfisUtilizadores", user.uid), {
+        // 2. Salvar dados do perfil no Firestore (no caminho partilhado)
+        await setDoc(doc(db, dbPath, "perfisUtilizadores", user.uid), {
             nome: nome.trim(),
-            telefone: telefone.trim(),
+            telefone: telNorm,
             email: email,
+            funcao: roleParaSalvar, // Salva a função (admin/membro)
             createdAt: Timestamp.now()
         });
+
+        // O onAuthStateChanged vai pegar a partir daqui
         
     } catch (error) {
         console.error("Erro no cadastro:", error.code, error.message);
@@ -219,11 +216,13 @@ logoutButton.addEventListener("click", async () => {
 onAuthStateChanged(auth, (user) => {
     if (user) {
         // Usuário está logado
-        userId = user.uid; // O userId ainda é útil para reautenticação
+        userId = user.uid;
         userEmailDisplay.textContent = user.email;
         authScreen.style.display = "none";
         appContent.style.display = "block";
-        loadAllData(); // Carrega os dados partilhados
+        
+        // Carrega o perfil do utilizador para saber a função
+        loadUserProfile(userId); 
         
         // Define as datas dos formulários para hoje
         document.getElementById("dizimo-data").valueAsDate = new Date();
@@ -233,12 +232,100 @@ onAuthStateChanged(auth, (user) => {
     } else {
         // Usuário está deslogado
         userId = null;
+        userRole = 'unknown'; // Reseta a função
         authScreen.style.display = "flex";
         appContent.style.display = "none";
         clearAllTables(); // Limpa dados da tela
         stopAllListeners(); // Para de ouvir dados
+        toggleTabsVisibility('unknown'); // Esconde todas as abas financeiras
     }
 });
+
+// --- GESTÃO DE PERMISSÕES (Funções) ---
+
+// Carrega o perfil do utilizador para determinar a sua função (admin/membro)
+async function loadUserProfile(currentUserId) {
+    if (unsubPerfil) unsubPerfil(); // Para o listener antigo
+
+    try {
+        const perfilDocRef = doc(db, dbPath, "perfisUtilizadores", currentUserId);
+        
+        // Ouve mudanças no perfil (embora seja improvável, é boa prática)
+        unsubPerfil = onSnapshot(perfilDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                userRole = docSnap.data().funcao || 'membro'; // Assume 'membro' se a função não existir
+                console.log("Função do Utilizador:", userRole);
+                // Carrega os dados com base na função
+                loadDataBasedOnRole(userRole);
+                // Ajusta a UI com base na função
+                toggleTabsVisibility(userRole);
+            } else {
+                console.error("Perfil do utilizador não encontrado.");
+                userRole = 'membro'; // Segurança: assume a função menos privilegiada
+                loadDataBasedOnRole(userRole);
+                toggleTabsVisibility(userRole);
+            }
+        });
+
+    } catch (error) {
+        console.error("Erro ao carregar perfil:", error);
+        userRole = 'membro'; // Segurança
+        loadDataBasedOnRole(userRole);
+        toggleTabsVisibility(userRole);
+    }
+}
+
+// Decide quais dados carregar
+function loadDataBasedOnRole(role) {
+    // Para todos os listeners antigos (exceto o do perfil)
+    stopAllListeners(false); 
+
+    // Membros são carregados para todos
+    loadMembrosData();
+
+    if (role === 'admin') {
+        // Admin carrega tudo
+        loadFinanceData();
+    } else {
+        // Membro não carrega dados financeiros
+        // Limpa os dados financeiros caso estivessem visíveis de um login anterior
+        localDizimos = [];
+        localOfertas = [];
+        localFinanceiro = [];
+        renderFiltroDizimos();
+        renderFiltroOfertas();
+        renderFiltroFinanceiro();
+        updateDashboard(); // Atualiza o dashboard (que mostrará 0)
+    }
+}
+
+// Ajusta a visibilidade das abas na UI
+function toggleTabsVisibility(role) {
+    const isAdmin = (role === 'admin');
+    
+    // Abas que o 'membro' NÃO pode ver
+    document.getElementById("tab-btn-dashboard").style.display = isAdmin ? "inline-flex" : "none";
+    document.getElementById("tab-btn-dizimos").style.display = isAdmin ? "inline-flex" : "none";
+    document.getElementById("tab-btn-ofertas").style.display = isAdmin ? "inline-flex" : "none";
+    document.getElementById("tab-btn-financeiro").style.display = isAdmin ? "inline-flex" : "none";
+    document.getElementById("relatorio-container").style.display = isAdmin ? "block" : "none"; // O cartão de relatório
+
+    // Se o utilizador não for admin, e estava numa aba que foi escondida,
+    // muda para a primeira aba visível (Visualizar Membros)
+    if (!isAdmin) {
+        const abaAtiva = document.querySelector(".app-tab-button.active");
+        if (abaAtiva && abaAtiva.dataset.tab !== "cadastrar-membro" && abaAtiva.dataset.tab !== "visualizar-membros") {
+             // Clica programaticamente no botão "Visualizar Membros"
+             document.querySelector('[data-tab="visualizar-membros"]').click();
+        }
+    }
+    
+    // Garante que o Dashboard (que é admin) seja o padrão se for admin
+    if (isAdmin) {
+         document.querySelector('[data-tab="dashboard"]').click();
+    }
+}
+
 
 // --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
 
@@ -246,10 +333,10 @@ onAuthStateChanged(auth, (user) => {
 async function reauthenticate(password) {
     const user = auth.currentUser;
     if (!user) {
-        throw new Error("Usuário não está logado.");
+        throw new Error("Utilizador não está logado.");
     }
     if (!user.email) {
-         throw new Error("Usuário não tem email associado (ex: anônimo).");
+         throw new Error("Utilizador não tem email associado (ex: anônimo).");
     }
 
     try {
@@ -269,8 +356,7 @@ async function reauthenticate(password) {
 
 // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
 
-// ATUALIZADO: Seletor
-const tabButtons = document.querySelectorAll(".app-tab-button");
+const tabButtons = document.querySelectorAll(".app-tab-button"); // Corrigido para .app-tab-button
 const tabContents = document.querySelectorAll(".tab-content:not(#login-tab):not(#register-tab)");
 
 tabButtons.forEach(button => {
@@ -313,7 +399,7 @@ estadoCivilSelect.addEventListener("change", () => {
 
 formMembro.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId) return; // Precisa estar logado
+    if (!userId) return;
 
     toggleButtonLoading(membroSubmitBtn, true, "Salvar Membro");
 
@@ -339,8 +425,7 @@ formMembro.addEventListener("submit", async (e) => {
     };
 
     try {
-        // ATUALIZADO: Caminho partilhado
-        const docRef = collection(db, "dadosIgreja", "ADCA-CG", "membros");
+        const docRef = collection(db, dbPath, "membros"); // Caminho partilhado
         await addDoc(docRef, dadosMembro);
 
         formMembro.reset();
@@ -418,8 +503,7 @@ formEditMembro.addEventListener("submit", async (e) => {
     
     // 3. Atualizar no Firebase
     try {
-        // ATUALIZADO: Caminho partilhado
-        const docRef = doc(db, "dadosIgreja", "ADCA-CG", "membros", membroParaEditarId);
+        const docRef = doc(db, dbPath, "membros", membroParaEditarId); // Caminho partilhado
         await updateDoc(docRef, dadosAtualizados);
         
         // Sucesso
@@ -442,7 +526,7 @@ const dizimoSubmitBtn = document.getElementById("dizimo-submit-btn");
 
 formDizimo.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId) return;
+    if (!userId || userRole !== 'admin') return; // Segurança extra
 
     toggleButtonLoading(dizimoSubmitBtn, true, "Registar Dízimo");
 
@@ -463,8 +547,7 @@ formDizimo.addEventListener("submit", async (e) => {
         const batch = writeBatch(db);
 
         // 1. Cria o documento de dízimo
-        // ATUALIZADO: Caminho partilhado
-        const dizimoDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "dizimos"));
+        const dizimoDocRef = doc(collection(db, dbPath, "dizimos")); // Caminho partilhado
         batch.set(dizimoDocRef, {
             membroId: membroId,
             membroNome: membroNome,
@@ -475,8 +558,7 @@ formDizimo.addEventListener("submit", async (e) => {
         });
 
         // 2. Cria o documento financeiro
-        // ATUALIZADO: Caminho partilhado
-        const financeiroDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
+        const financeiroDocRef = doc(collection(db, dbPath, "financeiro")); // Caminho partilhado
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `Dízimo - ${membroNome}`,
@@ -511,7 +593,7 @@ const ofertaSubmitBtn = document.getElementById("oferta-submit-btn");
 
 formOferta.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId) return;
+    if (!userId || userRole !== 'admin') return; // Segurança extra
 
     toggleButtonLoading(ofertaSubmitBtn, true, "Registar Entrada");
 
@@ -531,8 +613,7 @@ formOferta.addEventListener("submit", async (e) => {
         const batch = writeBatch(db);
 
         // 1. Cria o documento de oferta
-        // ATUALIZADO: Caminho partilhado
-        const ofertaDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "ofertas"));
+        const ofertaDocRef = doc(collection(db, dbPath, "ofertas")); // Caminho partilhado
         batch.set(ofertaDocRef, {
             tipo: tipo,
             descricao: descricao,
@@ -543,8 +624,7 @@ formOferta.addEventListener("submit", async (e) => {
         });
 
         // 2. Cria o documento financeiro
-        // ATUALIZADO: Caminho partilhado
-        const financeiroDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
+        const financeiroDocRef = doc(collection(db, dbPath, "financeiro")); // Caminho partilhado
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `${tipo} - ${descricao}`,
@@ -580,7 +660,7 @@ const financeiroSubmitBtn = document.getElementById("financeiro-submit-btn");
 
 formFinanceiro.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId) return;
+    if (!userId || userRole !== 'admin') return; // Segurança extra
 
     toggleButtonLoading(financeiroSubmitBtn, true, "Registar Saída");
 
@@ -595,8 +675,7 @@ formFinanceiro.addEventListener("submit", async (e) => {
     }
 
     try {
-        // ATUALIZADO: Caminho partilhado
-        const colRef = collection(db, "dadosIgreja", "ADCA-CG", "financeiro");
+        const colRef = collection(db, dbPath, "financeiro"); // Caminho partilhado
         await addDoc(colRef, {
             tipo: "saida",
             descricao: descricao,
@@ -621,45 +700,46 @@ formFinanceiro.addEventListener("submit", async (e) => {
 
 // --- CARREGAMENTO E RENDERIZAÇÃO DE DADOS ---
 
-// ATUALIZADO: Caminho partilhado
-const path = "dadosIgreja/ADCA-CG"; 
-
-// Função principal para carregar dados
-function loadAllData() {
-    if (!userId) return;
-    console.log("Carregando dados partilhados de:", path);
+// Carrega APENAS dados de membros
+function loadMembrosData() {
+    console.log("Carregando dados de Membros...");
     document.getElementById("dashboard-loading").innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
-
-    // Parar listeners antigos se existirem
-    stopAllListeners();
-
-    let loadsPending = 4;
-    const onDataLoaded = () => {
-        loadsPending--;
-        if (loadsPending === 0) {
-            console.log("Todos os dados carregados.");
-            document.getElementById("dashboard-loading").innerHTML = "";
-            updateDashboard();
-        }
-    };
 
     // Ouvir Membros
     try {
-        // ATUALIZADO: Caminho partilhado
-        const qMembros = query(collection(db, path, "membros"));
+        const qMembros = query(collection(db, dbPath, "membros")); // Caminho partilhado
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
             localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             localMembros.sort((a, b) => a.nome.localeCompare(b.nome)); // Ordena por nome
             renderMembros(localMembros);
             populateMembrosSelect(localMembros);
-            onDataLoaded();
-        }, (error) => { console.error("Erro ao ouvir membros:", error.message); onDataLoaded(); });
-    } catch (e) { console.error("Erro ao criar query de membros:", e); onDataLoaded(); }
+            if (userRole === 'membro') { // Se for membro, o loading termina aqui
+                 document.getElementById("dashboard-loading").innerHTML = "";
+            }
+            updateDashboard(); // Atualiza o cartão de membros
+        }, (error) => { console.error("Erro ao ouvir membros:", error.message); });
+    } catch (e) { console.error("Erro ao criar query de membros:", e); }
+}
+
+// Carrega APENAS dados financeiros (para admins)
+function loadFinanceData() {
+    console.log("Carregando dados Financeiros (Admin)...");
+    let loadsPending = 3; // Só financeiro
+    
+    const onDataLoaded = () => {
+        loadsPending--;
+        if (loadsPending === 0) {
+            console.log("Dados financeiros carregados.");
+            if (userRole === 'admin') { // Confirma
+                 document.getElementById("dashboard-loading").innerHTML = "";
+            }
+            updateDashboard();
+        }
+    };
 
     // Ouvir Dízimos
     try {
-        // ATUALIZADO: Caminho partilhado
-        const qDizimos = query(collection(db, path, "dizimos"));
+        const qDizimos = query(collection(db, dbPath, "dizimos")); // Caminho partilhado
         unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
             localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroDizimos(); // Renderiza os filtros
@@ -669,8 +749,7 @@ function loadAllData() {
 
     // Ouvir Ofertas
     try {
-        // ATUALIZADO: Caminho partilhado
-        const qOfertas = query(collection(db, path, "ofertas"));
+        const qOfertas = query(collection(db, dbPath, "ofertas")); // Caminho partilhado
         unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
             localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroOfertas(); // Renderiza os filtros
@@ -681,29 +760,35 @@ function loadAllData() {
 
     // Ouvir Financeiro
     try {
-        // ATUALIZADO: Caminho partilhado
-        const qFinanceiro = query(collection(db, path, "financeiro"));
+        const qFinanceiro = query(collection(db, dbPath, "financeiro")); // Caminho partilhado
         unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
             localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
             renderFiltroFinanceiro(); 
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir financeiro:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de financeiro:", e); onDataLoaded(); }
-
 }
 
+
 // Parar todos os listeners
-function stopAllListeners() {
+function stopAllListeners(stopPerfil = true) { // Adicionado controlo sobre o stop do perfil
     if (unsubMembros) unsubMembros();
     if (unsubDizimos) unsubDizimos();
     if (unsubOfertas) unsubOfertas();
     if (unsubFinanceiro) unsubFinanceiro();
+    if (unsubPerfil && stopPerfil) unsubPerfil(); // Só para o perfil se for um logout
+    
+    // Não limpa o userRole aqui
     console.log("Listeners interrompidos.");
 }
 
 // Limpar tabelas ao deslogar
 function clearAllTables() {
+    localMembros = []; // Limpa dados locais
+    localDizimos = [];
+    localOfertas = [];
+    localFinanceiro = [];
+    
     document.getElementById("lista-membros").innerHTML = "";
     document.getElementById("lista-dizimos").innerHTML = "";
     document.getElementById("lista-ofertas").innerHTML = "";
@@ -734,19 +819,15 @@ function renderMembros(membros) {
         return;
     }
     membros.forEach(membro => {
+        const idade = calcularIdade(membro.dataNascimento);
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50";
-
-        // ADICIONADO: Cálculo da idade
-        const idade = calcularIdade(membro.dataNascimento);
-
         tr.innerHTML = `
         <td class="px-6 py-4 whitespace-nowrap">
             <a href="#" class="text-blue-600 hover:text-blue-800 font-medium" data-id="${membro.id}">${membro.nome}</a>
         </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${idade || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.funcao || ''}</td>
-        <!-- ADICIONADO: Coluna Idade -->
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${idade}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.telefone || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.email || ''}</td>
     `;
@@ -863,6 +944,13 @@ filtroFinanceiroAno.addEventListener("change", renderFiltroFinanceiro);
 
 // NOVA FUNÇÃO para filtrar e renderizar o financeiro
 function renderFiltroFinanceiro() {
+    // Se a lista local estiver vazia (ex: utilizador 'membro'), limpa
+    if (localFinanceiro.length === 0) {
+        listaFinanceiro.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum lançamento no caixa.</td></tr>';
+        saldoTotalFinanceiro.textContent = "R$ 0,00";
+        return;
+    }
+    
     const mes = parseInt(filtroFinanceiroMes.value);
     const ano = parseInt(filtroFinanceiroAno.value);
 
@@ -894,11 +982,16 @@ function renderFiltroFinanceiro() {
 
 
 function renderFiltroDizimos() {
+    if (localDizimos.length === 0) {
+        listaDizimos.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registado.</td></tr>';
+        return;
+    }
+    
     const mes = parseInt(filtroDizimoMes.value);
     const ano = parseInt(filtroDizimoAno.value);
 
     const dadosFiltrados = localDizimos.filter(d => {
-        const data = getDateFromInput(d.data); 
+        const data = getDateFromInput(d.data); // <-- CORRIGIDO
         if (!data) return false; // Ignora datas inválidas
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
@@ -937,11 +1030,16 @@ function renderFiltroDizimos() {
 }
 
 function renderFiltroOfertas() {
+    if (localOfertas.length === 0) {
+         listaOfertas.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhuma oferta registada.</td></tr>';
+        return;
+    }
+    
     const mes = parseInt(filtroOfertaMes.value);
     const ano = parseInt(filtroOfertaAno.value);
 
     const dadosFiltrados = localOfertas.filter(d => {
-        const data = getDateFromInput(d.data); 
+        const data = getDateFromInput(d.data); // <-- CORRIGIDO
         if (!data) return false;
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
@@ -990,37 +1088,43 @@ const membrosDashboard = document.getElementById("total-membros-dashboard");
 const dashboardLoading = document.getElementById("dashboard-loading");
 
 function updateDashboard() {
-    if (!localFinanceiro || !localMembros) return; // Não atualiza se os dados não chegaram
-
-    // 1. Saldo Total
-    const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
-    const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
-    saldoDashboard.className = `text-3xl font-bold ${corSaldo} mt-1`;
-    saldoDashboard.textContent = `R$ ${saldoTotal.toFixed(2).replace(".", ",")}`;
-
-    // 2. Total de Membros
+    // Atualiza o total de membros (visível para todos)
     membrosDashboard.textContent = localMembros.length;
 
-    // 3. Entradas e Saídas do Mês Atual
-    const mesCorrente = new Date().getMonth();
-    const anoCorrente = new Date().getFullYear();
+    // Atualiza o financeiro (só se for admin e os dados existirem)
+    if (userRole === 'admin' && localFinanceiro) {
+        // 1. Saldo Total
+        const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
+        const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
+        saldoDashboard.className = `text-3xl font-bold ${corSaldo} mt-1`;
+        saldoDashboard.textContent = `R$ ${saldoTotal.toFixed(2).replace(".", ",")}`;
 
-    const transacoesMes = localFinanceiro.filter(t => {
-        const data = getDateFromInput(t.data); 
-        if (!data) return false;
-        return data.getUTCMonth() === mesCorrente && data.getUTCFullYear() === anoCorrente;
-    });
+        // 3. Entradas e Saídas do Mês Atual
+        const mesCorrente = new Date().getMonth();
+        const anoCorrente = new Date().getFullYear();
 
-    const entradasMes = transacoesMes
-        .filter(t => t.valor > 0)
-        .reduce((acc, t) => acc + t.valor, 0);
+        const transacoesMes = localFinanceiro.filter(t => {
+            const data = getDateFromInput(t.data); // <-- CORRIGIDO
+            if (!data) return false;
+            return data.getUTCMonth() === mesCorrente && data.getUTCFullYear() === anoCorrente;
+        });
 
-    const saidasMes = transacoesMes
-        .filter(t => t.valor < 0)
-        .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
+        const entradasMes = transacoesMes
+            .filter(t => t.valor > 0)
+            .reduce((acc, t) => acc + t.valor, 0);
 
-    entradasDashboard.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
-    saidasDashboard.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
+        const saidasMes = transacoesMes
+            .filter(t => t.valor < 0)
+            .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
+
+        entradasDashboard.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
+        saidasDashboard.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
+    } else {
+        // Zera os campos financeiros se não for admin
+        saldoDashboard.textContent = "R$ 0,00";
+        entradasDashboard.textContent = "R$ 0,00";
+        saidasDashboard.textContent = "R$ 0,00";
+    }
 }
 
 // --- CONTROLO DOS MODAIS (JANELAS POP-UP) ---
@@ -1028,38 +1132,42 @@ function updateDashboard() {
 // Modal Detalhes do Membro
 const membroDetalhesModal = document.getElementById("membro-detalhes-modal");
 const closeMembroModal = document.getElementById("close-membro-modal");
-const modalConjugeContainer = document.getElementById("modal-conjuge-container");
 
 function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
     if (!membro) return;
 
-    // Preenche todos os campos
-    document.getElementById("modal-nome").textContent = membro.nome || 'N/A';
-    document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
-    document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
-    document.getElementById("modal-email").textContent = membro.email || 'N/A';
-    document.getElementById("modal-cpf").textContent = membro.cpf || 'N/A';
-    document.getElementById("modal-rg").textContent = membro.rg || 'N/A';
-    document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
-    document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
-    
-    // Campo Cônjuge condicional
-    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
-        document.getElementById("modal-conjuge").textContent = membro.conjuge;
-        modalConjugeContainer.classList.remove("hidden");
-    } else {
-        modalConjugeContainer.classList.add("hidden");
-    }
+    // Função auxiliar para exibir N/A
+    const na = (val) => val || 'N/A';
 
-    document.getElementById("modal-profissao").textContent = membro.profissao || 'N/A';
-    document.getElementById("modal-escolaridade").textContent = membro.escolaridade || 'N/A';
-    document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
-    document.getElementById("modal-funcao").textContent = membro.funcao || 'N/A';
-    document.getElementById("modal-data-batismo").textContent = formatarData(membro.dataBatismo) || 'N/A';
-    document.getElementById("modal-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
-    document.getElementById("modal-igreja-anterior").textContent = membro.igrejaAnterior || 'N/A';
-    document.getElementById("modal-cargo-anterior").textContent = membro.cargoAnterior || 'N/A';
+    // Preenche a aba "Dados Pessoais"
+    document.getElementById("modal-nome").textContent = na(membro.nome);
+    document.getElementById("modal-data-nascimento").textContent = na(formatarData(membro.dataNascimento));
+    document.getElementById("modal-telefone").textContent = na(membro.telefone);
+    document.getElementById("modal-email").textContent = na(membro.email);
+    document.getElementById("modal-cpf").textContent = na(membro.cpf);
+    document.getElementById("modal-rg").textContent = na(membro.rg);
+    document.getElementById("modal-naturalidade").textContent = na(membro.naturalidade);
+    document.getElementById("modal-endereco").textContent = na(membro.endereco);
+    document.getElementById("modal-estado-civil").textContent = na(membro.estadoCivil);
+    
+    // Mostra/Esconde Cônjuge
+    const conjugeDetalhe = document.getElementById("modal-conjuge-container");
+    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
+        document.getElementById("modal-conjuge").textContent = na(membro.conjuge);
+        conjugeDetalhe.classList.remove("hidden");
+    } else {
+        conjugeDetalhe.classList.add("hidden");
+    }
+    
+    // Preenche a aba "Dados Ministeriais"
+    document.getElementById("modal-profissao").textContent = na(membro.profissao);
+    document.getElementById("modal-escolaridade").textContent = na(membro.escolaridade);
+    document.getElementById("modal-funcao").textContent = na(membro.funcao);
+    document.getElementById("modal-data-batismo").textContent = na(formatarData(membro.dataBatismo));
+    document.getElementById("modal-data-chegada").textContent = na(formatarData(membro.dataChegada));
+    document.getElementById("modal-igreja-anterior").textContent = na(membro.igrejaAnterior);
+    document.getElementById("modal-cargo-anterior").textContent = na(membro.cargoAnterior);
     
     // Define o ID para os botões de ação
     membroParaEditarId = id; // Para edição
@@ -1089,23 +1197,23 @@ function showMembroEditModal() {
     document.getElementById("edit-rg").value = membro.rg || '';
     document.getElementById("edit-naturalidade").value = membro.naturalidade || '';
     document.getElementById("edit-endereco").value = membro.endereco || '';
-    document.getElementById("edit-estado-civil").value = membro.estadoCivil || '';
+    document.getElementById("edit-estado-civil").value = membro.estadoCivil || 'Solteiro(a)';
     document.getElementById("edit-conjuge").value = membro.conjuge || '';
     document.getElementById("edit-profissao").value = membro.profissao || '';
-    document.getElementById("edit-escolaridade").value = membro.escolaridade || '';
+    document.getElementById("edit-escolaridade").value = membro.escolaridade || 'Ensino Médio';
     document.getElementById("edit-funcao").value = membro.funcao || '';
     document.getElementById("edit-data-batismo").value = membro.dataBatismo || '';
     document.getElementById("edit-data-chegada").value = membro.dataChegada || '';
     document.getElementById("edit-igreja-anterior").value = membro.igrejaAnterior || '';
     document.getElementById("edit-cargo-anterior").value = membro.cargoAnterior || '';
-
-    // Mostra/Esconde campo Cônjuge
+    
+    // Mostra/Esconde Cônjuge na edição
     if (membro.estadoCivil === 'Casado(a)') {
         editConjugeContainer.classList.remove("hidden");
     } else {
         editConjugeContainer.classList.add("hidden");
     }
-    
+
     // Limpa erros e senha
     document.getElementById("edit-membro-password").value = "";
     document.getElementById("edit-membro-error").textContent = "";
@@ -1115,6 +1223,7 @@ function showMembroEditModal() {
     membroEditModal.style.display = "block";
 }
 
+// Renomeado para evitar conflito
 function doCloseMembroEditModal() {
      membroEditModal.style.display = "none";
      membroParaEditarId = null;
@@ -1141,19 +1250,26 @@ function showDeleteModal() {
     deleteErrorMsg.textContent = "";
     deleteCascadeWarning.textContent = "";
     document.getElementById("delete-password").value = "";
-
-    // Avisos de exclusão em cascata
-    if (itemParaExcluir.tipo === 'financeiro') {
-        const fin = localFinanceiro.find(f => f.id === itemParaExcluir.id);
-        if (fin && fin.origemId) {
-            deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o Dízimo ou Oferta original associado a este lançamento.";
+    
+    // Segurança: só admin pode ver avisos de cascata
+    if (userRole === 'admin') {
+        // Avisos de exclusão em cascata
+        if (itemParaExcluir.tipo === 'financeiro') {
+            const fin = localFinanceiro.find(f => f.id === itemParaExcluir.id);
+            if (fin && fin.origemId) {
+                deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o Dízimo ou Oferta original associado a este lançamento.";
+            }
+        } else if (itemParaExcluir.tipo === 'dizimo' || itemParaExcluir.tipo === 'oferta') {
+            deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o lançamento no Caixa associado a este registo.";
+        } else if (itemParaExcluir.tipo === 'membro') {
+            deleteCascadeWarning.textContent = "Aviso: Excluir um membro NÃO apaga seus registos financeiros.";
+            membroDetalhesModal.style.display = "none"; // Fecha modal de detalhes
         }
-    } else if (itemParaExcluir.tipo === 'dizimo' || itemParaExcluir.tipo === 'oferta') {
-        deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o lançamento no Caixa associado a este registo.";
     } else if (itemParaExcluir.tipo === 'membro') {
-        deleteCascadeWarning.textContent = "Aviso: Excluir um membro NÃO apaga seus registos financeiros.";
-        membroDetalhesModal.style.display = "none"; // Fecha modal de detalhes
+         deleteCascadeWarning.textContent = "Aviso: Excluir um membro NÃO apaga seus registos financeiros.";
+         membroDetalhesModal.style.display = "none"; // Fecha modal de detalhes
     }
+
 
     deleteConfirmModal.style.display = "block";
 }
@@ -1209,11 +1325,15 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
 
     // 2. Executar a Exclusão
     try {
+        // Segurança: Um 'membro' só pode apagar 'membros'
+        if (userRole === 'membro' && itemParaExcluir.tipo !== 'membro') {
+             throw new Error("Não tem permissão para esta ação.");
+        }
+        
         const batch = writeBatch(db);
         
         if (itemParaExcluir.tipo === 'financeiro') {
-            // ATUALIZADO: Caminho partilhado
-            const finDocRef = doc(db, path, "financeiro", itemParaExcluir.id);
+            const finDocRef = doc(db, dbPath, "financeiro", itemParaExcluir.id);
             const finData = localFinanceiro.find(f => f.id === itemParaExcluir.id);
             
             batch.delete(finDocRef); // Apaga o financeiro
@@ -1221,46 +1341,40 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
             // Se tiver origem, apaga a origem
             if (finData && finData.origemId && finData.origemTipo) {
                  const origemCollection = finData.origemTipo === 'dizimo' ? 'dizimos' : 'ofertas';
-                 // ATUALIZADO: Caminho partilhado
-                 const origemDocRef = doc(db, path, origemCollection, finData.origemId);
+                 const origemDocRef = doc(db, dbPath, origemCollection, finData.origemId);
                  batch.delete(origemDocRef);
             }
         
         } else if (itemParaExcluir.tipo === 'dizimo') {
-            // ATUALIZADO: Caminho partilhado
-            const dizimoDocRef = doc(db, path, "dizimos", itemParaExcluir.id);
+            const dizimoDocRef = doc(db, dbPath, "dizimos", itemParaExcluir.id);
             const dizimoData = localDizimos.find(d => d.id === itemParaExcluir.id);
             
             batch.delete(dizimoDocRef); // Apaga o dízimo
             
             // Apaga o financeiro associado
             if (dizimoData && dizimoData.financeiroId) {
-                // ATUALIZADO: Caminho partilhado
-                const finDocRef = doc(db, path, "financeiro", dizimoData.financeiroId);
+                const finDocRef = doc(db, dbPath, "financeiro", dizimoData.financeiroId);
                 batch.delete(finDocRef);
             }
 
         } else if (itemParaExcluir.tipo === 'oferta') {
-            // ATUALIZADO: Caminho partilhado
-            const ofertaDocRef = doc(db, path, "ofertas", itemParaExcluir.id);
+            const ofertaDocRef = doc(db, dbPath, "ofertas", itemParaExcluir.id);
             const ofertaData = localOfertas.find(o => o.id === itemParaExcluir.id);
 
             batch.delete(ofertaDocRef); // Apaga a oferta
 
             // Apaga o financeiro associado
             if (ofertaData && ofertaData.financeiroId) {
-                // ATUALIZADO: Caminho partilhado
-                const finDocRef = doc(db, path, "financeiro", ofertaData.financeiroId);
+                const finDocRef = doc(db, dbPath, "financeiro", ofertaData.financeiroId);
                 batch.delete(finDocRef);
             }
             
         } else if (itemParaExcluir.tipo === 'membro') {
-            // Exclusão de membro não é em batch, pois não tem cascata financeira
-            // ATUALIZADO: Caminho partilhado
-            const membroDocRef = doc(db, path, "membros", itemParaExcluir.id);
+            // Exclusão de membro (permitida para 'admin' e 'membro')
+            const membroDocRef = doc(db, dbPath, "membros", itemParaExcluir.id);
             await deleteDoc(membroDocRef);
             
-            // Fechamos os modais manually
+            // Fechamos os modais manualmente
             deleteConfirmModal.style.display = "none";
             showToast("Membro excluído com sucesso.", "success");
             toggleButtonLoading(deleteSubmitBtn, false, "Excluir Permanentemente");
@@ -1300,10 +1414,16 @@ window.onclick = function (event) {
 const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
 
 gerarRelatorioBtn.addEventListener("click", () => {
+    // Segurança: Só admin pode gerar relatório
+    if (userRole !== 'admin') {
+        showToast("Não tem permissão para gerar relatórios.", "error");
+        return;
+    }
+    
     // ADICIONADO: try...catch global
     try {
         // 1. Coletar todos os dados
-        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0);
+        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0); // Verificação
         
         // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
         const financOrdenado = [...localFinanceiro].sort((a, b) => {
@@ -1384,6 +1504,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 <tr>
                                     <td>${formatarData(d.data)}</td>
                                     <td>${d.membroNome}</td>
+                                    <!-- CORRIGIDO: Adicionado (d.valor || 0) -->
                                     <td class="currency entrada">R$ ${(d.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
@@ -1408,6 +1529,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                     <td>${formatarData(o.data)}</td>
                                     <td>${o.tipo}</td>
                                     <td>${o.descricao}</td>
+                                    <!-- CORRIGIDO: Adicionado (o.valor || 0) -->
                                     <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
@@ -1430,6 +1552,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 <tr>
                                     <td>${formatarData(f.data)}</td>
                                     <td>${f.descricao}</td>
+                                    <!-- CORRIGIDO: Adicionado (f.valor || 0) -->
                                     <td class="currency ${f.valor > 0 ? 'entrada' : 'saida'}">
                                         R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
                                     </td>
@@ -1532,6 +1655,7 @@ function formatarData(dataString) {
 }
 
 // Converte string 'aaaa-mm-dd' ou Timestamp para um Date UTC
+// CORRIGIDO para ser mais robusto
 function getDateFromInput(dataInput) {
     try {
         // Se for um Timestamp do Firebase
@@ -1540,7 +1664,7 @@ function getDateFromInput(dataInput) {
         }
         // Se já for um objeto Date
         if (dataInput instanceof Date) {
-            return dataInput; 
+            return dataInput; // Retorna o próprio Date
         }
         // Se for uma string (ex: '2025-11-01')
         if (typeof dataInput === 'string' && dataInput.includes('-')) {
@@ -1559,28 +1683,22 @@ function getDateFromInput(dataInput) {
     return null;
 }
 
-// ADICIONADA: Nova função para calcular a idade
-function calcularIdade(dataNascimento) {
-    const birthDate = getDateFromInput(dataNascimento); // Reutiliza a nossa função robusta
-    if (!birthDate) {
-        return 'N/A';
+// Calcula a idade a partir da data de nascimento (string 'aaaa-mm-dd')
+function calcularIdade(dataNasc) {
+    if (!dataNasc) return null;
+    
+    const data = getDateFromInput(dataNasc); // Converte para Date
+    if (!data) return null;
+
+    const hoje = new Date();
+    let idade = hoje.getUTCFullYear() - data.getUTCFullYear();
+    const m = hoje.getUTCMonth() - data.getUTCMonth();
+    
+    if (m < 0 || (m === 0 && hoje.getUTCDate() < data.getUTCDate())) {
+        idade--;
     }
     
-    try {
-        const today = new Date();
-        let age = today.getFullYear() - birthDate.getUTCFullYear();
-        const m = today.getUTCMonth() - birthDate.getUTCMonth();
-        
-        // Verifica se o aniversário deste ano já passou (comparando em UTC)
-        if (m < 0 || (m === 0 && today.getUTCDate() < birthDate.getUTCDate())) {
-            age--;
-        }
-        
-        return age;
-    } catch (e) {
-        console.error("Erro ao calcular idade:", e);
-        return 'N/A';
-    }
+    return idade;
 }
 
 
