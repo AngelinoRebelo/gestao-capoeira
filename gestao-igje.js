@@ -313,6 +313,10 @@ formMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("rg").value,
         naturalidade: document.getElementById("naturalidade").value,
         endereco: document.getElementById("endereco").value,
+        // Novos campos Filiação
+        nomePai: document.getElementById("nome-pai").value,
+        nomeMae: document.getElementById("nome-mae").value,
+        // --
         estadoCivil: document.getElementById("estado-civil").value,
         conjuge: (document.getElementById("estado-civil").value === 'Casado(a)') ? document.getElementById("conjuge").value : "",
         profissao: document.getElementById("profissao").value,
@@ -391,6 +395,10 @@ formEditMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("edit-rg").value,
         naturalidade: document.getElementById("edit-naturalidade").value,
         endereco: document.getElementById("edit-endereco").value,
+        // Novos campos Filiação
+        nomePai: document.getElementById("edit-nome-pai").value,
+        nomeMae: document.getElementById("edit-nome-mae").value,
+        // --
         estadoCivil: document.getElementById("edit-estado-civil").value,
         conjuge: (document.getElementById("edit-estado-civil").value === 'Casado(a)') ? document.getElementById("edit-conjuge").value : "",
         profissao: document.getElementById("edit-profissao").value,
@@ -1044,6 +1052,10 @@ function showMembroDetalhesModal(id) {
     document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
     document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
     document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
+    // Novos campos Filiação
+    document.getElementById("modal-nome-pai").textContent = membro.nomePai || 'N/A';
+    document.getElementById("modal-nome-mae").textContent = membro.nomeMae || 'N/A';
+
 
     // Mostrar/Esconder Cônjuge
     if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
@@ -1090,6 +1102,10 @@ function showMembroEditModal() {
     document.getElementById("edit-rg").value = membro.rg || '';
     document.getElementById("edit-naturalidade").value = membro.naturalidade || '';
     document.getElementById("edit-endereco").value = membro.endereco || '';
+    // Novos campos Filiação
+    document.getElementById("edit-nome-pai").value = membro.nomePai || '';
+    document.getElementById("edit-nome-mae").value = membro.nomeMae || '';
+    // --
     document.getElementById("edit-estado-civil").value = membro.estadoCivil || 'Solteiro(a)';
     document.getElementById("edit-conjuge").value = membro.conjuge || '';
     
