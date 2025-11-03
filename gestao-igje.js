@@ -24,15 +24,7 @@ import {
     writeBatch,
     updateDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import {
-    getStorage,
-    ref,
-    uploadBytesResumable, 
-    uploadBytes, 
-    getDownloadURL,
-    deleteObject
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
-
+// REMOVIDO: Importações do Storage
 
 // Configuração do Firebase
 const firebaseConfig = {
@@ -45,12 +37,13 @@ const firebaseConfig = {
 };
 
 // Inicialização do Firebase
-let app, auth, db, storage, userId; 
+let app, auth, db, userId;
+// REMOVIDO: storage
 try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
-    storage = getStorage(app); 
+    // REMOVIDO: storage = getStorage(app);
     console.log("Firebase inicializado com sucesso.");
 } catch (error)
 {
@@ -65,14 +58,18 @@ let localOfertas = [];
 let localFinanceiro = [];
 let unsubMembros, unsubDizimos, unsubOfertas, unsubFinanceiro;
 
+// Objeto para guardar os dados da exclusão
 let itemParaExcluir = {
     id: null,
-    tipo: null 
+    tipo: null // 'financeiro', 'dizimo', 'oferta', 'membro'
 };
 
+// ID do membro a ser editado
 let membroParaEditarId = null;
-let fotoParaUpload = null; 
-let fotoParaEditar = null; 
+
+// REMOVIDO: Variáveis de foto
+// let fotoParaUpload = null; 
+// let fotoParaEditar = null; 
 
 // --- CONTROLE DE AUTENTICAÇÃO ---
 
@@ -86,11 +83,13 @@ const userEmailDisplay = document.getElementById("user-email-display");
 const logoutButton = document.getElementById("logout-button");
 const loginSubmitBtn = document.getElementById("login-submit-btn");
 const registerSubmitBtn = document.getElementById("register-submit-btn");
+
 const loginTabButton = document.getElementById("login-tab-button");
 const registerTabButton = document.getElementById("register-tab-button");
 const loginTab = document.getElementById("login-tab");
 const registerTab = document.getElementById("register-tab");
 
+// Abas de Autenticação
 loginTabButton.addEventListener("click", () => {
     loginTabButton.classList.add("active");
     registerTabButton.classList.remove("active");
@@ -109,6 +108,7 @@ registerTabButton.addEventListener("click", () => {
     registerError.textContent = "";
 });
 
+// Processar Cadastro
 registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     registerError.textContent = "";
@@ -166,6 +166,7 @@ registerForm.addEventListener("submit", async (e) => {
 });
 
 
+// Processar Login
 loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     loginError.textContent = "";
@@ -184,6 +185,7 @@ loginForm.addEventListener("submit", async (e) => {
     }
 });
 
+// Processar Logout
 logoutButton.addEventListener("click", async () => {
     try {
         await signOut(auth);
@@ -193,6 +195,7 @@ logoutButton.addEventListener("click", async () => {
     }
 });
 
+// Observador do estado de autenticação (principal)
 onAuthStateChanged(auth, (user) => {
     if (user) {
         userId = user.uid;
@@ -257,55 +260,7 @@ tabButtons.forEach(button => {
     });
 });
 
-// --- LÓGICA DE UPLOAD DE FOTO (NOVO) ---
-
-const cadastroFotoContainer = document.getElementById("cadastro-foto-container");
-const cadastroFotoInput = document.getElementById("cadastro-foto-input");
-const cadastroFotoPreview = document.getElementById("cadastro-foto-preview");
-const cadastroFotoRemover = document.getElementById("cadastro-foto-remover");
-const placeholderFoto = "https://placehold.co/400x400/e2e8f0/cbd5e1?text=Sem+Foto";
-const editFotoContainer = document.getElementById("edit-foto-container");
-const editFotoInput = document.getElementById("edit-foto-input");
-const editFotoPreview = document.getElementById("edit-foto-preview");
-const editFotoRemover = document.getElementById("edit-foto-remover");
-
-cadastroFotoContainer.addEventListener("click", () => { cadastroFotoInput.click(); });
-editFotoContainer.addEventListener("click", () => { editFotoInput.click(); });
-cadastroFotoInput.addEventListener("change", (e) => { handleFotoChange(e, 'cadastro'); });
-editFotoInput.addEventListener("change", (e) => { handleFotoChange(e, 'edit'); });
-cadastroFotoRemover.addEventListener("click", () => { resetFotoUploader('cadastro'); });
-editFotoRemover.addEventListener("click", () => { resetFotoUploader('edit'); });
-
-function handleFotoChange(event, tipo) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (tipo === 'cadastro') {
-        fotoParaUpload = file;
-        cadastroFotoPreview.src = URL.createObjectURL(file);
-        cadastroFotoRemover.classList.remove("hidden");
-    } else {
-        fotoParaEditar = file;
-        editFotoPreview.src = URL.createObjectURL(file);
-        editFotoRemover.classList.remove("hidden");
-    }
-}
-
-function resetFotoUploader(tipo) {
-    if (tipo === 'cadastro') {
-        fotoParaUpload = null;
-        cadastroFotoInput.value = null; 
-        cadastroFotoPreview.src = placeholderFoto;
-        cadastroFotoRemover.classList.add("hidden");
-    } else {
-        fotoParaEditar = null;
-        editFotoInput.value = null;
-        const membro = localMembros.find(m => m.id === membroParaEditarId);
-        editFotoPreview.src = (membro && membro.fotoURL) ? membro.fotoURL : placeholderFoto;
-        editFotoRemover.classList.add("hidden");
-    }
-}
-
+// REMOVIDO: Lógica de Uploader de Foto
 
 // --- FORMULÁRIO DE MEMBROS (CADASTRO) ---
 
@@ -322,7 +277,7 @@ formMembro.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!userId) return;
 
-    toggleButtonLoading(membroSubmitBtn, true, "Salvar Membro"); // <-- BOTÃO FICA "AGUARDE..."
+    toggleButtonLoading(membroSubmitBtn, true, "Salvar Membro");
 
     const dadosMembro = {
         nome: document.getElementById("nome").value,
@@ -344,56 +299,22 @@ formMembro.addEventListener("submit", async (e) => {
         dataChegada: document.getElementById("data-chegada").value,
         igrejaAnterior: document.getElementById("igreja-anterior").value,
         cargoAnterior: document.getElementById("cargo-anterior").value,
-        fotoURL: "" 
+        fotoURL: "" // REMOVIDO: Lógica de foto
     };
 
-    let novoMembroId = null; // Declarar aqui para ser acessível no catch
-
     try {
-        console.log("Passo 1: A salvar dados do membro no Firestore...");
-        const docRef = await addDoc(collection(db, "dadosIgreja/ADCA-CG/membros"), dadosMembro);
-        novoMembroId = docRef.id;
-        console.log("Passo 2: Membro salvo com ID:", novoMembroId);
-
-
-        if (fotoParaUpload) {
-            console.log("Passo 3: A fazer upload da foto...");
-            const fotoRef = ref(storage, `fotosMembros/${novoMembroId}`);
-            
-            const uploadTask = await uploadBytes(fotoRef, fotoParaUpload);
-            console.log("Passo 4: Upload da foto concluído.");
-            
-            const downloadURL = await getDownloadURL(uploadTask.ref);
-            console.log("Passo 5: URL da foto obtido.");
-            
-            await updateDoc(doc(db, "dadosIgreja/ADCA-CG/membros", novoMembroId), {
-                fotoURL: downloadURL
-            });
-            console.log("Passo 6: Documento do membro atualizado com a fotoURL.");
-        }
+        await addDoc(collection(db, "dadosIgreja/ADCA-CG/membros"), dadosMembro);
+        
+        // REMOVIDO: Lógica de upload de foto
 
         formMembro.reset();
         conjugeContainer.classList.add("hidden");
-        resetFotoUploader('cadastro');
+        // REMOVIDO: resetFotoUploader('cadastro'); 
         showToast("Membro salvo com sucesso!", "success");
-
     } catch (error) {
-        console.error("ERRO CRÍTICO ao salvar membro:", error);
-        showToast("Erro ao salvar membro. Verifique a consola.", "error");
-        
-        // Tenta apagar o membro se a foto falhar, para não deixar órfãos
-        if (novoMembroId) {
-            console.log("A reverter criação do membro...");
-            try {
-                await deleteDoc(doc(db, "dadosIgreja/ADCA-CG/membros", novoMembroId));
-                console.log("Criação do membro revertida.");
-            } catch (deleteError) {
-                console.error("ERRO ao reverter criação do membro:", deleteError);
-                showToast("Erro crítico. Contacte o suporte.", "error");
-            }
-        }
+        console.error("Erro ao salvar membro: ", error);
+        showToast("Erro ao salvar membro.", "error");
     } finally {
-        console.log("Passo Final: A redefinir o botão.");
         toggleButtonLoading(membroSubmitBtn, false, "Salvar Membro");
     }
 });
@@ -426,15 +347,14 @@ formEditMembro.addEventListener("submit", async (e) => {
 
     // 1. Reautenticar
     try {
-        console.log("Passo 1 (Edição): A reautenticar...");
         await reauthenticate(password);
-        console.log("Passo 2 (Edição): Reautenticado.");
     } catch (error) {
         editMembroError.textContent = error.message;
         toggleButtonLoading(editMembroSubmitBtn, false, "Salvar Alterações");
         return;
     }
     
+    // 2. Coletar dados do formulário
     const dadosAtualizados = {
         nome: document.getElementById("edit-nome").value,
         dataNascimento: document.getElementById("edit-data-nascimento").value,
@@ -461,31 +381,9 @@ formEditMembro.addEventListener("submit", async (e) => {
     try {
         const docRef = doc(db, "dadosIgreja/ADCA-CG/membros", membroParaEditarId);
 
-        if (fotoParaEditar) {
-            console.log("Passo 3 (Edição): A fazer upload da nova foto...");
-            const fotoRef = ref(storage, `fotosMembros/${membroParaEditarId}`);
-            const uploadTask = await uploadBytes(fotoRef, fotoParaEditar);
-            console.log("Passo 4 (Edição): Upload concluído.");
-            dadosAtualizados.fotoURL = await getDownloadURL(uploadTask.ref);
-            console.log("Passo 5 (Edição): URL da foto obtido.");
+        // REMOVIDO: Lógica de Upload/Delete de Foto
         
-        } else if (editFotoPreview.src.includes('placehold.co')) {
-            dadosAtualizados.fotoURL = ""; 
-            console.log("Passo 3 (Edição): A remover foto...");
-            try {
-                const fotoRef = ref(storage, `fotosMembros/${membroParaEditarId}`);
-                await deleteObject(fotoRef);
-                console.log("Passo 4 (Edição): Foto antiga removida do storage.");
-            } catch (error) {
-                if (error.code !== 'storage/object-not-found') {
-                    console.warn("Erro ao apagar foto antiga:", error);
-                }
-            }
-        }
-
-        console.log("Passo 6 (Edição): A atualizar documento no Firestore...");
         await updateDoc(docRef, dadosAtualizados);
-        console.log("Passo 7 (Edição): Documento atualizado.");
         
         doCloseMembroEditModal(); 
         showToast("Membro atualizado com sucesso!", "success");
@@ -494,7 +392,6 @@ formEditMembro.addEventListener("submit", async (e) => {
          console.error("Erro ao atualizar membro:", error);
          editMembroError.textContent = "Erro ao salvar os dados.";
     } finally {
-        console.log("Passo Final (Edição): A redefinir o botão.");
         toggleButtonLoading(editMembroSubmitBtn, false, "Salvar Alterações");
     }
 });
@@ -1018,7 +915,9 @@ function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
     if (!membro) return;
 
-    document.getElementById("modal-foto").src = membro.fotoURL || placeholderFoto;
+    // REMOVIDO: Preenchimento da foto
+    // document.getElementById("modal-foto").src = membro.fotoURL || placeholderFoto;
+
     document.getElementById("modal-nome").textContent = membro.nome;
     document.getElementById("modal-funcao").textContent = membro.funcao || 'N/A';
     document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
@@ -1065,7 +964,7 @@ function showMembroEditModal() {
     const membro = localMembros.find(m => m.id === membroParaEditarId);
     if (!membro) return;
 
-    resetFotoUploader('edit'); 
+    // REMOVIDO: resetFotoUploader('edit'); 
     document.getElementById("edit-nome").value = membro.nome || '';
     document.getElementById("edit-data-nascimento").value = membro.dataNascimento || '';
     document.getElementById("edit-telefone").value = membro.telefone || '';
@@ -1099,7 +998,7 @@ function showMembroEditModal() {
 function doCloseMembroEditModal() {
      membroEditModal.style.display = "none";
      membroParaEditarId = null;
-     resetFotoUploader('edit'); 
+     // REMOVIDO: resetFotoUploader('edit'); 
 }
 
 showEditMembroBtn.onclick = showMembroEditModal;
@@ -1131,7 +1030,7 @@ function showDeleteModal() {
     } else if (itemParaExcluir.tipo === 'dizimo' || itemParaExcluir.tipo === 'oferta') {
         deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o lançamento no Caixa associado.";
     } else if (itemParaExcluir.tipo === 'membro') {
-        deleteCascadeWarning.textContent = "Aviso: A foto do membro também será apagada.";
+        // REMOVIDO: deleteCascadeWarning.textContent = "Aviso: A foto do membro também será apagada.";
         membroDetalhesModal.style.display = "none";
     }
 
@@ -1216,20 +1115,9 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
             
         } else if (itemParaExcluir.tipo === 'membro') {
             const membroDocRef = doc(db, dbPath, "membros", itemParaExcluir.id);
-            const membroData = localMembros.find(m => m.id === itemParaExcluir.id);
-            
             batch.delete(membroDocRef);
             
-            if (membroData && membroData.fotoURL && membroData.fotoURL.includes("firebase")) {
-                 try {
-                    const fotoRef = ref(storage, `fotosMembros/${itemParaExcluir.id}`);
-                    await deleteObject(fotoRef);
-                 } catch (error) {
-                    if (error.code !== 'storage/object-not-found') {
-                         console.warn("Erro ao apagar foto do membro:", error);
-                    }
-                 }
-            }
+            // REMOVIDO: Lógica de apagar foto do Storage
         }
 
         await batch.commit();
@@ -1459,7 +1347,6 @@ function getDateFromInput(dataInput) {
     return null;
 }
 
-// NOVA FUNÇÃO para calcular idade
 function calcularIdade(dataNascimento) {
     if (!dataNascimento) return null;
     
@@ -1468,9 +1355,9 @@ function calcularIdade(dataNascimento) {
 
     const hoje = new Date();
     let idade = hoje.getFullYear() - dataNasc.getFullYear();
-    const m = hoje.getMonth() - dataNasc.getUTCMonth(); // Usa UTCMonth
+    const m = hoje.getMonth() - dataNasc.getUTCMonth(); 
     
-    if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getUTCDate())) { // Usa UTCDate
+    if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getUTCDate())) { 
         idade--;
     }
     return idade;
