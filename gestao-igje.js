@@ -36,8 +36,7 @@ const firebaseConfig = {
 };
 
 // Inicialização do Firebase
-let app, auth, db;
-let userId; // Embora não o usemos para separar os dados, ainda é útil para autenticação
+let app, auth, db, userId;
 try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
@@ -48,11 +47,6 @@ try {
     console.error("Erro ao inicializar o Firebase:", error);
     document.body.innerHTML = "<p>Erro crítico ao conectar ao banco de dados. Verifique a configuração do Firebase.</p>";
 }
-
-// ---- CAMINHO PARTILHADO ----
-// Define um caminho único para todos os utilizadores partilharem os dados.
-const dbPath = "dadosIgreja/ADCA-CG";
-// -----------------------------
 
 // Variáveis de estado global
 let localMembros = [];
@@ -114,38 +108,53 @@ registerForm.addEventListener("submit", async (e) => {
     toggleButtonLoading(registerSubmitBtn, true, "Cadastrar");
     
     const nome = document.getElementById("register-name").value;
-    const telefone = document.getElementById("register-phone").value;
+    const telefone = document.getElementById("register-phone").value.replace(/\D/g, ''); // Limpa formatação
     const email = document.getElementById("register-email").value;
     const password = document.getElementById("register-password").value;
 
-    // --- INÍCIO DAS NOVAS VERIFICAÇÕES ---
+    // --- VERIFICAÇÕES DE REGISTO RESTRITO ---
+
+    // 1. Validar campos
     if (!nome || !telefone) {
         registerError.textContent = "Nome e Telefone são obrigatórios.";
         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
         return;
     }
 
-    // Normalizar dados para verificação
-    const nomeNorm = nome.trim().toLowerCase();
-    const telNorm = telefone.replace(/\D/g, ''); // Remove tudo exceto números
+    // 2. Normalizar o nome para verificação
+    const nomeNormalizado = nome.trim().toLowerCase();
 
-    // Lista de utilizadores autorizados
-    const allowedUsers = {
-        "gabriel angelino": "21964597378",
-        "lorrane": "21979626240"
-    };
+    // 3. Definir as combinações permitidas
+    const perfisAutorizados = [
+        { nome: "gabriel angelino", telefone: "21964597378" },
+        { nome: "lorrane", telefone: "21979626240" }
+    ];
 
-    if (!allowedUsers[nomeNorm] || allowedUsers[nomeNorm] !== telNorm) {
-        registerError.textContent = "Nome e Telefone não correspondem a um utilizador autorizado.";
+    // 4. Verificar se a combinação nome + telefone é válida
+    const matchValido = perfisAutorizados.some(perfil => {
+        return nomeNormalizado === perfil.nome && telefone === perfil.telefone;
+    });
+
+    if (!matchValido) {
+        registerError.textContent = "Nome ou Telefone não autorizado para cadastro.";
         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
         return;
     }
-    // --- FIM DAS NOVAS VERIFICAÇÕES ---
+
+    // --- FIM DAS VERIFICAÇÕES ---
 
     try {
-        // Criar o utilizador na Autenticação
+        // 5. Criar o usuário na Autenticação
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+
+        // 6. Salvar dados do perfil no Firestore (na coleção partilhada)
+        await setDoc(doc(db, "dadosIgreja/ADCA-CG/perfisUtilizadores", user.uid), {
+            nome: nome.trim(),
+            telefone: telefone,
+            email: email,
+            createdAt: Timestamp.now()
+        });
 
         // O onAuthStateChanged vai pegar a partir daqui
         
@@ -198,15 +207,15 @@ logoutButton.addEventListener("click", async () => {
 // Observador do estado de autenticação (principal)
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        // Utilizador está logado
-        userId = user.uid; // Guarda o ID para reautenticação
+        // Usuário está logado
+        userId = user.uid; // Embora não usemos para caminhos, é bom ter
         userEmailDisplay.textContent = user.email;
         authScreen.style.display = "none";
         appContent.style.display = "block";
         
-        // Mostra todas as abas (estado anterior)
-        document.querySelectorAll('.app-tab-button').forEach(el => el.style.display = 'inline-block');
-        document.getElementById('relatorio-container').style.display = 'block';
+        // Esconde/Mostra abas (lógica de permissão removida, todos veem tudo)
+        document.querySelectorAll(".app-tab-button").forEach(tab => tab.style.display = "flex");
+        document.getElementById("relatorio-container").style.display = "block";
 
         loadAllData(); // Carrega os dados partilhados
         
@@ -216,7 +225,7 @@ onAuthStateChanged(auth, (user) => {
         document.getElementById("fin-data").valueAsDate = new Date();
 
     } else {
-        // Utilizador está deslogado
+        // Usuário está deslogado
         userId = null;
         authScreen.style.display = "flex";
         appContent.style.display = "none";
@@ -225,17 +234,15 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-
 // --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
 
-// Esta função é crucial para operações seguras (excluir, editar)
 async function reauthenticate(password) {
     const user = auth.currentUser;
     if (!user) {
-        throw new Error("Utilizador não está logado.");
+        throw new Error("Usuário não está logado.");
     }
     if (!user.email) {
-         throw new Error("Utilizador não tem email associado (ex: anônimo).");
+         throw new Error("Usuário não tem email associado (ex: anônimo).");
     }
 
     try {
@@ -255,8 +262,7 @@ async function reauthenticate(password) {
 
 // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
 
-// Corrigido para usar a classe correta
-const tabButtons = document.querySelectorAll(".app-tab-button"); 
+const tabButtons = document.querySelectorAll(".app-tab-button"); // Corrigido
 const tabContents = document.querySelectorAll(".tab-content:not(#login-tab):not(#register-tab)");
 
 tabButtons.forEach(button => {
@@ -299,7 +305,7 @@ estadoCivilSelect.addEventListener("change", () => {
 
 formMembro.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId) return; // Precisa estar logado
+    if (!auth.currentUser) return; // Verifica se está logado
 
     toggleButtonLoading(membroSubmitBtn, true, "Salvar Membro");
 
@@ -313,10 +319,10 @@ formMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("rg").value,
         naturalidade: document.getElementById("naturalidade").value,
         endereco: document.getElementById("endereco").value,
-        // Novos campos Filiação
+        // Filiação
         nomePai: document.getElementById("nome-pai").value,
         nomeMae: document.getElementById("nome-mae").value,
-        // --
+        // Adicionais
         estadoCivil: document.getElementById("estado-civil").value,
         conjuge: (document.getElementById("estado-civil").value === 'Casado(a)') ? document.getElementById("conjuge").value : "",
         profissao: document.getElementById("profissao").value,
@@ -330,7 +336,7 @@ formMembro.addEventListener("submit", async (e) => {
 
     try {
         // Caminho partilhado
-        const docRef = collection(db, dbPath, "membros");
+        const docRef = collection(db, "dadosIgreja/ADCA-CG/membros");
         await addDoc(docRef, dadosMembro);
 
         formMembro.reset();
@@ -363,7 +369,7 @@ editEstadoCivilSelect.addEventListener("change", () => {
 
 formEditMembro.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId || !membroParaEditarId) return;
+    if (!auth.currentUser || !membroParaEditarId) return;
     
     toggleButtonLoading(editMembroSubmitBtn, true, "Salvar Alterações");
     const password = document.getElementById("edit-membro-password").value;
@@ -395,10 +401,10 @@ formEditMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("edit-rg").value,
         naturalidade: document.getElementById("edit-naturalidade").value,
         endereco: document.getElementById("edit-endereco").value,
-        // Novos campos Filiação
+        // Filiação
         nomePai: document.getElementById("edit-nome-pai").value,
         nomeMae: document.getElementById("edit-nome-mae").value,
-        // --
+        // Adicionais
         estadoCivil: document.getElementById("edit-estado-civil").value,
         conjuge: (document.getElementById("edit-estado-civil").value === 'Casado(a)') ? document.getElementById("edit-conjuge").value : "",
         profissao: document.getElementById("edit-profissao").value,
@@ -413,7 +419,7 @@ formEditMembro.addEventListener("submit", async (e) => {
     // 3. Atualizar no Firebase
     try {
         // Caminho partilhado
-        const docRef = doc(db, dbPath, "membros", membroParaEditarId);
+        const docRef = doc(db, "dadosIgreja/ADCA-CG/membros", membroParaEditarId);
         await updateDoc(docRef, dadosAtualizados);
         
         // Sucesso
@@ -436,7 +442,7 @@ const dizimoSubmitBtn = document.getElementById("dizimo-submit-btn");
 
 formDizimo.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId) return;
+    if (!auth.currentUser) return;
 
     toggleButtonLoading(dizimoSubmitBtn, true, "Registar Dízimo");
 
@@ -457,8 +463,7 @@ formDizimo.addEventListener("submit", async (e) => {
         const batch = writeBatch(db);
 
         // 1. Cria o documento de dízimo
-        // Caminho partilhado
-        const dizimoDocRef = doc(collection(db, dbPath, "dizimos"));
+        const dizimoDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/dizimos"));
         batch.set(dizimoDocRef, {
             membroId: membroId,
             membroNome: membroNome,
@@ -469,8 +474,7 @@ formDizimo.addEventListener("submit", async (e) => {
         });
 
         // 2. Cria o documento financeiro
-        // Caminho partilhado
-        const financeiroDocRef = doc(collection(db, dbPath, "financeiro"));
+        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `Dízimo - ${membroNome}`,
@@ -505,7 +509,7 @@ const ofertaSubmitBtn = document.getElementById("oferta-submit-btn");
 
 formOferta.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId) return;
+    if (!auth.currentUser) return;
 
     toggleButtonLoading(ofertaSubmitBtn, true, "Registar Entrada");
 
@@ -525,8 +529,7 @@ formOferta.addEventListener("submit", async (e) => {
         const batch = writeBatch(db);
 
         // 1. Cria o documento de oferta
-        // Caminho partilhado
-        const ofertaDocRef = doc(collection(db, dbPath, "ofertas"));
+        const ofertaDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/ofertas"));
         batch.set(ofertaDocRef, {
             tipo: tipo,
             descricao: descricao,
@@ -537,8 +540,7 @@ formOferta.addEventListener("submit", async (e) => {
         });
 
         // 2. Cria o documento financeiro
-        // Caminho partilhado
-        const financeiroDocRef = doc(collection(db, dbPath, "financeiro"));
+        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `${tipo} - ${descricao}`,
@@ -574,7 +576,7 @@ const financeiroSubmitBtn = document.getElementById("financeiro-submit-btn");
 
 formFinanceiro.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId) return;
+    if (!auth.currentUser) return;
 
     toggleButtonLoading(financeiroSubmitBtn, true, "Registar Saída");
 
@@ -589,8 +591,7 @@ formFinanceiro.addEventListener("submit", async (e) => {
     }
 
     try {
-        // Caminho partilhado
-        const colRef = collection(db, dbPath, "financeiro");
+        const colRef = collection(db, "dadosIgreja/ADCA-CG/financeiro");
         await addDoc(colRef, {
             tipo: "saida",
             descricao: descricao,
@@ -617,14 +618,14 @@ formFinanceiro.addEventListener("submit", async (e) => {
 
 // Função principal para carregar dados
 function loadAllData() {
-    if (!userId) return;
-    console.log("Carregando dados partilhados de:", dbPath);
+    if (!auth.currentUser) return;
+    console.log("Carregando dados partilhados...");
     document.getElementById("dashboard-loading").innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
 
     // Parar listeners antigos se existirem
     stopAllListeners();
 
-    let loadsPending = 4;
+    let loadsPending = 4; // Membros, Dizimos, Ofertas, Financeiro
     const onDataLoaded = () => {
         loadsPending--;
         if (loadsPending === 0) {
@@ -636,8 +637,7 @@ function loadAllData() {
 
     // Ouvir Membros
     try {
-        // Caminho partilhado
-        const qMembros = query(collection(db, dbPath, "membros"));
+        const qMembros = query(collection(db, "dadosIgreja/ADCA-CG/membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
             localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             localMembros.sort((a, b) => a.nome.localeCompare(b.nome)); // Ordena por nome
@@ -649,8 +649,7 @@ function loadAllData() {
 
     // Ouvir Dízimos
     try {
-        // Caminho partilhado
-        const qDizimos = query(collection(db, dbPath, "dizimos"));
+        const qDizimos = query(collection(db, "dadosIgreja/ADCA-CG/dizimos"));
         unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
             localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroDizimos(); // Renderiza os filtros
@@ -660,8 +659,7 @@ function loadAllData() {
 
     // Ouvir Ofertas
     try {
-        // Caminho partilhado
-        const qOfertas = query(collection(db, dbPath, "ofertas"));
+        const qOfertas = query(collection(db, "dadosIgreja/ADCA-CG/ofertas"));
         unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
             localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroOfertas(); // Renderiza os filtros
@@ -672,8 +670,7 @@ function loadAllData() {
 
     // Ouvir Financeiro
     try {
-        // Caminho partilhado
-        const qFinanceiro = query(collection(db, dbPath, "financeiro"));
+        const qFinanceiro = query(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
         unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
             localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
@@ -727,15 +724,13 @@ function renderMembros(membros) {
     membros.forEach(membro => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50";
-        
-        // Calcular idade
+        // Adiciona cálculo de idade
         const idade = calcularIdade(membro.dataNascimento);
-
         tr.innerHTML = `
         <td class="px-6 py-4 whitespace-nowrap">
             <a href="#" class="text-blue-600 hover:text-blue-800 font-medium" data-id="${membro.id}">${membro.nome}</a>
         </td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${idade || 'N/A'}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${idade}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.funcao || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.telefone || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.email || ''}</td>
@@ -1018,32 +1013,13 @@ function updateDashboard() {
 // Modal Detalhes do Membro
 const membroDetalhesModal = document.getElementById("membro-detalhes-modal");
 const closeMembroModal = document.getElementById("close-membro-modal");
-const modalTabs = document.querySelectorAll(".modal-tab-button");
-const modalTabContents = document.querySelectorAll(".modal-tab-content");
-const modalConjugeContainer = document.getElementById("modal-conjuge-container");
-
-modalTabs.forEach(tab => {
-    tab.addEventListener("click", (e) => {
-        e.preventDefault();
-        // Desativa todos
-        modalTabs.forEach(t => t.classList.remove("active"));
-        modalTabContents.forEach(c => c.classList.remove("active"));
-        // Ativa o clicado
-        tab.classList.add("active");
-        document.querySelector(tab.hash).classList.add("active");
-    });
-});
 
 function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
     if (!membro) return;
 
-    // Resetar para a primeira aba
-    modalTabs.forEach((t, i) => i === 0 ? t.classList.add("active") : t.classList.remove("active"));
-    modalTabContents.forEach((c, i) => i === 0 ? c.classList.add("active") : c.classList.remove("active"));
-
-    // Preencher Aba Pessoal
-    document.getElementById("modal-nome").textContent = membro.nome;
+    // Preenche todos os campos
+    document.getElementById("modal-nome").textContent = membro.nome || 'N/A';
     document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
     document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
     document.getElementById("modal-email").textContent = membro.email || 'N/A';
@@ -1051,21 +1027,9 @@ function showMembroDetalhesModal(id) {
     document.getElementById("modal-rg").textContent = membro.rg || 'N/A';
     document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
     document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
-    document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
-    // Novos campos Filiação
     document.getElementById("modal-nome-pai").textContent = membro.nomePai || 'N/A';
     document.getElementById("modal-nome-mae").textContent = membro.nomeMae || 'N/A';
-
-
-    // Mostrar/Esconder Cônjuge
-    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
-        document.getElementById("modal-conjuge").textContent = membro.conjuge;
-        modalConjugeContainer.classList.remove("hidden");
-    } else {
-        modalConjugeContainer.classList.add("hidden");
-    }
-
-    // Preencher Aba Ministerial
+    document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
     document.getElementById("modal-profissao").textContent = membro.profissao || 'N/A';
     document.getElementById("modal-escolaridade").textContent = membro.escolaridade || 'N/A';
     document.getElementById("modal-funcao").textContent = membro.funcao || 'N/A';
@@ -1073,6 +1037,15 @@ function showMembroDetalhesModal(id) {
     document.getElementById("modal-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
     document.getElementById("modal-igreja-anterior").textContent = membro.igrejaAnterior || 'N/A';
     document.getElementById("modal-cargo-anterior").textContent = membro.cargoAnterior || 'N/A';
+
+    // Campo condicional Cônjuge
+    const conjugeContainer = document.getElementById("modal-conjuge-container");
+    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
+        document.getElementById("modal-conjuge").textContent = membro.conjuge;
+        conjugeContainer.classList.remove("hidden");
+    } else {
+        conjugeContainer.classList.add("hidden");
+    }
     
     // Define o ID para os botões de ação
     membroParaEditarId = id; // Para edição
@@ -1102,27 +1075,24 @@ function showMembroEditModal() {
     document.getElementById("edit-rg").value = membro.rg || '';
     document.getElementById("edit-naturalidade").value = membro.naturalidade || '';
     document.getElementById("edit-endereco").value = membro.endereco || '';
-    // Novos campos Filiação
     document.getElementById("edit-nome-pai").value = membro.nomePai || '';
     document.getElementById("edit-nome-mae").value = membro.nomeMae || '';
-    // --
     document.getElementById("edit-estado-civil").value = membro.estadoCivil || 'Solteiro(a)';
     document.getElementById("edit-conjuge").value = membro.conjuge || '';
-    
-    // Mostrar/Esconder Cônjuge na edição
-    if (document.getElementById("edit-estado-civil").value === 'Casado(a)') {
-        editConjugeContainer.classList.remove("hidden");
-    } else {
-        editConjugeContainer.classList.add("hidden");
-    }
-
     document.getElementById("edit-profissao").value = membro.profissao || '';
-    document.getElementById("edit-escolaridade").value = membro.escolaridade || 'Ensino Médio';
+    document.getElementById("edit-escolaridade").value = membro.escolaridade || 'Ensino Médio Completo';
     document.getElementById("edit-funcao").value = membro.funcao || '';
     document.getElementById("edit-data-batismo").value = membro.dataBatismo || '';
     document.getElementById("edit-data-chegada").value = membro.dataChegada || '';
     document.getElementById("edit-igreja-anterior").value = membro.igrejaAnterior || '';
     document.getElementById("edit-cargo-anterior").value = membro.cargoAnterior || '';
+
+    // Campo condicional Cônjuge
+    if (membro.estadoCivil === 'Casado(a)') {
+        editConjugeContainer.classList.remove("hidden");
+    } else {
+        editConjugeContainer.classList.add("hidden");
+    }
     
     // Limpa erros e senha
     document.getElementById("edit-membro-password").value = "";
@@ -1133,7 +1103,6 @@ function showMembroEditModal() {
     membroEditModal.style.display = "block";
 }
 
-// Corrigido para a função de fechar
 function doCloseMembroEditModal() {
      membroEditModal.style.display = "none";
      membroParaEditarId = null;
@@ -1204,7 +1173,7 @@ function handleDeleteClick(e) {
 // Processar a Exclusão (Formulário do Modal)
 deleteConfirmForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId || !itemParaExcluir.id || !itemParaExcluir.tipo) return;
+    if (!auth.currentUser || !itemParaExcluir.id || !itemParaExcluir.tipo) return;
 
     toggleButtonLoading(deleteSubmitBtn, true, "Excluir Permanentemente");
     const password = document.getElementById("delete-password").value;
@@ -1231,8 +1200,7 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
         const batch = writeBatch(db);
         
         if (itemParaExcluir.tipo === 'financeiro') {
-            // Caminho partilhado
-            const finDocRef = doc(db, dbPath, "financeiro", itemParaExcluir.id);
+            const finDocRef = doc(db, "dadosIgreja/ADCA-CG/financeiro", itemParaExcluir.id);
             const finData = localFinanceiro.find(f => f.id === itemParaExcluir.id);
             
             batch.delete(finDocRef); // Apaga o financeiro
@@ -1240,43 +1208,37 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
             // Se tiver origem, apaga a origem
             if (finData && finData.origemId && finData.origemTipo) {
                  const origemCollection = finData.origemTipo === 'dizimo' ? 'dizimos' : 'ofertas';
-                 // Caminho partilhado
-                 const origemDocRef = doc(db, dbPath, origemCollection, finData.origemId);
+                 const origemDocRef = doc(db, "dadosIgreja/ADCA-CG/", origemCollection, finData.origemId);
                  batch.delete(origemDocRef);
             }
         
         } else if (itemParaExcluir.tipo === 'dizimo') {
-            // Caminho partilhado
-            const dizimoDocRef = doc(db, dbPath, "dizimos", itemParaExcluir.id);
+            const dizimoDocRef = doc(db, "dadosIgreja/ADCA-CG/dizimos", itemParaExcluir.id);
             const dizimoData = localDizimos.find(d => d.id === itemParaExcluir.id);
             
             batch.delete(dizimoDocRef); // Apaga o dízimo
             
             // Apaga o financeiro associado
             if (dizimoData && dizimoData.financeiroId) {
-                // Caminho partilhado
-                const finDocRef = doc(db, dbPath, "financeiro", dizimoData.financeiroId);
+                const finDocRef = doc(db, "dadosIgreja/ADCA-CG/financeiro", dizimoData.financeiroId);
                 batch.delete(finDocRef);
             }
 
         } else if (itemParaExcluir.tipo === 'oferta') {
-            // Caminho partilhado
-            const ofertaDocRef = doc(db, dbPath, "ofertas", itemParaExcluir.id);
+            const ofertaDocRef = doc(db, "dadosIgreja/ADCA-CG/ofertas", itemParaExcluir.id);
             const ofertaData = localOfertas.find(o => o.id === itemParaExcluir.id);
 
             batch.delete(ofertaDocRef); // Apaga a oferta
 
             // Apaga o financeiro associado
             if (ofertaData && ofertaData.financeiroId) {
-                // Caminho partilhado
-                const finDocRef = doc(db, dbPath, "financeiro", ofertaData.financeiroId);
+                const finDocRef = doc(db, "dadosIgreja/ADCA-CG/financeiro", ofertaData.financeiroId);
                 batch.delete(finDocRef);
             }
             
         } else if (itemParaExcluir.tipo === 'membro') {
             // Exclusão de membro não é em batch, pois não tem cascata financeira
-            // Caminho partilhado
-            const membroDocRef = doc(db, dbPath, "membros", itemParaExcluir.id);
+            const membroDocRef = doc(db, "dadosIgreja/ADCA-CG/membros", itemParaExcluir.id);
             await deleteDoc(membroDocRef);
             
             // Fechamos os modais manually
@@ -1322,7 +1284,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
     // ADICIONADO: try...catch global
     try {
         // 1. Coletar todos os dados
-        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0);
+        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
         
         // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
         const financOrdenado = [...localFinanceiro].sort((a, b) => {
@@ -1352,6 +1314,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
         let relatorioHTML = `
             <html>
             <head>
+                <!-- TÍTULO ATUALIZADO -->
                 <title>Relatório GESTÃO ADCA - CAPOEIRA GRANDE</title>
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
@@ -1375,12 +1338,14 @@ gerarRelatorioBtn.addEventListener("click", () => {
             <body class="bg-gray-100 p-8">
                 <div class="container mx-auto bg-white p-10 rounded shadow-lg">
                     <div class="flex justify-between items-center mb-6">
+                        <!-- TÍTULO ATUALIZADO -->
                         <h1>Relatório GESTÃO ADCA - CAPOEIRA GRANDE</h1>
                         <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
                     <!-- Resumo -->
+                    <!-- MODIFICADO: Removido o card de membros -->
                     <div class="mb-8">
                         <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
                             <h3 class="text-lg font-semibold text-blue-800">Saldo Atual (Caixa)</h3>
@@ -1403,6 +1368,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 <tr>
                                     <td>${formatarData(d.data)}</td>
                                     <td>${d.membroNome}</td>
+                                    <!-- CORRIGIDO: Adicionado (d.valor || 0) -->
                                     <td class="currency entrada">R$ ${(d.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
@@ -1427,6 +1393,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                     <td>${formatarData(o.data)}</td>
                                     <td>${o.tipo}</td>
                                     <td>${o.descricao}</td>
+                                    <!-- CORRIGIDO: Adicionado (o.valor || 0) -->
                                     <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
@@ -1449,6 +1416,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 <tr>
                                     <td>${formatarData(f.data)}</td>
                                     <td>${f.descricao}</td>
+                                    <!-- CORRIGIDO: Adicionado (f.valor || 0) -->
                                     <td class="currency ${f.valor > 0 ? 'entrada' : 'saida'}">
                                         R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
                                     </td>
@@ -1521,29 +1489,6 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// Função para CALCULAR IDADE
-function calcularIdade(dataNascimento) {
-    if (!dataNascimento || typeof dataNascimento !== 'string' || !dataNascimento.includes('-')) {
-        return null;
-    }
-    try {
-        const dataNasc = getDateFromInput(dataNascimento);
-        if (!dataNasc) return null;
-        
-        const hoje = new Date();
-        let idade = hoje.getFullYear() - dataNasc.getUTCFullYear();
-        const m = hoje.getMonth() - dataNasc.getUTCMonth();
-        
-        if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getUTCDate())) {
-            idade--;
-        }
-        return idade;
-    } catch (e) {
-        console.error("Erro ao calcular idade:", e);
-        return null;
-    }
-}
-
 
 // Função de formatação de data
 function formatarData(dataString) {
@@ -1583,12 +1528,12 @@ function getDateFromInput(dataInput) {
         }
         // Se já for um objeto Date
         if (dataInput instanceof Date) {
-            return dataInput;
+            return dataInput; // Corrigido: dataInput
         }
         // Se for uma string (ex: '2025-11-01')
         if (typeof dataInput === 'string' && dataInput.includes('-')) {
             const parts = dataInput.split('-');
-            if (parts.length === 3 && parts[0].length === 4) {
+            if (parts.length === 3) {
                 // Ano, Mês (base 0), Dia
                 // Garante que seja UTC para evitar problemas de fuso
                 return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
@@ -1600,6 +1545,24 @@ function getDateFromInput(dataInput) {
     }
     // Fallback para data inválida ou formato desconhecido
     return null;
+}
+
+// Calcula a idade
+function calcularIdade(dataNascimento) {
+    if (!dataNascimento) return "N/A";
+    
+    const dataNasc = getDateFromInput(dataNascimento);
+    if (!dataNasc) return "N/A";
+
+    const hoje = new Date();
+    let idade = hoje.getFullYear() - dataNasc.getUTCFullYear();
+    const m = hoje.getMonth() - dataNasc.getUTCMonth();
+    
+    if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getUTCDate())) {
+        idade--;
+    }
+    
+    return idade >= 0 ? idade : "N/A";
 }
 
 
