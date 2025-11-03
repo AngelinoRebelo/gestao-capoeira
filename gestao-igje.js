@@ -5,9 +5,9 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    onAuthStateChanged, // Adicionado de volta
-    EmailAuthProvider, // Adicionado de volta
-    reauthenticateWithCredential // Adicionado de volta
+    onAuthStateChanged,
+    EmailAuthProvider,
+    reauthenticateWithCredential
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
     getFirestore,
@@ -48,98 +48,7 @@ try {
     document.body.innerHTML = "<p>Erro crítico ao conectar ao banco de dados. Verifique a configuração do Firebase.</p>";
 }
 
-// --- Referências do DOM (Movidas para o topo) ---
-const authScreen = document.getElementById("auth-screen");
-const appContent = document.getElementById("app-content");
-const loginForm = document.getElementById("login-form");
-const registerForm = document.getElementById("register-form");
-const loginError = document.getElementById("login-error");
-const registerError = document.getElementById("register-error");
-const userEmailDisplay = document.getElementById("user-email-display");
-const logoutButton = document.getElementById("logout-button");
-const loginSubmitBtn = document.getElementById("login-submit-btn");
-const registerSubmitBtn = document.getElementById("register-submit-btn");
-
-const loginTabButton = document.getElementById("auth-login-tab-button"); // ID corrigido
-const registerTabButton = document.getElementById("auth-register-tab-button"); // ID corrigido
-const loginTab = document.getElementById("auth-login-tab"); // ID corrigido
-const registerTab = document.getElementById("auth-register-tab"); // ID corrigido
-
-// Abas da Aplicação
-const appTabButtons = document.querySelectorAll(".app-tab-button");
-const tabContents = document.querySelectorAll(".app-content-tab"); // Corrigido
-
-// Formulário de Membros
-const formMembro = document.getElementById("form-membro");
-const membroSubmitBtn = document.getElementById("membro-submit-btn");
-const estadoCivilSelect = document.getElementById("estado-civil");
-const conjugeContainer = document.getElementById("conjuge-container");
-
-// Tabela de Membros
-const listaMembros = document.getElementById("lista-membros");
-const filtroMembros = document.getElementById("filtro-membros");
-
-// Modal Detalhes do Membro
-const membroDetalhesModal = document.getElementById("membro-detalhes-modal");
-const closeMembroModal = document.getElementById("close-membro-modal");
-const showDeleteMembroBtn = document.getElementById("show-delete-membro-btn");
-const showEditMembroBtn = document.getElementById("show-edit-membro-btn");
-
-// Modal Editar Membro
-const membroEditModal = document.getElementById("membro-edit-modal");
-const closeMembroEditModal = document.getElementById("close-membro-edit-modal");
-const cancelEditMembroBtn = document.getElementById("cancel-edit-membro-btn");
-const formEditMembro = document.getElementById("form-edit-membro");
-const editMembroError = document.getElementById("edit-membro-error");
-const editMembroSubmitBtn = document.getElementById("edit-membro-submit-btn");
-const editEstadoCivilSelect = document.getElementById("edit-estado-civil");
-const editConjugeContainer = document.getElementById("edit-conjuge-container");
-
-// Formulário Dízimos
-const formDizimo = document.getElementById("form-dizimo");
-const dizimoSubmitBtn = document.getElementById("dizimo-submit-btn");
-const dizimoMembroSelect = document.getElementById("dizimo-membro");
-const filtroDizimoMes = document.getElementById("filtro-dizimo-mes");
-const filtroDizimoAno = document.getElementById("filtro-dizimo-ano");
-const listaDizimos = document.getElementById("lista-dizimos");
-
-// Formulário Ofertas
-const formOferta = document.getElementById("form-oferta");
-const ofertaSubmitBtn = document.getElementById("oferta-submit-btn");
-const filtroOfertaMes = document.getElementById("filtro-oferta-mes");
-const filtroOfertaAno = document.getElementById("filtro-oferta-ano");
-const listaOfertas = document.getElementById("lista-ofertas");
-
-// Formulário Financeiro (Saídas)
-const formFinanceiro = document.getElementById("form-financeiro");
-const financeiroSubmitBtn = document.getElementById("financeiro-submit-btn");
-const filtroFinanceiroMes = document.getElementById("filtro-financeiro-mes");
-const filtroFinanceiroAno = document.getElementById("filtro-financeiro-ano");
-const listaFinanceiro = document.getElementById("lista-financeiro");
-const saldoTotalFinanceiro = document.getElementById("saldo-total-financeiro");
-
-// Dashboard
-const saldoDashboard = document.getElementById("saldo-total-dashboard");
-const entradasDashboard = document.getElementById("entradas-mes-dashboard");
-const saidasDashboard = document.getElementById("saidas-mes-dashboard");
-const membrosDashboard = document.getElementById("total-membros-dashboard");
-const dashboardLoading = document.getElementById("dashboard-loading");
-const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
-
-// Modal Universal de Exclusão
-const deleteConfirmModal = document.getElementById("delete-confirm-modal");
-const closeDeleteModal = document.getElementById("close-delete-modal");
-const deleteConfirmForm = document.getElementById("delete-confirm-form");
-const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
-const deleteErrorMsg = document.getElementById("delete-error-message");
-const deleteCascadeWarning = document.getElementById("delete-cascade-warning");
-const deleteSubmitBtn = document.getElementById("delete-submit-btn");
-
-// Notificações (Toasts)
-const toastContainer = document.getElementById("toast-container");
-
-
-// --- Variáveis de Estado Global ---
+// Variáveis de estado global
 let localMembros = [];
 let localDizimos = [];
 let localOfertas = [];
@@ -154,6 +63,96 @@ let itemParaExcluir = {
 
 // ID do membro a ser editado
 let membroParaEditarId = null;
+
+// --- REFERÊNCIAS DO DOM (AGRUPADAS) ---
+
+// Autenticação
+const authScreen = document.getElementById("auth-screen");
+const appContent = document.getElementById("app-content");
+const loginForm = document.getElementById("login-form");
+const registerForm = document.getElementById("register-form");
+const loginError = document.getElementById("login-error");
+const registerError = document.getElementById("register-error");
+const userEmailDisplay = document.getElementById("user-email-display");
+const logoutButton = document.getElementById("logout-button");
+const loginSubmitBtn = document.getElementById("login-submit-btn");
+const registerSubmitBtn = document.getElementById("register-submit-btn");
+const loginTabButton = document.getElementById("auth-login-tab-button"); // Corrigido
+const registerTabButton = document.getElementById("auth-register-tab-button"); // Corrigido
+const loginTab = document.getElementById("auth-login-tab"); // Corrigido
+const registerTab = document.getElementById("auth-register-tab"); // Corrigido
+
+// Abas da Aplicação
+const tabButtons = document.querySelectorAll(".app-tab-button");
+const tabContents = document.querySelectorAll(".app-content-tab"); // Corrigido
+
+// Formulários
+const formMembro = document.getElementById("form-membro");
+const membroSubmitBtn = document.getElementById("membro-submit-btn");
+const estadoCivilSelect = document.getElementById("estado-civil");
+const conjugeContainer = document.getElementById("conjuge-container");
+
+const formEditMembro = document.getElementById("form-edit-membro");
+const editMembroError = document.getElementById("edit-membro-error");
+const editMembroSubmitBtn = document.getElementById("edit-membro-submit-btn");
+const editEstadoCivilSelect = document.getElementById("edit-estado-civil");
+const editConjugeContainer = document.getElementById("edit-conjuge-container");
+
+const formDizimo = document.getElementById("form-dizimo");
+const dizimoSubmitBtn = document.getElementById("dizimo-submit-btn");
+const dizimoMembroSelect = document.getElementById("dizimo-membro");
+
+const formOferta = document.getElementById("form-oferta");
+const ofertaSubmitBtn = document.getElementById("oferta-submit-btn");
+
+const formFinanceiro = document.getElementById("form-financeiro");
+const financeiroSubmitBtn = document.getElementById("financeiro-submit-btn");
+
+// Listas e Tabelas
+const listaMembros = document.getElementById("lista-membros");
+const filtroMembros = document.getElementById("filtro-membros");
+const listaFinanceiro = document.getElementById("lista-financeiro");
+const saldoTotalFinanceiro = document.getElementById("saldo-total-financeiro");
+const listaDizimos = document.getElementById("lista-dizimos");
+const listaOfertas = document.getElementById("lista-ofertas");
+
+// Filtros
+const filtroDizimoMes = document.getElementById("filtro-dizimo-mes");
+const filtroDizimoAno = document.getElementById("filtro-dizimo-ano");
+const filtroOfertaMes = document.getElementById("filtro-oferta-mes");
+const filtroOfertaAno = document.getElementById("filtro-oferta-ano");
+const filtroFinanceiroMes = document.getElementById("filtro-financeiro-mes");
+const filtroFinanceiroAno = document.getElementById("filtro-financeiro-ano");
+
+// Dashboard
+const saldoDashboard = document.getElementById("saldo-total-dashboard");
+const entradasDashboard = document.getElementById("entradas-mes-dashboard");
+const saidasDashboard = document.getElementById("saidas-mes-dashboard");
+const membrosDashboard = document.getElementById("total-membros-dashboard");
+const dashboardLoading = document.getElementById("dashboard-loading");
+
+// Modais
+const membroDetalhesModal = document.getElementById("membro-detalhes-modal");
+const closeMembroModal = document.getElementById("close-membro-modal");
+const membroEditModal = document.getElementById("membro-edit-modal");
+const closeMembroEditModal = document.getElementById("close-membro-edit-modal");
+const showEditMembroBtn = document.getElementById("show-edit-membro-btn");
+const cancelEditMembroBtn = document.getElementById("cancel-edit-membro-btn");
+const deleteConfirmModal = document.getElementById("delete-confirm-modal");
+const closeDeleteModal = document.getElementById("close-delete-modal");
+const deleteConfirmForm = document.getElementById("delete-confirm-form");
+const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
+const deleteErrorMsg = document.getElementById("delete-error-message");
+const deleteCascadeWarning = document.getElementById("delete-cascade-warning");
+const showDeleteMembroBtn = document.getElementById("show-delete-membro-btn");
+const deleteSubmitBtn = document.getElementById("delete-submit-btn");
+
+// Relatório
+const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
+
+// Toast
+const toastContainer = document.getElementById("toast-container");
+
 
 // --- CONTROLE DE AUTENTICAÇÃO ---
 
@@ -181,49 +180,46 @@ registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     registerError.textContent = "";
     toggleButtonLoading(registerSubmitBtn, true, "Cadastrar");
-
-    // Campos novos
+    
     const nome = document.getElementById("register-name").value;
-    const telefone = document.getElementById("register-phone").value.replace(/\D/g, ''); // Limpa formatação
-    // Campos existentes
+    const telefoneInput = document.getElementById("register-phone").value;
     const email = document.getElementById("register-email").value;
     const password = document.getElementById("register-password").value;
 
     // --- INÍCIO DAS NOVAS VERIFICAÇÕES ---
-
-    // 1. Validar campos
-    if (!nome || !telefone) {
+    if (!nome || !telefoneInput) {
         registerError.textContent = "Nome e Telefone são obrigatórios.";
         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
         return;
     }
-
-    // 2. Verificar combinação de nome e telefone (case-insensitive para nome)
+    
     const nomeLimpo = nome.trim().toLowerCase();
-    const telefoneLimpo = telefone.trim();
+    const telefoneLimpo = telefoneInput.replace(/\D/g, ''); // Remove não-números
 
+    // Regras de negócio
     const usuariosAutorizados = {
         "gabriel angelino": "21964597378",
         "lorrane": "21979626240"
     };
 
     if (usuariosAutorizados[nomeLimpo] !== telefoneLimpo) {
-        registerError.textContent = "Nome e Telefone não correspondem a um utilizador autorizado.";
-        toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
-        return;
+         registerError.textContent = "Nome e Telefone não correspondem a um utilizador autorizado.";
+         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
+         return;
     }
-
+    
     // --- FIM DAS NOVAS VERIFICAÇÕES ---
 
     try {
-        // 3. Criar o usuário na Autenticação
+        // Criar o usuário na Autenticação
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 4. Salvar dados do perfil no Firestore (no caminho partilhado)
-        await setDoc(doc(db, "dadosIgreja/ADCA-CG/perfisUtilizadores", user.uid), {
+        // Salvar dados do perfil no Firestore
+        // Este caminho DEVE corresponder às Regras de Segurança
+        await setDoc(doc(db, "dadosIgreja", "ADCA-CG", "perfisUtilizadores", user.uid), {
             nome: nome.trim(),
-            telefone: telefone.trim(),
+            telefone: telefoneLimpo,
             email: email,
             createdAt: Timestamp.now()
         });
@@ -278,11 +274,11 @@ logoutButton.addEventListener("click", async () => {
 onAuthStateChanged(auth, (user) => {
     if (user) {
         // Usuário está logado
-        userId = user.uid; // Define o userId global
+        userId = user.uid; // Definido globalmente
         userEmailDisplay.textContent = user.email;
         authScreen.style.display = "none";
         appContent.style.display = "block";
-        loadAllData(); // Carrega os dados partilhados
+        loadAllData(); // Carrega os dados
         
         // Define as datas dos formulários para hoje
         document.getElementById("dizimo-data").valueAsDate = new Date();
@@ -300,15 +296,13 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
-
-// Esta função é crucial para operações seguras (excluir, editar)
 async function reauthenticate(password) {
     const user = auth.currentUser;
     if (!user) {
-        throw new Error("Utilizador não está logado.");
+        throw new Error("Usuário não está logado.");
     }
     if (!user.email) {
-         throw new Error("Utilizador não tem email associado (ex: anônimo).");
+         throw new Error("Usuário não tem email associado (ex: anônimo).");
     }
 
     try {
@@ -327,14 +321,13 @@ async function reauthenticate(password) {
 
 
 // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
-
-appTabButtons.forEach(button => {
+tabButtons.forEach(button => {
     button.addEventListener("click", () => {
         const targetTab = button.dataset.tab;
 
         // Desativa todos
-        appTabButtons.forEach(btn => btn.classList.remove("active"));
-        tabContents.forEach(content => content.classList.remove("active"));
+        tabButtons.forEach(btn => btn.classList.remove("active"));
+        tabContents.forEach(content => content.classList.remove("active")); // Corrigido
 
         // Ativa o clicado
         button.classList.add("active");
@@ -350,8 +343,6 @@ appTabButtons.forEach(button => {
 });
 
 // --- FORMULÁRIO DE MEMBROS (CADASTRO) ---
-
-// Campos condicionais de Cônjuge
 estadoCivilSelect.addEventListener("change", () => {
     if (estadoCivilSelect.value === 'Casado(a)') {
         conjugeContainer.classList.remove("hidden");
@@ -377,8 +368,8 @@ formMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("rg").value,
         naturalidade: document.getElementById("naturalidade").value,
         endereco: document.getElementById("endereco").value,
-        nomePai: document.getElementById("nome-pai").value,
-        nomeMae: document.getElementById("nome-mae").value,
+        nomePai: document.getElementById("nome-pai").value, // Novo
+        nomeMae: document.getElementById("nome-mae").value, // Novo
         estadoCivil: document.getElementById("estado-civil").value,
         conjuge: (document.getElementById("estado-civil").value === 'Casado(a)') ? document.getElementById("conjuge").value : "",
         profissao: document.getElementById("profissao").value,
@@ -391,7 +382,7 @@ formMembro.addEventListener("submit", async (e) => {
     };
 
     try {
-        const docRef = collection(db, "dadosIgreja/ADCA-CG/membros");
+        const docRef = collection(db, "dadosIgreja", "ADCA-CG", "membros");
         await addDoc(docRef, dadosMembro);
 
         formMembro.reset();
@@ -406,8 +397,6 @@ formMembro.addEventListener("submit", async (e) => {
 });
 
 // --- FORMULÁRIO DE MEMBROS (EDIÇÃO) ---
-
-// Campos condicionais de Cônjuge (Edição)
 editEstadoCivilSelect.addEventListener("change", () => {
     if (editEstadoCivilSelect.value === 'Casado(a)') {
         editConjugeContainer.classList.remove("hidden");
@@ -450,8 +439,8 @@ formEditMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("edit-rg").value,
         naturalidade: document.getElementById("edit-naturalidade").value,
         endereco: document.getElementById("edit-endereco").value,
-        nomePai: document.getElementById("edit-nome-pai").value,
-        nomeMae: document.getElementById("edit-nome-mae").value,
+        nomePai: document.getElementById("edit-nome-pai").value, // Novo
+        nomeMae: document.getElementById("edit-nome-mae").value, // Novo
         estadoCivil: document.getElementById("edit-estado-civil").value,
         conjuge: (document.getElementById("edit-estado-civil").value === 'Casado(a)') ? document.getElementById("edit-conjuge").value : "",
         profissao: document.getElementById("edit-profissao").value,
@@ -465,7 +454,7 @@ formEditMembro.addEventListener("submit", async (e) => {
     
     // 3. Atualizar no Firebase
     try {
-        const docRef = doc(db, "dadosIgreja/ADCA-CG/membros", membroParaEditarId);
+        const docRef = doc(db, "dadosIgreja", "ADCA-CG", "membros", membroParaEditarId);
         await updateDoc(docRef, dadosAtualizados);
         
         // Sucesso
@@ -482,7 +471,6 @@ formEditMembro.addEventListener("submit", async (e) => {
 
 
 // --- FORMULÁRIO DE DÍZIMOS ---
-
 formDizimo.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!userId) return;
@@ -502,40 +490,33 @@ formDizimo.addEventListener("submit", async (e) => {
     }
 
     try {
-        // Usar um "batch" para garantir que as duas operações ocorram
         const batch = writeBatch(db);
+        const dizimoDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "dizimos"));
+        const financeiroDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
 
-        // 1. Cria o documento de dízimo
-        const dizimoDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/dizimos"));
         batch.set(dizimoDocRef, {
             membroId: membroId,
             membroNome: membroNome,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            financeiroId: null // Será atualizado depois
+            financeiroId: financeiroDocRef.id // Link
         });
 
-        // 2. Cria o documento financeiro
-        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `Dízimo - ${membroNome}`,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            origemId: dizimoDocRef.id, // ID do dízimo original
-            origemTipo: "dizimo"      // Tipo da origem
+            origemId: dizimoDocRef.id, // Link
+            origemTipo: "dizimo"
         });
 
-        // 3. Atualiza o dízimo com o ID do financeiro
-        batch.update(dizimoDocRef, { financeiroId: financeiroDocRef.id });
-
-        // 4. Executa o batch
         await batch.commit();
 
         formDizimo.reset();
-        document.getElementById("dizimo-data").valueAsDate = new Date(); // Reseta data para hoje
+        document.getElementById("dizimo-data").valueAsDate = new Date();
         showToast("Dízimo registado com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar dízimo: ", error);
@@ -546,7 +527,6 @@ formDizimo.addEventListener("submit", async (e) => {
 });
 
 // --- FORMULÁRIO DE OFERTAS / OUTRAS ENTRADAS ---
-
 formOferta.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!userId) return;
@@ -565,40 +545,33 @@ formOferta.addEventListener("submit", async (e) => {
     }
 
     try {
-        // Usar um "batch"
         const batch = writeBatch(db);
-
-        // 1. Cria o documento de oferta
-        const ofertaDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/ofertas"));
+        const ofertaDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "ofertas"));
+        const financeiroDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
+        
         batch.set(ofertaDocRef, {
             tipo: tipo,
             descricao: descricao,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            financeiroId: null // Será atualizado
+            financeiroId: financeiroDocRef.id // Link
         });
 
-        // 2. Cria o documento financeiro
-        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `${tipo} - ${descricao}`,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            origemId: ofertaDocRef.id, // ID da oferta original
-            origemTipo: "oferta"      // Tipo da origem
+            origemId: ofertaDocRef.id, // Link
+            origemTipo: "oferta"
         });
 
-        // 3. Atualiza a oferta com o ID do financeiro
-        batch.update(ofertaDocRef, { financeiroId: financeiroDocRef.id });
-
-        // 4. Executa
         await batch.commit();
 
         formOferta.reset();
-        document.getElementById("oferta-data").valueAsDate = new Date(); // Reseta data para hoje
+        document.getElementById("oferta-data").valueAsDate = new Date();
         showToast("Entrada registada com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar oferta: ", error);
@@ -610,7 +583,6 @@ formOferta.addEventListener("submit", async (e) => {
 
 
 // --- FORMULÁRIO FINANCEIRO (SAÍDAS) ---
-
 formFinanceiro.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!userId) return;
@@ -628,19 +600,19 @@ formFinanceiro.addEventListener("submit", async (e) => {
     }
 
     try {
-        const colRef = collection(db, "dadosIgreja/ADCA-CG/financeiro");
+        const colRef = collection(db, "dadosIgreja", "ADCA-CG", "financeiro");
         await addDoc(colRef, {
             tipo: "saida",
             descricao: descricao,
             valor: valor * -1, // Salva saídas como valor negativo
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            origemId: null, // Saídas não têm origem em dízimo/oferta
+            origemId: null, 
             origemTipo: null
         });
 
         formFinanceiro.reset();
-        document.getElementById("fin-data").valueAsDate = new Date(); // Reseta data para hoje
+        document.getElementById("fin-data").valueAsDate = new Date();
         showToast("Saída registada com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar saída: ", error);
@@ -652,17 +624,14 @@ formFinanceiro.addEventListener("submit", async (e) => {
 
 
 // --- CARREGAMENTO E RENDERIZAÇÃO DE DADOS ---
-
-// Função principal para carregar dados
 function loadAllData() {
-    if (!userId) return; // Proteção
+    if (!userId) return;
     console.log("Carregando dados partilhados...");
     dashboardLoading.innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
 
-    // Parar listeners antigos se existirem
     stopAllListeners();
-
-    let loadsPending = 4;
+    let loadsPending = 4; // Membros, Dizimos, Ofertas, Financeiro
+    
     const onDataLoaded = () => {
         loadsPending--;
         if (loadsPending === 0) {
@@ -671,13 +640,15 @@ function loadAllData() {
             updateDashboard();
         }
     };
+    
+    const basePath = collection(db, "dadosIgreja", "ADCA-CG");
 
     // Ouvir Membros
     try {
-        const qMembros = query(collection(db, "dadosIgreja/ADCA-CG/membros"));
+        const qMembros = query(collection(basePath, "membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
             localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            localMembros.sort((a, b) => a.nome.localeCompare(b.nome)); // Ordena por nome
+            localMembros.sort((a, b) => a.nome.localeCompare(b.nome));
             renderMembros(localMembros);
             populateMembrosSelect(localMembros);
             onDataLoaded();
@@ -686,20 +657,20 @@ function loadAllData() {
 
     // Ouvir Dízimos
     try {
-        const qDizimos = query(collection(db, "dadosIgreja/ADCA-CG/dizimos"));
+        const qDizimos = query(collection(basePath, "dizimos"));
         unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
             localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderFiltroDizimos(); // Renderiza os filtros
+            renderFiltroDizimos();
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir dízimos:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de dízimos:", e); onDataLoaded(); }
 
     // Ouvir Ofertas
     try {
-        const qOfertas = query(collection(db, "dadosIgreja/ADCA-CG/ofertas"));
+        const qOfertas = query(collection(basePath, "ofertas"));
         unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
             localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderFiltroOfertas(); // Renderiza os filtros
+            renderFiltroOfertas();
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir ofertas:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de ofertas:", e); onDataLoaded(); }
@@ -707,7 +678,7 @@ function loadAllData() {
 
     // Ouvir Financeiro
     try {
-        const qFinanceiro = query(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
+        const qFinanceiro = query(collection(basePath, "financeiro"));
         unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
             localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroFinanceiro(); 
@@ -748,24 +719,24 @@ filtroMembros.addEventListener("input", (e) => {
 });
 
 function renderMembros(membros) {
-    listaMembros.innerHTML = ""; // Limpa a lista
+    listaMembros.innerHTML = "";
     if (membros.length === 0) {
-        listaMembros.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhum membro encontrado.</td></tr>';
+        listaMembros.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhum membro encontrado.</td></tr>'; // Colspan 5
         return;
     }
     membros.forEach(membro => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50";
+        const idade = calcularIdade(membro.dataNascimento); // Calcula a idade
         tr.innerHTML = `
         <td class="px-6 py-4 whitespace-nowrap">
             <a href="#" class="text-blue-600 hover:text-blue-800 font-medium" data-id="${membro.id}">${membro.nome}</a>
         </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${idade || 'N/A'}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.funcao || ''}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${calcularIdade(membro.dataNascimento) || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.telefone || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.email || ''}</td>
     `;
-        // Adiciona listener para abrir modal
         tr.querySelector("a").addEventListener("click", (e) => {
             e.preventDefault();
             showMembroDetalhesModal(membro.id);
@@ -815,22 +786,17 @@ function renderFinanceiro(transacoes) {
         listaFinanceiro.appendChild(tr);
     });
 
-    // Adiciona listeners aos botões de excluir
     adicionarListenersExcluir();
-
-    // Atualiza ícones Lucide
     lucide.createIcons();
 }
 
 // --- FILTROS E RENDERIZAÇÃO DE DÍZIMOS E OFERTAS ---
-
 const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const hoje = new Date();
 const mesAtual = hoje.getMonth();
 const anoAtual = hoje.getFullYear();
 
 function popularFiltros(selectMes, selectAno) {
-    // Meses
     selectMes.innerHTML = "";
     meses.forEach((mes, index) => {
         const option = document.createElement("option");
@@ -840,7 +806,6 @@ function popularFiltros(selectMes, selectAno) {
         selectMes.appendChild(option);
     });
 
-    // Anos (Ano atual + 2 anteriores)
     selectAno.innerHTML = "";
     for (let i = 0; i < 3; i++) {
         const ano = anoAtual - i;
@@ -863,19 +828,16 @@ filtroOfertaAno.addEventListener("change", renderFiltroOfertas);
 filtroFinanceiroMes.addEventListener("change", renderFiltroFinanceiro);
 filtroFinanceiroAno.addEventListener("change", renderFiltroFinanceiro);
 
-// NOVA FUNÇÃO para filtrar e renderizar o financeiro
 function renderFiltroFinanceiro() {
     const mes = parseInt(filtroFinanceiroMes.value);
     const ano = parseInt(filtroFinanceiroAno.value);
 
-    // 1. Filtrar os dados
     const dadosFiltrados = localFinanceiro.filter(d => {
         const data = getDateFromInput(d.data);
         if (!data) return false;
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
 
-    // 2. Ordenar os dados filtrados (mais recente primeiro)
     dadosFiltrados.sort((a, b) => {
         const dataA = getDateFromInput(a.data);
         const dataB = getDateFromInput(b.data);
@@ -884,10 +846,8 @@ function renderFiltroFinanceiro() {
         return dataB - dataA;
     });
 
-    // 3. Renderizar a tabela com os dados filtrados
     renderFinanceiro(dadosFiltrados);
 
-    // 4. Calcular e renderizar o SALDO TOTAL (usando todos os dados)
     const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
     const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
     saldoTotalFinanceiro.className = `text-2xl font-bold ${corSaldo}`;
@@ -900,18 +860,17 @@ function renderFiltroDizimos() {
     const ano = parseInt(filtroDizimoAno.value);
 
     const dadosFiltrados = localDizimos.filter(d => {
-        const data = getDateFromInput(d.data); // <-- CORRIGIDO
-        if (!data) return false; // Ignora datas inválidas
+        const data = getDateFromInput(d.data);
+        if (!data) return false;
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
 
-    // Ordena por data
     dadosFiltrados.sort((a, b) => {
         const dataA = getDateFromInput(a.data);
         const dataB = getDateFromInput(b.data);
         if (!dataA) return 1;
         if (!dataB) return -1;
-        return dataA - dataB; // Mais antigo primeiro
+        return dataA - dataB;
     });
 
     listaDizimos.innerHTML = "";
@@ -934,7 +893,7 @@ function renderFiltroDizimos() {
     `;
         listaDizimos.appendChild(tr);
     });
-    adicionarListenersExcluir(); // Adiciona listeners aos novos botões
+    adicionarListenersExcluir();
     lucide.createIcons();
 }
 
@@ -943,18 +902,17 @@ function renderFiltroOfertas() {
     const ano = parseInt(filtroOfertaAno.value);
 
     const dadosFiltrados = localOfertas.filter(d => {
-        const data = getDateFromInput(d.data); // <-- CORRIGIDO
+        const data = getDateFromInput(d.data);
         if (!data) return false;
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
 
-    // Ordena por data
     dadosFiltrados.sort((a, b) => {
         const dataA = getDateFromInput(a.data);
         const dataB = getDateFromInput(b.data);
         if (!dataA) return 1;
         if (!dataB) return -1;
-        return dataA - dataB; // Mais antigo primeiro
+        return dataA - dataB;
     });
 
     listaOfertas.innerHTML = "";
@@ -978,15 +936,14 @@ function renderFiltroOfertas() {
     `;
         listaOfertas.appendChild(tr);
     });
-    adicionarListenersExcluir(); // Adiciona listeners aos novos botões
+    adicionarListenersExcluir();
     lucide.createIcons();
 }
 
 
 // --- ATUALIZAÇÃO DO DASHBOARD ---
-
 function updateDashboard() {
-    if (!localFinanceiro || !localMembros) return; // Não atualiza se os dados não chegaram
+    if (!localFinanceiro || !localMembros) return;
 
     // 1. Saldo Total
     const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
@@ -1002,7 +959,7 @@ function updateDashboard() {
     const anoCorrente = new Date().getFullYear();
 
     const transacoesMes = localFinanceiro.filter(t => {
-        const data = getDateFromInput(t.data); // <-- CORRIGIDO
+        const data = getDateFromInput(t.data);
         if (!data) return false;
         return data.getUTCMonth() === mesCorrente && data.getUTCFullYear() === anoCorrente;
     });
@@ -1013,7 +970,7 @@ function updateDashboard() {
 
     const saidasMes = transacoesMes
         .filter(t => t.valor < 0)
-        .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
+        .reduce((acc, t) => acc + t.valor, 0);
 
     entradasDashboard.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
     saidasDashboard.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
@@ -1025,38 +982,37 @@ function updateDashboard() {
 function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
     if (!membro) return;
-
-    // Preenche todos os campos (incluindo os novos)
-    document.getElementById("modal-nome").textContent = membro.nome;
-    document.getElementById("modal-funcao").textContent = membro.funcao || 'N/A';
-    document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
-    document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
-    document.getElementById("modal-email").textContent = membro.email || 'N/A';
-    document.getElementById("modal-cpf").textContent = membro.cpf || 'N/A';
-    document.getElementById("modal-rg").textContent = membro.rg || 'N/A';
-    document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
-    document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
-    document.getElementById("modal-nome-pai").textContent = membro.nomePai || 'N/A';
-    document.getElementById("modal-nome-mae").textContent = membro.nomeMae || 'N/A';
-    document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
-    document.getElementById("modal-conjuge").textContent = membro.conjuge || 'N/A';
-    document.getElementById("modal-profissao").textContent = membro.profissao || 'N/A';
-    document.getElementById("modal-escolaridade").textContent = membro.escolaridade || 'N/A';
-    document.getElementById("modal-data-batismo").textContent = formatarData(membro.dataBatismo) || 'N/A';
-    document.getElementById("modal-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
-    document.getElementById("modal-igreja-anterior").textContent = membro.igrejaAnterior || 'N/A';
-    document.getElementById("modal-cargo-anterior").textContent = membro.cargoAnterior || 'N/A';
-
-    // Lógica para mostrar/esconder o campo cônjuge
-    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
-        document.getElementById("modal-conjuge-container").classList.remove("hidden");
-    } else {
-        document.getElementById("modal-conjuge-container").classList.add("hidden");
-    }
     
-    // Define o ID para os botões de ação
-    membroParaEditarId = id; // Para edição
-    itemParaExcluir.id = id; // Para exclusão
+    // Simplificado: Remove lógica de abas
+    document.getElementById("modal-detalhes-nome").textContent = membro.nome;
+    document.getElementById("modal-detalhes-funcao").textContent = membro.funcao || 'N/A'; // Movido
+    document.getElementById("modal-detalhes-email").textContent = membro.email || 'N/A';
+    document.getElementById("modal-detalhes-telefone").textContent = membro.telefone || 'N/A';
+    document.getElementById("modal-detalhes-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
+    document.getElementById("modal-detalhes-endereco").textContent = membro.endereco || 'N/A';
+    document.getElementById("modal-detalhes-naturalidade").textContent = membro.naturalidade || 'N/A';
+    document.getElementById("modal-detalhes-cpf").textContent = membro.cpf || 'N/A';
+    document.getElementById("modal-detalhes-rg").textContent = membro.rg || 'N/A';
+    document.getElementById("modal-detalhes-pai").textContent = membro.nomePai || 'N/A';
+    document.getElementById("modal-detalhes-mae").textContent = membro.nomeMae || 'N/A';
+    document.getElementById("modal-detalhes-estado-civil").textContent = membro.estadoCivil || 'N/A';
+    document.getElementById("modal-detalhes-conjuge").textContent = membro.conjuge || 'N/A';
+    document.getElementById("modal-detalhes-profissao").textContent = membro.profissao || 'N/A';
+    document.getElementById("modal-detalhes-escolaridade").textContent = membro.escolaridade || 'N/A';
+    document.getElementById("modal-detalhes-data-batismo").textContent = formatarData(membro.dataBatismo) || 'N/A';
+    document.getElementById("modal-detalhes-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
+    document.getElementById("modal-detalhes-igreja-anterior").textContent = membro.igrejaAnterior || 'N/A';
+    document.getElementById("modal-detalhes-cargo-anterior").textContent = membro.cargoAnterior || 'N/A';
+    
+    // Oculta/mostra campo cônjuge
+    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
+        document.getElementById("conjuge-detalhes-container").classList.remove("hidden");
+    } else {
+        document.getElementById("conjuge-detalhes-container").classList.add("hidden");
+    }
+
+    membroParaEditarId = id; 
+    itemParaExcluir.id = id;
     itemParaExcluir.tipo = 'membro';
 
     membroDetalhesModal.style.display = "block";
@@ -1068,7 +1024,6 @@ function showMembroEditModal() {
     const membro = localMembros.find(m => m.id === membroParaEditarId);
     if (!membro) return;
 
-    // Preenche o formulário de edição
     document.getElementById("edit-nome").value = membro.nome || '';
     document.getElementById("edit-data-nascimento").value = membro.dataNascimento || '';
     document.getElementById("edit-telefone").value = membro.telefone || '';
@@ -1088,19 +1043,17 @@ function showMembroEditModal() {
     document.getElementById("edit-data-chegada").value = membro.dataChegada || '';
     document.getElementById("edit-igreja-anterior").value = membro.igrejaAnterior || '';
     document.getElementById("edit-cargo-anterior").value = membro.cargoAnterior || '';
-
-    // Lógica para mostrar/esconder o campo cônjuge na edição
-    if (document.getElementById("edit-estado-civil").value === 'Casado(a)') {
+    
+    // Mostra/oculta cônjuge na edição
+    if (membro.estadoCivil === 'Casado(a)') {
         editConjugeContainer.classList.remove("hidden");
     } else {
         editConjugeContainer.classList.add("hidden");
     }
     
-    // Limpa erros e senha
     document.getElementById("edit-membro-password").value = "";
     document.getElementById("edit-membro-error").textContent = "";
 
-    // Troca os modais
     membroDetalhesModal.style.display = "none";
     membroEditModal.style.display = "block";
 }
@@ -1117,12 +1070,10 @@ cancelEditMembroBtn.onclick = doCloseMembroEditModal;
 
 // Modal Universal de Exclusão
 function showDeleteModal() {
-    // Limpa o modal
     deleteErrorMsg.textContent = "";
     deleteCascadeWarning.textContent = "";
     document.getElementById("delete-password").value = "";
 
-    // Avisos de exclusão em cascata
     if (itemParaExcluir.tipo === 'financeiro') {
         const fin = localFinanceiro.find(f => f.id === itemParaExcluir.id);
         if (fin && fin.origemId) {
@@ -1132,7 +1083,7 @@ function showDeleteModal() {
         deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o lançamento no Caixa associado a este registo.";
     } else if (itemParaExcluir.tipo === 'membro') {
         deleteCascadeWarning.textContent = "Aviso: Excluir um membro NÃO apaga seus registos financeiros.";
-        membroDetalhesModal.style.display = "none"; // Fecha modal de detalhes
+        membroDetalhesModal.style.display = "none";
     }
 
     deleteConfirmModal.style.display = "block";
@@ -1144,18 +1095,13 @@ cancelDeleteBtn.onclick = () => deleteConfirmModal.style.display = "none";
 
 function adicionarListenersExcluir() {
      document.querySelectorAll(".delete-btn").forEach(button => {
-        // Remove listener antigo para evitar duplicados
         button.removeEventListener("click", handleDeleteClick); 
-        // Adiciona novo listener
         button.addEventListener("click", handleDeleteClick);
     });
 }
 
 function handleDeleteClick(e) {
-    // Impede que o clique se propague (caso esteja dentro de outro link)
     e.stopPropagation(); 
-    
-    // Pega o botão (pode ser o ícone ou o botão)
     const button = e.currentTarget;
     itemParaExcluir.id = button.dataset.id;
     itemParaExcluir.tipo = button.dataset.tipo;
@@ -1182,7 +1128,7 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
         await reauthenticate(password);
     } catch (error) {
         console.error(error);
-        deleteErrorMsg.textContent = error.message; // Exibe "Senha incorreta."
+        deleteErrorMsg.textContent = error.message;
         toggleButtonLoading(deleteSubmitBtn, false, "Excluir Permanentemente");
         return;
     }
@@ -1190,15 +1136,14 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
     // 2. Executar a Exclusão
     try {
         const batch = writeBatch(db);
-        const basePath = "dadosIgreja/ADCA-CG"; // Caminho partilhado
+        const basePath = "dadosIgreja/ADCA-CG";
         
         if (itemParaExcluir.tipo === 'financeiro') {
             const finDocRef = doc(db, basePath, "financeiro", itemParaExcluir.id);
             const finData = localFinanceiro.find(f => f.id === itemParaExcluir.id);
             
-            batch.delete(finDocRef); // Apaga o financeiro
+            batch.delete(finDocRef); 
 
-            // Se tiver origem, apaga a origem
             if (finData && finData.origemId && finData.origemTipo) {
                  const origemCollection = finData.origemTipo === 'dizimo' ? 'dizimos' : 'ofertas';
                  const origemDocRef = doc(db, basePath, origemCollection, finData.origemId);
@@ -1209,9 +1154,8 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
             const dizimoDocRef = doc(db, basePath, "dizimos", itemParaExcluir.id);
             const dizimoData = localDizimos.find(d => d.id === itemParaExcluir.id);
             
-            batch.delete(dizimoDocRef); // Apaga o dízimo
+            batch.delete(dizimoDocRef); 
             
-            // Apaga o financeiro associado
             if (dizimoData && dizimoData.financeiroId) {
                 const finDocRef = doc(db, basePath, "financeiro", dizimoData.financeiroId);
                 batch.delete(finDocRef);
@@ -1221,30 +1165,25 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
             const ofertaDocRef = doc(db, basePath, "ofertas", itemParaExcluir.id);
             const ofertaData = localOfertas.find(o => o.id === itemParaExcluir.id);
 
-            batch.delete(ofertaDocRef); // Apaga a oferta
+            batch.delete(ofertaDocRef); 
 
-            // Apaga o financeiro associado
             if (ofertaData && ofertaData.financeiroId) {
                 const finDocRef = doc(db, basePath, "financeiro", ofertaData.financeiroId);
                 batch.delete(finDocRef);
             }
             
         } else if (itemParaExcluir.tipo === 'membro') {
-            // Exclusão de membro não é em batch, pois não tem cascata financeira
             const membroDocRef = doc(db, basePath, "membros", itemParaExcluir.id);
             await deleteDoc(membroDocRef);
             
-            // Fechamos os modais manually
             deleteConfirmModal.style.display = "none";
             showToast("Membro excluído com sucesso.", "success");
             toggleButtonLoading(deleteSubmitBtn, false, "Excluir Permanentemente");
-            return; // Sai da função aqui
+            return;
         }
 
-        // 3. Commit do Batch (para fin, dizimo, oferta)
         await batch.commit();
         
-        // 4. Fechar modal
         deleteConfirmModal.style.display = "none";
         showToast("Registo excluído com sucesso.", "success");
 
@@ -1270,38 +1209,30 @@ window.onclick = function (event) {
 }
 
 // --- GERAÇÃO DE RELATÓRIO ---
-
 gerarRelatorioBtn.addEventListener("click", () => {
-    // ADICIONADO: try...catch global
     try {
-        // 1. Coletar todos os dados
-        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
+        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0);
         
-        // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
-        const financOrdenado = [...localFinanceiro].sort((a, b) => {
-            const dataA = getDateFromInput(a.data);
-            const dataB = getDateFromInput(b.data);
-            if (!dataA) return 1;
-            if (!dataB) return -1;
-            return dataA - dataB;
-        });
-        const dizimosOrdenados = [...localDizimos].sort((a, b) => {
-            const dataA = getDateFromInput(a.data);
-            const dataB = getDateFromInput(b.data);
-            if (!dataA) return 1;
-            if (!dataB) return -1;
-            return dataA - dataB;
-        });
-        const ofertasOrdenadas = [...localOfertas].sort((a, b) => {
-            const dataA = getDateFromInput(a.data);
-            const dataB = getDateFromInput(b.data);
-            if (!dataA) return 1;
-            if (!dataB) return -1;
-            return dataA - dataB;
-        });
+        // Ordenar dados
+        const dizimosOrdenados = [...localDizimos].sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+        const ofertasOrdenadas = [...localOfertas].sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+        
+        // Separar Extrato Financeiro
+        const extratoEntradas = [...localFinanceiro]
+            .filter(f => f.valor > 0)
+            .sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+        
+        const extratoSaidas = [...localFinanceiro]
+            .filter(f => f.valor < 0)
+            .sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+
+        // Calcular totais
+        const totalDizimos = dizimosOrdenados.reduce((acc, d) => acc + (d.valor || 0), 0);
+        const totalOfertas = ofertasOrdenadas.reduce((acc, o) => acc + (o.valor || 0), 0);
+        const totalEntradas = extratoEntradas.reduce((acc, e) => acc + (e.valor || 0), 0);
+        const totalSaidas = extratoSaidas.reduce((acc, s) => acc + (s.valor || 0), 0); // Valor já é negativo
 
 
-        // 3. Construir o HTML do Relatório
         let relatorioHTML = `
             <html>
             <head>
@@ -1322,7 +1253,8 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     .currency-header { text-align: right; }
                     .entrada { color: #15803d; }
                     .saida { color: #b91c1c; }
-                    .total { font-weight: bold; font-size: 16px; }
+                    .total { font-weight: bold; font-size: 15px; }
+                    .total-final { font-weight: bold; font-size: 18px; }
                 </style>
             </head>
             <body class="bg-gray-100 p-8">
@@ -1333,14 +1265,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
-                    <!-- Resumo -->
-                    <div class="mb-8">
-                        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                            <h3 class="text-lg font-semibold text-blue-800">Saldo Atual (Caixa)</h3>
-                            <p class="text-3xl font-bold ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">R$ ${saldoTotal.toFixed(2).replace(".", ",")}</p>
-                        </div>
-                    </div>
-                    
                     <!-- Dízimos -->
                     <h2>Registos de Dízimos</h2>
                     <table>
@@ -1360,6 +1284,10 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 </tr>
                             `).join('')}
                             ${dizimosOrdenados.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum dízimo registado.</td></tr>' : ''}
+                            <tr class="total bg-gray-50">
+                                <td colspan="2" class="text-right font-bold">TOTAL DÍZIMOS</td>
+                                <td class="currency entrada">R$ ${totalDizimos.toFixed(2).replace(".", ",")}</td>
+                            </tr>
                         </tbody>
                     </table>
                     
@@ -1384,11 +1312,15 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 </tr>
                             `).join('')}
                             ${ofertasOrdenadas.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada.</td></tr>' : ''}
+                             <tr class="total bg-gray-50">
+                                <td colspan="3" class="text-right font-bold">TOTAL OFERTAS/OUTRAS</td>
+                                <td class="currency entrada">R$ ${totalOfertas.toFixed(2).replace(".", ",")}</td>
+                            </tr>
                         </tbody>
                     </table>
 
-                    <!-- Extrato Financeiro -->
-                    <h2>Extrato Financeiro (Caixa)</h2>
+                    <!-- Extrato Financeiro - ENTRADAS -->
+                    <h2>Extrato Financeiro - ENTRADAS (Caixa)</h2>
                     <table>
                         <thead>
                             <tr>
@@ -1398,25 +1330,70 @@ gerarRelatorioBtn.addEventListener("click", () => {
                             </tr>
                         </thead>
                         <tbody>
-                            ${financOrdenado.map(f => `
+                            ${extratoEntradas.map(f => `
                                 <tr>
                                     <td>${formatarData(f.data)}</td>
                                     <td>${f.descricao}</td>
-                                    <td class="currency ${f.valor > 0 ? 'entrada' : 'saida'}">
+                                    <td class="currency entrada">
                                         R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
                                     </td>
                                 </tr>
                             `).join('')}
-                            ${financOrdenado.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum lançamento no caixa.</td></tr>' : ''}
-                            <!-- Linha de Saldo Total -->
+                            ${extratoEntradas.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma entrada registada no caixa.</td></tr>' : ''}
                             <tr class="total bg-gray-50">
-                                <td colspan="2" class="text-right font-bold">SALDO TOTAL</td>
-                                <td class="currency ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">
-                                    R$ ${saldoTotal.toFixed(2).replace(".", ",")}
-                                </td>
+                                <td colspan="2" class="text-right font-bold">TOTAL DE ENTRADAS</td>
+                                <td class="currency entrada">R$ ${totalEntradas.toFixed(2).replace(".", ",")}</td>
                             </tr>
                         </tbody>
                     </table>
+
+                     <!-- Extrato Financeiro - SAÍDAS -->
+                    <h2>Extrato Financeiro - SAÍDAS (Caixa)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th class="currency-header">Valor (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${extratoSaidas.map(f => `
+                                <tr>
+                                    <td>${formatarData(f.data)}</td>
+                                    <td>${f.descricao}</td>
+                                    <td class="currency saida">
+                                        R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                            ${extratoSaidas.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma saída registada no caixa.</td></tr>' : ''}
+                            <tr class="total bg-gray-50">
+                                <td colspan="2" class="text-right font-bold">TOTAL DE SAÍDAS</td>
+                                <td class="currency saida">R$ ${totalSaidas.toFixed(2).replace(".", ",")}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Resumo Final -->
+                    <div class="mt-8 pt-4 border-t-2 border-gray-300">
+                        <div class="w-full max-w-sm ml-auto space-y-2">
+                            <div class="flex justify-between total">
+                                <span>Total de Entradas:</span>
+                                <span class="entrada">R$ ${totalEntradas.toFixed(2).replace(".", ",")}</span>
+                            </div>
+                            <div class="flex justify-between total">
+                                <span>Total de Saídas:</span>
+                                <span class="saida">R$ ${totalSaidas.toFixed(2).replace(".", ",")}</span>
+                            </div>
+                            <div class="flex justify-between total-final pt-2 border-t border-gray-400">
+                                <span>SALDO FINAL (CAIXA):</span>
+                                <span class="${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">
+                                    R$ ${saldoTotal.toFixed(2).replace(".", ",")}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </body>
             </html>
@@ -1425,7 +1402,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
         // 4. Abrir numa nova janela
         const relatorioJanela = window.open("", "_blank");
 
-        // Verificação de bloqueador de pop-up
         if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
             console.error("Falha ao abrir janela de relatório. Provável bloqueador de pop-up.");
             showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
@@ -1436,7 +1412,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
         relatorioJanela.document.close();
     
     } catch (error) {
-        // Pega qualquer erro que possa ter acontecido
         console.error("Erro ao gerar relatório:", error);
         showToast("Ocorreu um erro inesperado ao gerar o relatório.", "error");
     }
@@ -1464,7 +1439,6 @@ function showToast(message, type = 'success') {
     
     toastContainer.appendChild(toast);
 
-    // Remove o toast após 3 segundos
     setTimeout(() => {
         toast.style.animation = "slideOut 0.3s ease-out forwards";
         setTimeout(() => {
@@ -1476,26 +1450,25 @@ function showToast(message, type = 'success') {
 
 // Função de formatação de data
 function formatarData(dataString) {
-    // Se for um Timestamp do Firebase, converte para Date
-    if (dataString && typeof dataString.toDate === 'function') {
-        dataString = dataString.toDate();
-    }
-    // Se for um objeto Date
-    else if (dataString instanceof Date) {
-         // Não faz nada, já é um Date
-    }
-    // Se for uma string (ex: '2025-11-01')
-    else if (typeof dataString === 'string' && dataString.includes('-')) {
-         dataString = getDateFromInput(dataString); // Usa a função robusta
-    } 
-    // Se for inválido ou nulo
-    else {
-        return 'N/A'; // Retorna 'N/A' se a data for inválida
-    }
+    if (!dataString) return 'N/A';
     
     try {
-        // Formata para dd/mm/aaaa
-        return dataString.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+        let dataObj;
+        if (dataString && typeof dataString.toDate === 'function') {
+            dataObj = dataString.toDate();
+        }
+        else if (dataString instanceof Date) {
+             dataObj = dataString;
+        }
+        else if (typeof dataString === 'string' && dataString.includes('-')) {
+             dataObj = getDateFromInput(dataString);
+             if (!dataObj) return 'N/A';
+        } 
+        else {
+            return 'N/A'; 
+        }
+        
+        return dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
     } catch (e) {
         console.warn("Erro ao formatar data:", dataString, e);
         return 'N/A';
@@ -1503,23 +1476,19 @@ function formatarData(dataString) {
 }
 
 // Converte string 'aaaa-mm-dd' ou Timestamp para um Date UTC
-// CORRIGIDO para ser mais robusto
 function getDateFromInput(dataInput) {
     try {
-        // Se for um Timestamp do Firebase
+        if (!dataInput) return null;
+        
         if (dataInput && typeof dataInput.toDate === 'function') {
-            return dataInput.toDate(); // Retorna o objeto Date
+            return dataInput.toDate();
         }
-        // Se já for um objeto Date
         if (dataInput instanceof Date) {
-            return dataInput; // Corrigido: dataInput
+            return dataInput;
         }
-        // Se for uma string (ex: '2025-11-01')
         if (typeof dataInput === 'string' && dataInput.includes('-')) {
             const parts = dataInput.split('-');
             if (parts.length === 3) {
-                // Ano, Mês (base 0), Dia
-                // Garante que seja UTC para evitar problemas de fuso
                 return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
             }
         }
@@ -1527,25 +1496,23 @@ function getDateFromInput(dataInput) {
         console.error("Data inválida:", dataInput, e);
         return null;
     }
-    // Fallback para data inválida ou formato desconhecido
     return null;
 }
 
 // Calcula a idade
 function calcularIdade(dataNascimento) {
-    if (!dataNascimento) return 'N/A';
+    if (!dataNascimento) return null;
     
     const dataNasc = getDateFromInput(dataNascimento);
-    if (!dataNasc) return 'N/A';
+    if (!dataNasc) return null;
 
     const hoje = new Date();
-    let idade = hoje.getFullYear() - dataNasc.getUTCFullYear();
-    const m = hoje.getMonth() - dataNasc.getUTCMonth();
+    let idade = hoje.getUTCFullYear() - dataNasc.getUTCFullYear();
+    const m = hoje.getUTCMonth() - dataNasc.getUTCMonth();
     
-    if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getUTCDate())) {
+    if (m < 0 || (m === 0 && hoje.getUTCDate() < dataNasc.getUTCDate())) {
         idade--;
     }
-    
     return idade;
 }
 
