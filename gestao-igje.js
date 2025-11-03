@@ -37,9 +37,6 @@ const firebaseConfig = {
 
 // Inicialização do Firebase
 let app, auth, db, userId;
-// ADICIONADO: Caminho partilhado para o banco de dados
-const dbPath = "dadosIgreja/ADCA-CG"; 
-
 try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
@@ -129,7 +126,7 @@ registerForm.addEventListener("submit", async (e) => {
     // 2. Verificar a COMBINAÇÃO de Nome e Telefone
     // Limpa os dados para comparação
     const nomeLimpo = nome.trim().toLowerCase();
-    const telefoneLimpo = telefone.replace(/\D/g, ''); 
+    const telefoneLimpo = telefone.replace(/\D/g, ''); // Remove não-dígitos
 
     // Mapeamento dos utilizadores permitidos (nome em minúsculo -> telefone limpo)
     const allowedUsers = {
@@ -146,16 +143,13 @@ registerForm.addEventListener("submit", async (e) => {
     
     // 3. Verificar se o telefone já está em uso (verificação de unicidade)
     try {
-        const q = query(collection(db, "users"), where("telefone", "==", telefone.trim()));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-            registerError.textContent = "Este número de telefone já está cadastrado.";
-            toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
-            return;
-        }
+        // Como agora os dados são partilhados, não podemos verificar unicidade
+        // na coleção 'users'. Esta verificação não é mais necessária
+        // pois a validação acima já restringe quem pode criar.
+        // Se a regra fosse "telefone único", precisaríamos de uma coleção 'telefones'
+        // mas para este caso (apenas 2 utilizadores), está ok.
     } catch (error) {
-         // Ignora este erro se as regras do firestore não permitirem a leitura (continuar para cadastro)
+         // Apenas um aviso, não bloqueia o cadastro
          console.warn("Não foi possível verificar o telefone (pode ser regra de segurança):", error.message);
     }
 
@@ -166,21 +160,14 @@ registerForm.addEventListener("submit", async (e) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 5. Salvar dados do perfil no Firestore
-        // (Opcional, mas útil se você quiser associar o telefone ao UID)
-        try {
-            await setDoc(doc(db, "users", user.uid), {
-                nome: nome.trim(),
-                telefone: telefone.trim(),
-                email: email,
-                createdAt: Timestamp.now()
-            });
-        } catch (e) {
-             console.warn("Não foi possível salvar o perfil do usuário (pode ser regra de segurança):", e.message);
-        }
-        
-
-        // O onAuthStateChanged vai pegar a partir daqui
+        // 5. Salvar dados do perfil no Firestore (na coleção partilhada)
+        // Opcional, mas bom para referência
+        await setDoc(doc(db, "dadosIgreja", "ADCA-CG", "perfisUtilizadores", user.uid), {
+            nome: nome.trim(),
+            telefone: telefone.trim(),
+            email: email,
+            createdAt: Timestamp.now()
+        });
         
     } catch (error) {
         console.error("Erro no cadastro:", error.code, error.message);
@@ -232,11 +219,11 @@ logoutButton.addEventListener("click", async () => {
 onAuthStateChanged(auth, (user) => {
     if (user) {
         // Usuário está logado
-        userId = user.uid;
+        userId = user.uid; // O userId ainda é útil para reautenticação
         userEmailDisplay.textContent = user.email;
         authScreen.style.display = "none";
         appContent.style.display = "block";
-        loadAllData(userId); // Carrega os dados do usuário
+        loadAllData(); // Carrega os dados partilhados
         
         // Define as datas dos formulários para hoje
         document.getElementById("dizimo-data").valueAsDate = new Date();
@@ -252,7 +239,6 @@ onAuthStateChanged(auth, (user) => {
         stopAllListeners(); // Para de ouvir dados
     }
 });
-
 
 // --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
 
@@ -283,7 +269,8 @@ async function reauthenticate(password) {
 
 // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
 
-const tabButtons = document.querySelectorAll(".app-tab-button"); // Corrigido
+// ATUALIZADO: Seletor
+const tabButtons = document.querySelectorAll(".app-tab-button");
 const tabContents = document.querySelectorAll(".tab-content:not(#login-tab):not(#register-tab)");
 
 tabButtons.forEach(button => {
@@ -326,7 +313,7 @@ estadoCivilSelect.addEventListener("change", () => {
 
 formMembro.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId) return;
+    if (!userId) return; // Precisa estar logado
 
     toggleButtonLoading(membroSubmitBtn, true, "Salvar Membro");
 
@@ -352,8 +339,8 @@ formMembro.addEventListener("submit", async (e) => {
     };
 
     try {
-        // MODIFICADO: Remove "users" e "userId" do caminho
-        const docRef = collection(db, dbPath, "membros");
+        // ATUALIZADO: Caminho partilhado
+        const docRef = collection(db, "dadosIgreja", "ADCA-CG", "membros");
         await addDoc(docRef, dadosMembro);
 
         formMembro.reset();
@@ -431,8 +418,8 @@ formEditMembro.addEventListener("submit", async (e) => {
     
     // 3. Atualizar no Firebase
     try {
-        // MODIFICADO: Remove "users" e "userId" do caminho
-        const docRef = doc(db, dbPath, "membros", membroParaEditarId);
+        // ATUALIZADO: Caminho partilhado
+        const docRef = doc(db, "dadosIgreja", "ADCA-CG", "membros", membroParaEditarId);
         await updateDoc(docRef, dadosAtualizados);
         
         // Sucesso
@@ -476,8 +463,8 @@ formDizimo.addEventListener("submit", async (e) => {
         const batch = writeBatch(db);
 
         // 1. Cria o documento de dízimo
-        // MODIFICADO: Remove "users" e "userId" do caminho
-        const dizimoDocRef = doc(collection(db, dbPath, "dizimos"));
+        // ATUALIZADO: Caminho partilhado
+        const dizimoDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "dizimos"));
         batch.set(dizimoDocRef, {
             membroId: membroId,
             membroNome: membroNome,
@@ -488,8 +475,8 @@ formDizimo.addEventListener("submit", async (e) => {
         });
 
         // 2. Cria o documento financeiro
-        // MODIFICADO: Remove "users" e "userId" do caminho
-        const financeiroDocRef = doc(collection(db, dbPath, "financeiro"));
+        // ATUALIZADO: Caminho partilhado
+        const financeiroDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `Dízimo - ${membroNome}`,
@@ -544,8 +531,8 @@ formOferta.addEventListener("submit", async (e) => {
         const batch = writeBatch(db);
 
         // 1. Cria o documento de oferta
-        // MODIFICADO: Remove "users" e "userId" do caminho
-        const ofertaDocRef = doc(collection(db, dbPath, "ofertas"));
+        // ATUALIZADO: Caminho partilhado
+        const ofertaDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "ofertas"));
         batch.set(ofertaDocRef, {
             tipo: tipo,
             descricao: descricao,
@@ -556,8 +543,8 @@ formOferta.addEventListener("submit", async (e) => {
         });
 
         // 2. Cria o documento financeiro
-        // MODIFICADO: Remove "users" e "userId" do caminho
-        const financeiroDocRef = doc(collection(db, dbPath, "financeiro"));
+        // ATUALIZADO: Caminho partilhado
+        const financeiroDocRef = doc(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `${tipo} - ${descricao}`,
@@ -608,8 +595,8 @@ formFinanceiro.addEventListener("submit", async (e) => {
     }
 
     try {
-        // MODIFICADO: Remove "users" e "userId" do caminho
-        const colRef = collection(db, dbPath, "financeiro");
+        // ATUALIZADO: Caminho partilhado
+        const colRef = collection(db, "dadosIgreja", "ADCA-CG", "financeiro");
         await addDoc(colRef, {
             tipo: "saida",
             descricao: descricao,
@@ -634,12 +621,14 @@ formFinanceiro.addEventListener("submit", async (e) => {
 
 // --- CARREGAMENTO E RENDERIZAÇÃO DE DADOS ---
 
-// Função principal para carregar dados
-function loadAllData(currentUserId) {
-    if (!currentUserId) return;
-    console.log("Carregando dados para o usuário:", currentUserId);
-    document.getElementById("dashboard-loading").innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
+// ATUALIZADO: Caminho partilhado
+const path = "dadosIgreja/ADCA-CG"; 
 
+// Função principal para carregar dados
+function loadAllData() {
+    if (!userId) return;
+    console.log("Carregando dados partilhados de:", path);
+    document.getElementById("dashboard-loading").innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
 
     // Parar listeners antigos se existirem
     stopAllListeners();
@@ -656,8 +645,8 @@ function loadAllData(currentUserId) {
 
     // Ouvir Membros
     try {
-        // MODIFICADO: Remove "users" e "userId" do caminho
-        const qMembros = query(collection(db, dbPath, "membros"));
+        // ATUALIZADO: Caminho partilhado
+        const qMembros = query(collection(db, path, "membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
             localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             localMembros.sort((a, b) => a.nome.localeCompare(b.nome)); // Ordena por nome
@@ -669,8 +658,8 @@ function loadAllData(currentUserId) {
 
     // Ouvir Dízimos
     try {
-        // MODIFICADO: Remove "users" e "userId" do caminho
-        const qDizimos = query(collection(db, dbPath, "dizimos"));
+        // ATUALIZADO: Caminho partilhado
+        const qDizimos = query(collection(db, path, "dizimos"));
         unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
             localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroDizimos(); // Renderiza os filtros
@@ -680,8 +669,8 @@ function loadAllData(currentUserId) {
 
     // Ouvir Ofertas
     try {
-        // MODIFICADO: Remove "users" e "userId" do caminho
-        const qOfertas = query(collection(db, dbPath, "ofertas"));
+        // ATUALIZADO: Caminho partilhado
+        const qOfertas = query(collection(db, path, "ofertas"));
         unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
             localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroOfertas(); // Renderiza os filtros
@@ -692,8 +681,8 @@ function loadAllData(currentUserId) {
 
     // Ouvir Financeiro
     try {
-        // MODIFICADO: Remove "users" e "userId" do caminho
-        const qFinanceiro = query(collection(db, dbPath, "financeiro"));
+        // ATUALIZADO: Caminho partilhado
+        const qFinanceiro = query(collection(db, path, "financeiro"));
         unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
             localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
@@ -741,17 +730,23 @@ filtroMembros.addEventListener("input", (e) => {
 function renderMembros(membros) {
     listaMembros.innerHTML = ""; // Limpa a lista
     if (membros.length === 0) {
-        listaMembros.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum membro encontrado.</td></tr>';
+        listaMembros.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhum membro encontrado.</td></tr>';
         return;
     }
     membros.forEach(membro => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50";
+
+        // ADICIONADO: Cálculo da idade
+        const idade = calcularIdade(membro.dataNascimento);
+
         tr.innerHTML = `
         <td class="px-6 py-4 whitespace-nowrap">
             <a href="#" class="text-blue-600 hover:text-blue-800 font-medium" data-id="${membro.id}">${membro.nome}</a>
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.funcao || ''}</td>
+        <!-- ADICIONADO: Coluna Idade -->
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${idade}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.telefone || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.email || ''}</td>
     `;
@@ -903,7 +898,7 @@ function renderFiltroDizimos() {
     const ano = parseInt(filtroDizimoAno.value);
 
     const dadosFiltrados = localDizimos.filter(d => {
-        const data = getDateFromInput(d.data); // <-- CORRIGIDO
+        const data = getDateFromInput(d.data); 
         if (!data) return false; // Ignora datas inválidas
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
@@ -946,7 +941,7 @@ function renderFiltroOfertas() {
     const ano = parseInt(filtroOfertaAno.value);
 
     const dadosFiltrados = localOfertas.filter(d => {
-        const data = getDateFromInput(d.data); // <-- CORRIGIDO
+        const data = getDateFromInput(d.data); 
         if (!data) return false;
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
@@ -1011,7 +1006,7 @@ function updateDashboard() {
     const anoCorrente = new Date().getFullYear();
 
     const transacoesMes = localFinanceiro.filter(t => {
-        const data = getDateFromInput(t.data); // <-- CORRIGIDO
+        const data = getDateFromInput(t.data); 
         if (!data) return false;
         return data.getUTCMonth() === mesCorrente && data.getUTCFullYear() === anoCorrente;
     });
@@ -1033,6 +1028,7 @@ function updateDashboard() {
 // Modal Detalhes do Membro
 const membroDetalhesModal = document.getElementById("membro-detalhes-modal");
 const closeMembroModal = document.getElementById("close-membro-modal");
+const modalConjugeContainer = document.getElementById("modal-conjuge-container");
 
 function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
@@ -1046,24 +1042,24 @@ function showMembroDetalhesModal(id) {
     document.getElementById("modal-cpf").textContent = membro.cpf || 'N/A';
     document.getElementById("modal-rg").textContent = membro.rg || 'N/A';
     document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
-    document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
     document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
+    
+    // Campo Cônjuge condicional
+    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
+        document.getElementById("modal-conjuge").textContent = membro.conjuge;
+        modalConjugeContainer.classList.remove("hidden");
+    } else {
+        modalConjugeContainer.classList.add("hidden");
+    }
+
     document.getElementById("modal-profissao").textContent = membro.profissao || 'N/A';
     document.getElementById("modal-escolaridade").textContent = membro.escolaridade || 'N/A';
+    document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
     document.getElementById("modal-funcao").textContent = membro.funcao || 'N/A';
     document.getElementById("modal-data-batismo").textContent = formatarData(membro.dataBatismo) || 'N/A';
     document.getElementById("modal-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
     document.getElementById("modal-igreja-anterior").textContent = membro.igrejaAnterior || 'N/A';
     document.getElementById("modal-cargo-anterior").textContent = membro.cargoAnterior || 'N/A';
-
-    // Campo Cônjuge (condicional)
-    const conjugeDetalhesContainer = document.getElementById("modal-conjuge-container");
-    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
-        document.getElementById("modal-conjuge").textContent = membro.conjuge;
-        conjugeDetalhesContainer.classList.remove("hidden");
-    } else {
-        conjugeDetalhesContainer.classList.add("hidden");
-    }
     
     // Define o ID para os botões de ação
     membroParaEditarId = id; // Para edição
@@ -1102,14 +1098,14 @@ function showMembroEditModal() {
     document.getElementById("edit-data-chegada").value = membro.dataChegada || '';
     document.getElementById("edit-igreja-anterior").value = membro.igrejaAnterior || '';
     document.getElementById("edit-cargo-anterior").value = membro.cargoAnterior || '';
-    
+
     // Mostra/Esconde campo Cônjuge
     if (membro.estadoCivil === 'Casado(a)') {
         editConjugeContainer.classList.remove("hidden");
     } else {
         editConjugeContainer.classList.add("hidden");
     }
-
+    
     // Limpa erros e senha
     document.getElementById("edit-membro-password").value = "";
     document.getElementById("edit-membro-error").textContent = "";
@@ -1216,8 +1212,8 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
         const batch = writeBatch(db);
         
         if (itemParaExcluir.tipo === 'financeiro') {
-            // MODIFICADO: Remove "users" e "userId" do caminho
-            const finDocRef = doc(db, dbPath, "financeiro", itemParaExcluir.id);
+            // ATUALIZADO: Caminho partilhado
+            const finDocRef = doc(db, path, "financeiro", itemParaExcluir.id);
             const finData = localFinanceiro.find(f => f.id === itemParaExcluir.id);
             
             batch.delete(finDocRef); // Apaga o financeiro
@@ -1225,43 +1221,43 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
             // Se tiver origem, apaga a origem
             if (finData && finData.origemId && finData.origemTipo) {
                  const origemCollection = finData.origemTipo === 'dizimo' ? 'dizimos' : 'ofertas';
-                 // MODIFICADO: Remove "users" e "userId" do caminho
-                 const origemDocRef = doc(db, dbPath, origemCollection, finData.origemId);
+                 // ATUALIZADO: Caminho partilhado
+                 const origemDocRef = doc(db, path, origemCollection, finData.origemId);
                  batch.delete(origemDocRef);
             }
         
         } else if (itemParaExcluir.tipo === 'dizimo') {
-            // MODIFICADO: Remove "users" e "userId" do caminho
-            const dizimoDocRef = doc(db, dbPath, "dizimos", itemParaExcluir.id);
+            // ATUALIZADO: Caminho partilhado
+            const dizimoDocRef = doc(db, path, "dizimos", itemParaExcluir.id);
             const dizimoData = localDizimos.find(d => d.id === itemParaExcluir.id);
             
             batch.delete(dizimoDocRef); // Apaga o dízimo
             
             // Apaga o financeiro associado
             if (dizimoData && dizimoData.financeiroId) {
-                // MODIFICADO: Remove "users" e "userId" do caminho
-                const finDocRef = doc(db, dbPath, "financeiro", dizimoData.financeiroId);
+                // ATUALIZADO: Caminho partilhado
+                const finDocRef = doc(db, path, "financeiro", dizimoData.financeiroId);
                 batch.delete(finDocRef);
             }
 
         } else if (itemParaExcluir.tipo === 'oferta') {
-            // MODIFICADO: Remove "users" e "userId" do caminho
-            const ofertaDocRef = doc(db, dbPath, "ofertas", itemParaExcluir.id);
+            // ATUALIZADO: Caminho partilhado
+            const ofertaDocRef = doc(db, path, "ofertas", itemParaExcluir.id);
             const ofertaData = localOfertas.find(o => o.id === itemParaExcluir.id);
 
             batch.delete(ofertaDocRef); // Apaga a oferta
 
             // Apaga o financeiro associado
             if (ofertaData && ofertaData.financeiroId) {
-                // MODIFICADO: Remove "users" e "userId" do caminho
-                const finDocRef = doc(db, dbPath, "financeiro", ofertaData.financeiroId);
+                // ATUALIZADO: Caminho partilhado
+                const finDocRef = doc(db, path, "financeiro", ofertaData.financeiroId);
                 batch.delete(finDocRef);
             }
             
         } else if (itemParaExcluir.tipo === 'membro') {
             // Exclusão de membro não é em batch, pois não tem cascata financeira
-            // MODIFICADO: Remove "users" e "userId" do caminho
-            const membroDocRef = doc(db, dbPath, "membros", itemParaExcluir.id);
+            // ATUALIZADO: Caminho partilhado
+            const membroDocRef = doc(db, path, "membros", itemParaExcluir.id);
             await deleteDoc(membroDocRef);
             
             // Fechamos os modais manually
@@ -1307,7 +1303,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
     // ADICIONADO: try...catch global
     try {
         // 1. Coletar todos os dados
-        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
+        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0);
         
         // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
         const financOrdenado = [...localFinanceiro].sort((a, b) => {
@@ -1536,7 +1532,6 @@ function formatarData(dataString) {
 }
 
 // Converte string 'aaaa-mm-dd' ou Timestamp para um Date UTC
-// CORRIGIDO para ser mais robusto
 function getDateFromInput(dataInput) {
     try {
         // Se for um Timestamp do Firebase
@@ -1545,7 +1540,7 @@ function getDateFromInput(dataInput) {
         }
         // Se já for um objeto Date
         if (dataInput instanceof Date) {
-            return dataInput; // Corrigido: dataInput
+            return dataInput; 
         }
         // Se for uma string (ex: '2025-11-01')
         if (typeof dataInput === 'string' && dataInput.includes('-')) {
@@ -1562,6 +1557,30 @@ function getDateFromInput(dataInput) {
     }
     // Fallback para data inválida ou formato desconhecido
     return null;
+}
+
+// ADICIONADA: Nova função para calcular a idade
+function calcularIdade(dataNascimento) {
+    const birthDate = getDateFromInput(dataNascimento); // Reutiliza a nossa função robusta
+    if (!birthDate) {
+        return 'N/A';
+    }
+    
+    try {
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getUTCFullYear();
+        const m = today.getUTCMonth() - birthDate.getUTCMonth();
+        
+        // Verifica se o aniversário deste ano já passou (comparando em UTC)
+        if (m < 0 || (m === 0 && today.getUTCDate() < birthDate.getUTCDate())) {
+            age--;
+        }
+        
+        return age;
+    } catch (e) {
+        console.error("Erro ao calcular idade:", e);
+        return 'N/A';
+    }
 }
 
 
