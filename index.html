@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- TÍTULO ATUALIZADO -->
+    <!-- Título Atualizado -->
     <title>GESTÃO ADCA - CAPOEIRA GRANDE</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,15 +16,19 @@
 
 <body class="bg-gray-100 font-sans antialiased text-gray-800">
 
+    <!-- Container para Notificações (Toasts) -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[200] space-y-2">
+        <!-- Toasts serão injetados aqui -->
+    </div>
+
     <!-- Tela de Autenticação (Login/Cadastro) -->
-    <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gray-200 p-4">
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gray-200">
         <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
             <!-- Abas de Login / Cadastro -->
-            <div class="flex border-b mb-6">
-                <!-- ATUALIZADO: Classe CSS -->
+            <div class="flex border-b mb-4">
+                <!-- Classes atualizadas -->
                 <button id="login-tab-button"
                     class="auth-tab-button flex-1 py-2 px-4 text-center text-lg active">Acesso</button>
-                <!-- ATUALIZADO: Classe CSS -->
                 <button id="register-tab-button"
                     class="auth-tab-button flex-1 py-2 px-4 text-center text-lg">Primeiro Acesso</button>
             </div>
@@ -32,6 +36,7 @@
             <!-- Conteúdo das Abas de Autenticação -->
             <!-- Formulário de Login -->
             <div id="login-tab" class="tab-content active">
+                <!-- Título Atualizado -->
                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Aceder à GESTÃO ADCA</h2>
                 <form id="login-form">
                     <div class="mb-4">
@@ -44,34 +49,34 @@
                         <input type="password" id="login-password" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <button type="submit" id="login-submit-btn"
-                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 h-10 flex items-center justify-center">
+                    <button id="login-submit-btn" type="submit"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 h-[40px] flex items-center justify-center">
                         Entrar
                     </button>
-                    <p id="login-error" class="text-red-500 text-sm mt-4 text-center h-5"></p>
+                    <p id="login-error" class="text-red-500 text-sm mt-4 text-center"></p>
                 </form>
             </div>
 
             <!-- Formulário de Cadastro (Primeiro Acesso) -->
             <div id="register-tab" class="tab-content">
-                <h2 class="text-2xl font-bold mb-6 text-center text-green-600">Criar Conta (Primeiro Acesso)</h2>
+                <h2 class="text-2xl font-bold mb-6 text-center text-green-600">Criar Conta</h2>
                 <form id="register-form">
-                    <!-- CAMPOS ADICIONADOS -->
+                    <!-- Novos campos de Nome e Telefone -->
                     <div class="mb-4">
                         <label for="register-name" class="block text-sm font-medium text-gray-700 mb-1">Nome
                             Completo:</label>
                         <input type="text" id="register-name" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                            placeholder="Ex: Pr. Gabriel">
                     </div>
                     <div class="mb-4">
                         <label for="register-phone" class="block text-sm font-medium text-gray-700 mb-1">Nº de
-                            Telefone (com DDD):</label>
+                            Telefone:</label>
                         <input type="tel" id="register-phone" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                             placeholder="Ex: 21912345678">
                     </div>
-                    <hr class="my-4">
-                    <!-- Campos Originais -->
+                    <!-- Campos existentes -->
                     <div class="mb-4">
                         <label for="register-email" class="block text-sm font-medium text-gray-700 mb-1">Email:</label>
                         <input type="email" id="register-email" required
@@ -84,11 +89,11 @@
                         <input type="password" id="register-password" required minlength="6"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                     </div>
-                    <button type="submit" id="register-submit-btn"
-                        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150 h-10 flex items-center justify-center">
+                    <button id="register-submit-btn" type="submit"
+                        class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150 h-[40px] flex items-center justify-center">
                         Cadastrar
                     </button>
-                    <p id="register-error" class="text-red-500 text-sm mt-4 text-center h-5"></p>
+                    <p id="register-error" class="text-red-500 text-sm mt-4 text-center"></p>
                 </form>
             </div>
         </div>
@@ -100,12 +105,10 @@
         <!-- Cabeçalho -->
         <header class="bg-blue-600 text-white shadow-md">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <!-- TÍTULO ATUALIZADO -->
-                    <h1 class="text-xl sm:text-2xl font-bold">GESTÃO ADCA - CAPOEIRA GRANDE</h1>
-                </div>
+                <!-- Título Atualizado -->
+                <h1 class="text-lg sm:text-2xl font-bold">GESTÃO ADCA - CAPOEIRA GRANDE</h1>
                 <div class="flex items-center">
-                    <span id="user-email-display" class="text-sm hidden sm:inline mr-4"></span>
+                    <span id="user-email-display" class="text-sm hidden sm:inline-block mr-4"></span>
                     <button id="logout-button"
                         class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm font-medium transition duration-150">
                         Sair
@@ -113,29 +116,28 @@
                 </div>
             </div>
             <!-- Abas de Navegação -->
-            <nav class="container mx-auto px-4 flex space-x-1 sm:space-x-4 overflow-x-auto">
-                <!-- ATUALIZADO: Classe CSS -->
-                <button data-tab="dashboard" class="app-tab-button py-3 px-2 sm:px-3 text-sm font-medium text-white active">
+            <nav class="container mx-auto px-4 flex space-x-4 overflow-x-auto">
+                <!-- Classes e IDs atualizados para permissões -->
+                <button id="tab-btn-dashboard" data-tab="dashboard"
+                    class="app-tab-button py-3 px-3 text-sm font-medium active">
                     <i data-lucide="layout-dashboard" class="inline-block w-4 h-4 mr-1"></i> Dashboard
                 </button>
-                <!-- ATUALIZADO: Classe CSS -->
-                <button data-tab="cadastrar-membro" class="app-tab-button py-3 px-2 sm:px-3 text-sm font-medium text-white">
+                <button id="tab-btn-cadastrar-membro" data-tab="cadastrar-membro"
+                    class="app-tab-button py-3 px-3 text-sm font-medium">
                     <i data-lucide="user-plus" class="inline-block w-4 h-4 mr-1"></i> Cadastrar Membro
                 </button>
-                <!-- ATUALIZADO: Classe CSS -->
-                <button data-tab="visualizar-membros" class="app-tab-button py-3 px-2 sm:px-3 text-sm font-medium text-white">
+                <button id="tab-btn-visualizar-membros" data-tab="visualizar-membros"
+                    class="app-tab-button py-3 px-3 text-sm font-medium">
                     <i data-lucide="users" class="inline-block w-4 h-4 mr-1"></i> Visualizar Membros
                 </button>
-                <!-- ATUALIZADO: Classe CSS -->
-                <button data-tab="dizimos" class="app-tab-button py-3 px-2 sm:px-3 text-sm font-medium text-white">
+                <button id="tab-btn-dizimos" data-tab="dizimos" class="app-tab-button py-3 px-3 text-sm font-medium">
                     <i data-lucide="hand-heart" class="inline-block w-4 h-4 mr-1"></i> Dízimos
                 </button>
-                <!-- ATUALIZADO: Classe CSS -->
-                <button data-tab="ofertas" class="app-tab-button py-3 px-2 sm:px-3 text-sm font-medium text-white">
+                <button id="tab-btn-ofertas" data-tab="ofertas" class="app-tab-button py-3 px-3 text-sm font-medium">
                     <i data-lucide="gift" class="inline-block w-4 h-4 mr-1"></i> Ofertas e Outras
                 </button>
-                <!-- ATUALIZADO: Classe CSS -->
-                <button data-tab="financeiro" class="app-tab-button py-3 px-2 sm:px-3 text-sm font-medium text-white">
+                <button id="tab-btn-financeiro" data-tab="financeiro"
+                    class="app-tab-button py-3 px-3 text-sm font-medium">
                     <i data-lucide="dollar-sign" class="inline-block w-4 h-4 mr-1"></i> Financeiro (Caixa)
                 </button>
             </nav>
@@ -199,21 +201,21 @@
                     </div>
                 </div>
 
-                <!-- Botão de Relatório -->
-                <div class="mt-8 bg-white p-6 rounded-lg shadow-lg text-center">
+                <!-- Botão de Relatório (ID atualizado) -->
+                <div id="relatorio-container" class="mt-8 bg-white p-6 rounded-lg shadow-lg text-center">
                     <h3 class="text-xl font-semibold mb-4">Relatório Geral</h3>
-                    <p class="text-gray-600 mb-4">Gere um relatório completo de todas as finanças para impressão.</p>
+                    <p class="text-gray-600 mb-4">Gere um relatório completo de todas as finanças e membros para
+                        impressão.</p>
                     <button id="gerar-relatorio-btn"
-                        class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 h-10 flex items-center justify-center mx-auto">
+                        class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
                         <i data-lucide="printer" class="inline-block w-4 h-4 mr-2"></i>
                         Gerar Relatório Completo
                     </button>
                 </div>
 
                 <!-- Aviso de Carregamento -->
-                <div id="dashboard-loading" class="text-gray-500 mt-4 flex items-center justify-center gap-2">
-                    <!-- Spinner será inserido aqui pelo JS -->
-                </div>
+                <p id="dashboard-loading"
+                    class="text-gray-500 mt-4 flex items-center justify-center space-x-2"></p>
             </div>
 
             <!-- (ABA) Cadastrar Membro -->
@@ -221,136 +223,144 @@
                 <div class="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
                     <h2 class="text-2xl font-semibold mb-6">Cadastrar Novo Membro</h2>
                     <form id="form-membro">
+                        <!-- Wrapper para colunas -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <!-- Coluna 1 -->
-                            <div class="md:col-span-2">
-                                <label for="nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                                <input type="text" id="nome"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    required>
-                            </div>
-                            <div>
-                                <label for="data-nascimento" class="block text-sm font-medium text-gray-700">Data de
-                                    Nascimento</label>
-                                <input type="date" id="data-nascimento"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+
+                            <!-- Coluna 1: Dados Pessoais -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-medium text-gray-700 border-b pb-2">Dados Pessoais</h3>
+                                <div>
+                                    <label for="nome" class="block text-sm font-medium text-gray-700">Nome
+                                        Completo</label>
+                                    <input type="text" id="nome"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        required>
+                                </div>
+                                <div>
+                                    <label for="data-nascimento" class="block text-sm font-medium text-gray-700">Data de
+                                        Nascimento</label>
+                                    <input type="date" id="data-nascimento"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="telefone"
+                                        class="block text-sm font-medium text-gray-700">Telefone</label>
+                                    <input type="tel" id="telefone"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                                    <input type="email" id="email"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="cpf" class="block text-sm font-medium text-gray-700">CPF</label>
+                                    <input type="text" id="cpf"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="rg" class="block text-sm font-medium text-gray-700">RG</label>
+                                    <input type="text" id="rg"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="naturalidade"
+                                        class="block text-sm font-medium text-gray-700">Naturalidade</label>
+                                    <input type="text" id="naturalidade"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Ex: Rio de Janeiro - RJ">
+                                </div>
+                                <div>
+                                    <label for="endereco"
+                                        class="block text-sm font-medium text-gray-700">Endereço</label>
+                                    <textarea id="endereco" rows="3"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                                </div>
                             </div>
 
-                            <!-- Linha 2 -->
-                            <div>
-                                <label for="telefone" class="block text-sm font-medium text-gray-700">Telefone</label>
-                                <input type="tel" id="telefone"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                                <input type="email" id="email"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-
-                            <!-- Linha 3 -->
-                            <div>
-                                <label for="cpf" class="block text-sm font-medium text-gray-700">CPF</label>
-                                <input type="text" id="cpf"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="rg" class="block text-sm font-medium text-gray-700">RG</label>
-                                <input type="text" id="rg"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="naturalidade"
-                                    class="block text-sm font-medium text-gray-700">Naturalidade</label>
-                                <input type="text" id="naturalidade"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Ex: Rio de Janeiro - RJ">
-                            </div>
-
-                            <!-- Linha 4 -->
-                            <div class="md:col-span-3">
-                                <label for="endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
-                                <textarea id="endereco" rows="2"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
-                            </div>
-
-                            <!-- Linha 5 (Condicional) -->
-                            <div>
-                                <label for="estado-civil" class="block text-sm font-medium text-gray-700">Estado
-                                    Civil</label>
-                                <select id="estado-civil"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Selecione...</option>
-                                    <option value="Solteiro(a)">Solteiro(a)</option>
-                                    <option value="Casado(a)">Casado(a)</option>
-                                    <option value="Divorciado(a)">Divorciado(a)</option>
-                                    <option value="Viúvo(a)">Viúvo(a)</option>
-                                </select>
-                            </div>
-                            <div id="conjuge-container" class="md:col-span-2 hidden">
-                                <label for="conjuge" class="block text-sm font-medium text-gray-700">Nome do
-                                    Cônjuge</label>
-                                <input type="text" id="conjuge"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <!-- Coluna 2: Dados Familiares e Profissionais -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-medium text-gray-700 border-b pb-2">Família & Profissão</h3>
+                                <div>
+                                    <label for="estado-civil" class="block text-sm font-medium text-gray-700">Estado
+                                        Civil</label>
+                                    <select id="estado-civil"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <option>Solteiro(a)</option>
+                                        <option>Casado(a)</option>
+                                        <option>Divorciado(a)</option>
+                                        <option>Viúvo(a)</option>
+                                    </select>
+                                </div>
+                                <!-- Campo Cônjuge (Oculto) -->
+                                <div id="conjuge-container" class="hidden">
+                                    <label for="conjuge" class="block text-sm font-medium text-gray-700">Nome do
+                                        Cônjuge</label>
+                                    <input type="text" id="conjuge"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="profissao"
+                                        class="block text-sm font-medium text-gray-700">Profissão</label>
+                                    <input type="text" id="profissao"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="escolaridade"
+                                        class="block text-sm font-medium text-gray-700">Escolaridade</label>
+                                    <select id="escolaridade"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <option>Ensino Fundamental</option>
+                                        <option selected>Ensino Médio</option>
+                                        <option>Ensino Superior</option>
+                                        <option>Pós-graduação</option>
+                                        <option>Outro</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <!-- Linha 6 -->
-                            <div>
-                                <label for="profissao"
-                                    class="block text-sm font-medium text-gray-700">Profissão</label>
-                                <input type="text" id="profissao"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="escolaridade"
-                                    class="block text-sm font-medium text-gray-700">Escolaridade</label>
-                                <input type="text" id="escolaridade"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Ex: Ensino Médio Completo">
-                            </div>
-
-                            <!-- Linha 7 (Dados Eclesiásticos) -->
-                            <div class="md:col-span-3">
-                                <hr class="my-4">
-                            </div>
-                            <div>
-                                <label for="funcao" class="block text-sm font-medium text-gray-700">Função /
-                                    Ministério</label>
-                                <input type="text" id="funcao"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Ex: Pastor, Diácono, Membro">
-                            </div>
-                            <div>
-                                <label for="data-batismo" class="block text-sm font-medium text-gray-700">Data de
-                                    Batismo</label>
-                                <input type="date" id="data-batismo"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="data-chegada" class="block text-sm font-medium text-gray-700">Data de
-                                    Chegada</label>
-                                <input type="date" id="data-chegada"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <!-- Coluna 3: Dados Ministeriais -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-medium text-gray-700 border-b pb-2">Dados Ministeriais</h3>
+                                <div>
+                                    <label for="funcao" class="block text-sm font-medium text-gray-700">Função /
+                                        Ministério</label>
+                                    <input type="text" id="funcao"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Ex: Pastor, Diácono, Membro">
+                                </div>
+                                <div>
+                                    <label for="data-batismo" class="block text-sm font-medium text-gray-700">Data de
+                                        Batismo</label>
+                                    <input type="date" id="data-batismo"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="data-chegada" class="block text-sm font-medium text-gray-700">Data de
+                                        Chegada na Igreja</label>
+                                    <input type="date" id="data-chegada"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="igreja-anterior"
+                                        class="block text-sm font-medium text-gray-700">Igreja de Onde
+                                        Veio</label>
+                                    <input type="text" id="igreja-anterior"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="cargo-anterior"
+                                        class="block text-sm font-medium text-gray-700">Cargo que Ocupava</label>
+                                    <input type="text" id="cargo-anterior"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
                             </div>
 
-                            <!-- Linha 8 -->
-                            <div class="md:col-span-2">
-                                <label for="igreja-anterior" class="block text-sm font-medium text-gray-700">Igreja de
-                                    onde veio</label>
-                                <input type="text" id="igreja-anterior"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="cargo-anterior" class="block text-sm font-medium text-gray-700">Cargo que
-                                    ocupava</label>
-                                <input type="text" id="cargo-anterior"
-                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                        </div>
+                        </div> <!-- Fim do grid -->
 
                         <div class="mt-8 flex justify-end">
-                            <button type="submit" id="membro-submit-btn"
-                                class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 h-10 flex items-center justify-center">
+                            <button id="membro-submit-btn" type="submit"
+                                class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 h-[40px] flex items-center justify-center">
                                 Salvar Membro
                             </button>
                         </div>
@@ -372,13 +382,13 @@
                                     <th scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Nome</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Função</th>
-                                    <!-- COLUNA IDADE ADICIONADA -->
+                                    <!-- Nova Coluna Idade -->
                                     <th scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Idade</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Função</th>
                                     <th scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Telefone</th>
@@ -432,8 +442,8 @@
                                         required>
                                 </div>
                                 <div class="mt-6">
-                                    <button type="submit" id="dizimo-submit-btn"
-                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 h-10 flex items-center justify-center">
+                                    <button id="dizimo-submit-btn" type="submit"
+                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 h-[40px] flex items-center justify-center">
                                         Registar Dízimo
                                     </button>
                                 </div>
@@ -526,8 +536,8 @@
                                         required>
                                 </div>
                                 <div class="mt-6">
-                                    <button type="submit" id="oferta-submit-btn"
-                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 h-10 flex items-center justify-center">
+                                    <button id="oferta-submit-btn" type="submit"
+                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 h-[40px] flex items-center justify-center">
                                         Registar Entrada
                                     </button>
                                 </div>
@@ -612,8 +622,8 @@
                                         required>
                                 </div>
                                 <div class="mt-6">
-                                    <button type="submit" id="financeiro-submit-btn"
-                                        class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150 h-10 flex items-center justify-center">
+                                    <button id="financeiro-submit-btn" type="submit"
+                                        class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150 h-[40px] flex items-center justify-center">
                                         Registar Saída
                                     </button>
                                 </div>
@@ -623,17 +633,15 @@
                     <!-- Coluna de Relatório -->
                     <div class="lg:col-span-2">
                         <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <!-- ADICIONADO: Filtros de Mês/Ano -->
                             <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
                                 <h2 class="text-2xl font-semibold">Extrato do Caixa</h2>
                                 <div class="flex gap-4">
+                                    <!-- Filtros de Mês/Ano -->
                                     <select id="filtro-financeiro-mes"
                                         class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                        <!-- Opções de mês -->
                                     </select>
                                     <select id="filtro-financeiro-ano"
                                         class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                        <!-- Opções de ano -->
                                     </select>
                                 </div>
                             </div>
@@ -660,8 +668,8 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <!-- Saldo Total Movido para o Fim -->
-                            <div class="text-right mt-6 pt-4 border-t">
+                            <!-- Saldo Total movido para o final -->
+                            <div class="text-right mt-6 border-t pt-4">
                                 <h3 class="text-lg font-medium text-gray-600">Saldo Atual (Total):</h3>
                                 <p id="saldo-total-financeiro" class="text-2xl font-bold text-blue-700">R$ 0,00</p>
                             </div>
@@ -676,47 +684,52 @@
 
     <!-- Modal: Detalhes do Membro -->
     <div id="membro-detalhes-modal" class="modal">
-        <!-- Aumentado o max-w- para 4xl -->
-        <div class="modal-content max-w-4xl">
+        <!-- Modal Content (Aumentado) -->
+        <div class="modal-content !max-w-3xl">
             <span class="close-button" id="close-membro-modal">&times;</span>
             <h2 class="text-2xl font-semibold mb-6">Detalhes do Membro</h2>
-            <!-- Layout em Grid para Detalhes -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 text-sm">
-                <!-- Coluna 1 -->
-                <div class="space-y-3">
-                    <p><strong>Nome:</strong> <span id="modal-nome" class="text-gray-700"></span></p>
-                    <p><strong>Nascimento:</strong> <span id="modal-data-nascimento" class="text-gray-700"></span></p>
-                    <p><strong>Telefone:</strong> <span id="modal-telefone" class="text-gray-700"></span></p>
-                    <p><strong>Email:</strong> <span id="modal-email" class="text-gray-700"></span></p>
-                    <p><strong>CPF:</strong> <span id="modal-cpf" class="text-gray-700"></span></p>
-                    <p><strong>RG:</strong> <span id="modal-rg" class="text-gray-700"></span></p>
-                    <p><strong>Naturalidade:</strong> <span id="modal-naturalidade" class="text-gray-700"></span></p>
-                </div>
-                <!-- Coluna 2 -->
-                <div class="space-y-3">
-                    <p><strong>Estado Civil:</strong> <span id="modal-estado-civil" class="text-gray-700"></span></p>
-                    <div id="modal-conjuge-container" class="hidden">
-                        <p><strong>Cônjuge:</strong> <span id="modal-conjuge" class="text-gray-700"></span></p>
-                    </div>
-                    <p><strong>Profissão:</strong> <span id="modal-profissao" class="text-gray-700"></span></p>
-                    <p><strong>Escolaridade:</strong> <span id="modal-escolaridade" class="text-gray-700"></span></p>
-                    <p><strong>Endereço:</strong> <span id="modal-endereco"
-                            class="block whitespace-pre-wrap text-gray-700"></span></p>
-                </div>
-                <!-- Coluna 3 (Eclesiástico) -->
-                <div class="space-y-3">
-                    <p><strong>Função/Ministério:</strong> <span id="modal-funcao" class="text-gray-700"></span></p>
-                    <p><strong>Data de Batismo:</strong> <span id="modal-data-batismo" class="text-gray-700"></span></p>
-                    <p><strong>Data de Chegada:</strong> <span id="modal-data-chegada" class="text-gray-700"></span></p>
-                    <p><strong>Igreja Anterior:</strong> <span id="modal-igreja-anterior"
-                            class="text-gray-700"></span></p>
-                    <p><strong>Cargo Anterior:</strong> <span id="modal-cargo-anterior" class="text-gray-700"></span>
-                    </p>
+            
+            <!-- Abas do Modal -->
+            <div class="border-b border-gray-200 mb-4">
+                <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                    <a href="#pessoais" class="modal-tab-button active">Dados Pessoais</a>
+                    <a href="#ministeriais" class="modal-tab-button">Dados Ministeriais</a>
+                </nav>
+            </div>
+
+            <!-- Conteúdo das Abas do Modal -->
+            <!-- Aba Dados Pessoais -->
+            <div id="pessoais" class="modal-tab-content active">
+                <div class="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                    <p><strong>Nome:</strong> <span id="modal-nome"></span></p>
+                    <p><strong>Data de Nascimento:</strong> <span id="modal-data-nascimento"></span></p>
+                    <p><strong>Telefone:</strong> <span id="modal-telefone"></span></p>
+                    <p><strong>Email:</strong> <span id="modal-email"></span></p>
+                    <p><strong>CPF:</strong> <span id="modal-cpf"></span></p>
+                    <p><strong>RG:</strong> <span id="modal-rg"></span></p>
+                    <p><strong>Naturalidade:</strong> <span id="modal-naturalidade"></span></p>
+                    <p><strong>Estado Civil:</strong> <span id="modal-estado-civil"></span></p>
+                    <p id="modal-conjuge-container" class="hidden"><strong>Cônjuge:</strong> <span id="modal-conjuge"></span></p>
+                    <p class="md:col-span-2"><strong>Endereço:</strong> <span id="modal-endereco" class="block whitespace-pre-wrap"></span></p>
                 </div>
             </div>
-            <div class="mt-8 flex justify-end space-x-3">
+            
+            <!-- Aba Dados Ministeriais -->
+            <div id="ministeriais" class="modal-tab-content">
+                <div class="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                    <p><strong>Profissão:</strong> <span id="modal-profissao"></span></p>
+                    <p><strong>Escolaridade:</strong> <span id="modal-escolaridade"></span></p>
+                    <p><strong>Função na Igreja:</strong> <span id="modal-funcao"></span></p>
+                    <p><strong>Data de Batismo:</strong> <span id="modal-data-batismo"></span></p>
+                    <p><strong>Data de Chegada:</strong> <span id="modal-data-chegada"></span></p>
+                    <p><strong>Igreja de Onde Veio:</strong> <span id="modal-igreja-anterior"></span></p>
+                    <p><strong>Cargo que Ocupava:</strong> <span id="modal-cargo-anterior"></span></p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end border-t pt-4">
                 <button id="show-delete-membro-btn"
-                    class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150">
+                    class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 mr-2">
                     Excluir Membro
                 </button>
                 <button id="show-edit-membro-btn"
@@ -726,150 +739,158 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Modal: Editar Membro -->
     <div id="membro-edit-modal" class="modal">
-        <!-- Aumentado o max-w- para 4xl -->
-        <div class="modal-content max-w-4xl">
-            <span class="close-button" id="close-membro-edit-modal">&times;</span>
-            <h2 class="text-2xl font-semibold mb-6">Editar Informações do Membro</h2>
-            <form id="form-edit-membro">
-                <!-- Layout em Grid para Edição -->
+         <div class="modal-content !max-w-4xl">
+             <span class="close-button" id="close-membro-edit-modal">&times;</span>
+             <h2 class="text-2xl font-semibold mb-6">Editar Membro</h2>
+             <form id="form-edit-membro">
+                 <!-- Wrapper para colunas -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Coluna 1 -->
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700">Nome</label>
-                        <input type="text" id="edit-nome" class="modal-input" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Data de Nascimento</label>
-                        <input type="date" id="edit-data-nascimento" class="modal-input">
-                    </div>
-                    <!-- Linha 2 -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Telefone</label>
-                        <input type="tel" id="edit-telefone" class="modal-input">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700">Email</label>
-                        <input type="email" id="edit-email" class="modal-input">
-                    </div>
-                    <!-- Linha 3 -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">CPF</label>
-                        <input type="text" id="edit-cpf" class="modal-input">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">RG</label>
-                        <input type="text" id="edit-rg" class="modal-input">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Naturalidade</label>
-                        <input type="text" id="edit-naturalidade" class="modal-input">
-                    </div>
-                    <!-- Linha 4 -->
-                    <div class="md:col-span-3">
-                        <label class="block text-sm font-medium text-gray-700">Endereço</label>
-                        <textarea id="edit-endereco" rows="2" class="modal-input"></textarea>
-                    </div>
-                    <!-- Linha 5 (Condicional) -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Estado Civil</label>
-                        <select id="edit-estado-civil" class="modal-input">
-                            <option value="">Selecione...</option>
-                            <option value="Solteiro(a)">Solteiro(a)</option>
-                            <option value="Casado(a)">Casado(a)</option>
-                            <option value="Divorciado(a)">Divorciado(a)</option>
-                            <option value="Viúvo(a)">Viúvo(a)</option>
-                        </select>
-                    </div>
-                    <div id="edit-conjuge-container" class="md:col-span-2 hidden">
-                        <label class="block text-sm font-medium text-gray-700">Nome do Cônjuge</label>
-                        <input type="text" id="edit-conjuge" class="modal-input">
-                    </div>
-                    <!-- Linha 6 -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Profissão</label>
-                        <input type="text" id="edit-profissao" class="modal-input">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700">Escolaridade</label>
-                        <input type="text" id="edit-escolaridade" class="modal-input">
-                    </div>
-                    <!-- Linha 7 (Eclesiástico) -->
-                    <div class="md:col-span-3">
-                        <hr class="my-4">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Função/Ministério</label>
-                        <input type="text" id="edit-funcao" class="modal-input">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Data de Batismo</label>
-                        <input type="date" id="edit-data-batismo" class="modal-input">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Data de Chegada</label>
-                        <input type="date" id="edit-data-chegada" class="modal-input">
-                    </div>
-                    <!-- Linha 8 -->
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700">Igreja de onde veio</label>
-                        <input type="text" id="edit-igreja-anterior" class="modal-input">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Cargo que ocupava</label>
-                        <input type="text" id="edit-cargo-anterior" class="modal-input">
-                    </div>
-                </div>
 
-                <!-- Confirmação de Senha -->
-                <div class="mt-6 pt-6 border-t">
-                    <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Para salvar,
-                        confirme sua senha:</label>
-                    <input type="password" id="edit-membro-password"
-                        class="mt-1 block w-full max-w-sm border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500"
-                        required>
-                    <p id="edit-membro-error" class="text-red-500 text-sm mt-2 h-5"></p>
-                </div>
-                <!-- Botões de Ação -->
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button type="button" id="cancel-edit-membro-btn"
-                        class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150">
+                    <!-- Coluna 1: Dados Pessoais -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-medium text-gray-700 border-b pb-2">Dados Pessoais</h3>
+                        <div>
+                            <label for="edit-nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
+                            <input type="text" id="edit-nome" class="modal-input" required>
+                        </div>
+                        <div>
+                            <label for="edit-data-nascimento" class="block text-sm font-medium text-gray-700">Data de Nascimento</label>
+                            <input type="date" id="edit-data-nascimento" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-telefone" class="block text-sm font-medium text-gray-700">Telefone</label>
+                            <input type="tel" id="edit-telefone" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" id="edit-email" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-cpf" class="block text-sm font-medium text-gray-700">CPF</label>
+                            <input type="text" id="edit-cpf" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-rg" class="block text-sm font-medium text-gray-700">RG</label>
+                            <input type="text" id="edit-rg" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-naturalidade" class="block text-sm font-medium text-gray-700">Naturalidade</label>
+                            <input type="text" id="edit-naturalidade" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
+                            <textarea id="edit-endereco" rows="3" class="modal-input"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Coluna 2: Dados Familiares e Profissionais -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-medium text-gray-700 border-b pb-2">Família & Profissão</h3>
+                        <div>
+                            <label for="edit-estado-civil" class="block text-sm font-medium text-gray-700">Estado Civil</label>
+                            <select id="edit-estado-civil" class="modal-input">
+                                <option>Solteiro(a)</option>
+                                <option>Casado(a)</option>
+                                <option>Divorciado(a)</option>
+                                <option>Viúvo(a)</option>
+                            </select>
+                        </div>
+                        <!-- Campo Cônjuge (Oculto) -->
+                        <div id="edit-conjuge-container" class="hidden">
+                            <label for="edit-conjuge" class="block text-sm font-medium text-gray-700">Nome do Cônjuge</label>
+                            <input type="text" id="edit-conjuge" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-profissao" class="block text-sm font-medium text-gray-700">Profissão</label>
+                            <input type="text" id="edit-profissao" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-escolaridade" class="block text-sm font-medium text-gray-700">Escolaridade</label>
+                            <select id="edit-escolaridade" class="modal-input">
+                                <option>Ensino Fundamental</option>
+                                <option>Ensino Médio</option>
+                                <option>Ensino Superior</option>
+                                <option>Pós-graduação</option>
+                                <option>Outro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Coluna 3: Dados Ministeriais -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-medium text-gray-700 border-b pb-2">Dados Ministeriais</h3>
+                        <div>
+                            <label for="edit-funcao" class="block text-sm font-medium text-gray-700">Função / Ministério</label>
+                            <input type="text" id="edit-funcao" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-data-batismo" class="block text-sm font-medium text-gray-700">Data de Batismo</label>
+                            <input type="date" id="edit-data-batismo" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-data-chegada" class="block text-sm font-medium text-gray-700">Data de Chegada na Igreja</label>
+                            <input type="date" id="edit-data-chegada" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-igreja-anterior" class="block text-sm font-medium text-gray-700">Igreja de Onde Veio</label>
+                            <input type="text" id="edit-igreja-anterior" class="modal-input">
+                        </div>
+                        <div>
+                            <label for="edit-cargo-anterior" class="block text-sm font-medium text-gray-700">Cargo que Ocupava</label>
+                            <input type="text" id="edit-cargo-anterior" class="modal-input">
+                        </div>
+                    </div>
+
+                </div> <!-- Fim do grid -->
+                 
+                 <!-- Confirmação de Senha -->
+                 <div class="mt-6 border-t pt-4">
+                     <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Para salvar, confirme sua senha:</label>
+                     <input type="password" id="edit-membro-password" class="mt-1 block w-full max-w-xs border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500" required>
+                     <p id="edit-membro-error" class="text-red-500 text-sm mt-2"></p>
+                 </div>
+                 
+                 <!-- Botões de Ação -->
+                 <div class="mt-6 flex justify-end">
+                     <button type="button" id="cancel-edit-membro-btn"
+                        class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150 mr-2">
                         Cancelar
                     </button>
-                    <button type="submit" id="edit-membro-submit-btn"
-                        class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 h-10 flex items-center justify-center">
+                    <button id="edit-membro-submit-btn" type="submit"
+                        class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 h-[40px] flex items-center justify-center">
                         Salvar Alterações
                     </button>
-                </div>
-            </form>
-        </div>
+                 </div>
+             </form>
+         </div>
     </div>
 
 
     <!-- Modal: Confirmação de Exclusão (Universal) -->
     <div id="delete-confirm-modal" class="modal">
-        <!-- Tamanho padrão (max-w-lg) -->
-        <div class="modal-content max-w-lg">
+        <!-- Modal Content (Pequeno) -->
+        <div class="modal-content !max-w-md">
             <span class="close-button" id="close-delete-modal">&times;</span>
             <h2 class="text-xl font-semibold mb-4 text-red-600">Confirmar Exclusão</h2>
             <p class="mb-4">Tem certeza que deseja excluir este registo? Esta ação é irreversível.</p>
             <p id="delete-cascade-warning" class="text-yellow-700 font-medium mb-4"></p>
             <form id="delete-confirm-form">
                 <label for="delete-password" class="block text-sm font-medium text-gray-700">Para confirmar, digite
-                    sua senha de login:</label>
+                    sua senha:</label>
                 <input type="password" id="delete-password"
                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500"
                     required>
-                <p id="delete-error-message" class="text-red-500 text-sm mt-2 h-5"></p>
+                <p id="delete-error-message" class="text-red-500 text-sm mt-2"></p>
                 <div class="mt-6 flex justify-end">
                     <button type="button" id="cancel-delete-btn"
                         class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150 mr-2">
                         Cancelar
                     </button>
-                    <button type="submit" id="delete-submit-btn"
-                        class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 h-10 flex items-center justify-center">
+                    <button id="delete-submit-btn" type="submit"
+                        class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 h-[40px] flex items-center justify-center">
                         Excluir Permanentemente
                     </button>
                 </div>
@@ -877,14 +898,13 @@
         </div>
     </div>
 
-    <!-- Toast Container -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-[150] space-y-3">
-        <!-- Toasts serão inseridos aqui -->
-    </div>
 
-
-    <!-- Firebase -->
-    <script src="gestao-igje.js" type="module"></script>
+    <!-- Firebase e JS da Aplicação -->
+    <script type="module" src="gestao-igje.js"></script>
+    <script>
+        // Inicializa ícones Lucide na primeira carga
+        lucide.createIcons();
+    </script>
 </body>
 
 </html>
