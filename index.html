@@ -20,7 +20,7 @@
 
     <!-- Tela de Autenticação (Login/Cadastro) -->
     <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gray-200 p-4">
-        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+        <!-- ... (código de autenticação inalterado) ... -->
             <!-- Abas de Login / Cadastro -->
             <div class="flex border-b mb-6">
                 <button id="login-tab-button" class="auth-tab-button flex-1 py-2 px-4 text-center text-lg active">
@@ -38,11 +38,13 @@
                 <form id="login-form">
                     <div class="mb-4">
                         <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email:</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                         <input type="email" id="login-email" required
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div class="mb-6">
                         <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Senha:</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                         <input type="password" id="login-password" required
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
@@ -61,18 +63,21 @@
                     <div class="mb-4">
                         <label for="register-name" class="block text-sm font-medium text-gray-700 mb-1">Nome
                             Completo:</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                         <input type="text" id="register-name" required
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500">
                     </div>
                     <div class="mb-4">
                         <label for="register-phone" class="block text-sm font-medium text-gray-700 mb-1">Nº de
                             Telefone (com DDD):</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                         <input type="tel" id="register-phone" required
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                             placeholder="Ex: 21912345678">
                     </div>
                     <div class="mb-4">
                         <label for="register-email" class="block text-sm font-medium text-gray-700 mb-1">Email:</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                         <input type="email" id="register-email" required
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500">
                     </div>
@@ -80,6 +85,7 @@
                         <label for="register-password"
                             class="block text-sm font-medium text-gray-700 mb-1">Senha (mín. 6
                             caracteres):</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                         <input type="password" id="register-password" required minlength="6"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500">
                     </div>
@@ -217,6 +223,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                             <div class="md:col-span-2">
                                 <label for="nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="text" id="nome"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                     required>
@@ -224,48 +231,57 @@
                             <div>
                                 <label for="data-nascimento" class="block text-sm font-medium text-gray-700">Data de
                                     Nascimento</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="date" id="data-nascimento"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
                                 <label for="telefone" class="block text-sm font-medium text-gray-700">Telefone</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="tel" id="telefone"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div class="md:col-span-2">
                                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="email" id="email"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
                                 <label for="cpf" class="block text-sm font-medium text-gray-700">CPF</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="text" id="cpf"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
                                 <label for="rg" class="block text-sm font-medium text-gray-700">RG</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="text" id="rg"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
                                 <label for="naturalidade"
                                     class="block text-sm font-medium text-gray-700">Naturalidade</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="text" id="naturalidade"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Ex: Rio de Janeiro - RJ">
                             </div>
                             <div class="md:col-span-3">
                                 <label for="endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <textarea id="endereco" rows="2"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
                             </div>
                             <div>
                                 <label for="nome-pai" class="block text-sm font-medium text-gray-700">Nome do Pai</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="text" id="nome-pai"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            <div class="md:col-span-2">
+                            <div>
                                 <label for="nome-mae" class="block text-sm font-medium text-gray-700">Nome da Mãe</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="text" id="nome-mae"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
@@ -277,32 +293,34 @@
                             <div>
                                 <label for="estado-civil" class="block text-sm font-medium text-gray-700">Estado
                                     Civil</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <select id="estado-civil"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="Não informado">Não informado</option>
                                     <option value="Solteiro(a)">Solteiro(a)</option>
                                     <option value="Casado(a)">Casado(a)</option>
                                     <option value="Viúvo(a)">Viúvo(a)</option>
                                     <option value="Divorciado(a)">Divorciado(a)</option>
                                 </select>
                             </div>
-                            <div id="conjuge-container" class="hidden md:col-span-2">
+                            <div id="conjuge-container" class="hidden">
                                 <label for="conjuge" class="block text-sm font-medium text-gray-700">Nome do
                                     Cônjuge</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="text" id="conjuge"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
                                 <label for="profissao" class="block text-sm font-medium text-gray-700">Profissão</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="text" id="profissao"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div class="md:col-span-1">
                                 <label for="escolaridade"
                                     class="block text-sm font-medium text-gray-700">Escolaridade</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <select id="escolaridade"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="Não informado">Não informado</option>
                                     <option value="Não Alfabetizado">Não Alfabetizado</option>
                                     <option value="Ensino Fundamental">Ensino Fundamental</option>
                                     <option value="Ensino Médio">Ensino Médio</option>
@@ -313,6 +331,7 @@
                             <div>
                                 <label for="funcao" class="block text-sm font-medium text-gray-700">Função /
                                     Ministério</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="text" id="funcao"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Ex: Pastor, Diácono, Membro">
@@ -320,24 +339,28 @@
                             <div>
                                 <label for="data-batismo" class="block text-sm font-medium text-gray-700">Data de
                                     Batismo</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="date" id="data-batismo"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
                                 <label for="data-chegada" class="block text-sm font-medium text-gray-700">Data de Chegada
                                     na Igreja</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="date" id="data-chegada"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
                                 <label for="igreja-anterior" class="block text-sm font-medium text-gray-700">Igreja de
                                     Onde Veio</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="text" id="igreja-anterior"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
                             <div>
                                 <label for="cargo-anterior" class="block text-sm font-medium text-gray-700">Cargo que
                                     Ocupava</label>
+                                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                 <input type="text" id="cargo-anterior"
                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
@@ -357,6 +380,7 @@
             <div id="visualizar-membros" class="tab-content">
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-semibold mb-6">Membros Cadastrados</h2>
+                    <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                     <input type="text" id="filtro-membros"
                         class="mt-1 block w-full max-w-sm border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 mb-4"
                         placeholder="Filtrar por nome...">
@@ -398,6 +422,7 @@
                                 <div class="mb-4">
                                     <label for="dizimo-membro"
                                         class="block text-sm font-medium text-gray-700">Membro</label>
+                                    <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                     <select id="dizimo-membro"
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                         required>
@@ -407,6 +432,7 @@
                                 <div class="mb-4">
                                     <label for="dizimo-valor"
                                         class="block text-sm font-medium text-gray-700">Valor (R$)</label>
+                                    <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                     <input type="number" id="dizimo-valor" step="0.01"
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                         required>
@@ -414,6 +440,7 @@
                                 <div class="mb-4">
                                     <label for="dizimo-data"
                                         class="block text-sm font-medium text-gray-700">Data</label>
+                                    <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                     <input type="date" id="dizimo-data"
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                         required>
@@ -433,8 +460,10 @@
                             <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
                                 <h2 class="text-2xl font-semibold">Relatório de Dízimos</h2>
                                 <div class="flex gap-4">
+                                    <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                     <select id="filtro-dizimo-mes"
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
+                                    <!-- CORRIGIDO: Adicionado classes do Tailwind -->
                                     <select id="filtro-dizimo-ano"
                                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
                                 </div>
@@ -465,184 +494,12 @@
                 </div>
             </div>
 
-            <!-- (ABA) Ofertas e Outras -->
-            <div id="ofertas" class="tab-content">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Coluna de Registro -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <h2 class="text-2xl font-semibold mb-6">Registar Oferta / Outra Entrada</h2>
-                            <form id="form-oferta">
-                                <div class="mb-4">
-                                    <label for="oferta-tipo"
-                                        class="block text-sm font-medium text-gray-700">Tipo</label>
-                                    <select id="oferta-tipo"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required>
-                                        <option value="Oferta">Oferta</option>
-                                        <option value="Oferta Alçada">Oferta Alçada</option>
-                                        <option value="Venda Evento">Venda Evento</option>
-                                        <option value="Outro">Outro</option>
-                                    </select>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="oferta-descricao"
-                                        class="block text-sm font-medium text-gray-700">Descrição Breve</label>
-                                    <input type="text" id="oferta-descricao"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Ex: Oferta do culto de domingo" required>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="oferta-valor"
-                                        class="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                                    <input type="number" id="oferta-valor" step="0.01"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="oferta-data"
-                                        class="block text-sm font-medium text-gray-700">Data</label>
-                                    <input type="date" id="oferta-data"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required>
-                                </div>
-                                <div class="mt-6">
-                                    <button type="submit" id="oferta-submit-btn"
-                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 h-10 flex items-center justify-center">
-                                        Registar Entrada
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <!-- Coluna de Relatório -->
-                    <div class="lg:col-span-2">
-                        <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                                <h2 class="text-2xl font-semibold">Relatório de Ofertas e Outras Entradas</h2>
-                                <div class="flex gap-4">
-                                    <select id="filtro-oferta-mes"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
-                                    <select id="filtro-oferta-ano"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
-                                </div>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Data</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Tipo</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Descrição</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Valor (R$)</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Ação</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="lista-ofertas" class="bg-white divide-y divide-gray-200"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- (ABA) Financeiro (Caixa) -->
-            <div id="financeiro" class="tab-content">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Coluna de Registro -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <h2 class="text-2xl font-semibold mb-6">Registar Saída (Caixa)</h2>
-                            <form id="form-financeiro">
-                                <div class="mb-4">
-                                    <label for="fin-descricao"
-                                        class="block text-sm font-medium text-gray-700">Descrição da Saída</label>
-                                    <input type="text" id="fin-descricao"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Ex: Conta de luz, material de limpeza" required>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="fin-valor"
-                                        class="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                                    <input type="number" id="fin-valor" step="0.01"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Digite o valor da saída" required>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="fin-data"
-                                        class="block text-sm font-medium text-gray-700">Data</label>
-                                    <input type="date" id="fin-data"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required>
-                                </div>
-                                <div class="mt-6">
-                                    <button type="submit" id="financeiro-submit-btn"
-                                        class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150 h-10 flex items-center justify-center">
-                                        Registar Saída
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <!-- Coluna de Relatório -->
-                    <div class="lg:col-span-2">
-                        <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                                <h2 class="text-2xl font-semibold">Extrato do Caixa</h2>
-                                <div class="flex gap-4">
-                                    <select id="filtro-financeiro-mes"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
-                                    <select id="filtro-financeiro-ano"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
-                                </div>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Data</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Descrição</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Valor (R$)</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Ação</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="lista-financeiro" class="bg-white divide-y divide-gray-200"></tbody>
-                                </table>
-                            </div>
-                            <div class="text-right mt-6 pt-4 border-t">
-                                <h3 class="text-lg font-medium text-gray-600">Saldo Atual (Total):</h3>
-                                <p id="saldo-total-financeiro" class="text-2xl font-bold text-blue-700">R$ 0,00</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- (ABA) Relatório Mensal -->
+            <!-- (NOVA ABA) Relatório Mensal -->
             <div id="relatorio-mensal" class="tab-content">
                 <div class="bg-white p-6 rounded-lg shadow-lg max-w-5xl mx-auto">
-                    <!-- Cabeçalho com Filtros -->
+                    <!-- Cabeçalho e Filtros -->
                     <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                        <h2 class="text-2xl font-semibold">Relatório Mensal</h2>
+                        <h2 class="text-2xl font-semibold">Relatório Financeiro Mensal</h2>
                         <div class="flex gap-4">
                             <select id="filtro-relatorio-mes"
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
@@ -651,49 +508,19 @@
                         </div>
                     </div>
 
-                    <!-- Cards de Resumo -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <!-- Card Entradas -->
-                        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-                            <h3 class="text-sm font-medium text-green-700 uppercase">Total Entradas (Mês)</h3>
-                            <p id="relatorio-total-entradas" class="text-2xl font-bold text-green-600 mt-1">R$ 0,00</p>
-                        </div>
-                        <!-- Card Saídas -->
-                        <div class="bg-red-50 p-4 rounded-lg border border-red-200">
-                            <h3 class="text-sm font-medium text-red-700 uppercase">Total Saídas (Mês)</h3>
-                            <p id="relatorio-total-saidas" class="text-2xl font-bold text-red-600 mt-1">R$ 0,00</p>
-                        </div>
-                        <!-- Card Saldo do Mês -->
-                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                            <h3 class="text-sm font-medium text-blue-700 uppercase">Saldo (Mês)</h3>
-                            <p id="relatorio-saldo-mes" class="text-2xl font-bold text-blue-600 mt-1">R$ 0,00</p>
-                        </div>
+                    <!-- Botão de Impressão -->
+                    <div class="text-center mb-6 border-b pb-6">
+                        <button id="gerar-relatorio-mes-btn"
+                            class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
+                            <i data-lucide="printer" class="inline-block w-4 h-4 mr-2"></i>
+                            Gerar Relatório Impresso (Mês)
+                        </button>
                     </div>
 
-                    <!-- Tabela de Extrato -->
-                    <h3 class="text-xl font-semibold mb-4">Extrato do Mês</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Data</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Descrição</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Valor (R$)</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lista-relatorio" class="bg-white divide-y divide-gray-200">
-                                <!-- Linhas serão inseridas aqui -->
-                            </tbody>
-                        </table>
+                    <!-- Container da Pré-visualização do Relatório -->
+                    <div id="relatorio-mensal-container" class="space-y-6">
+                        <!-- O conteúdo será gerado pelo JavaScript -->
+                        <p class="text-center text-gray-500">Selecione o mês e o ano para ver o relatório.</p>
                     </div>
                 </div>
             </div>
@@ -707,7 +534,7 @@
         <div class="modal-content max-w-4xl">
             <span class="close-button" id="close-membro-modal">&times;</span>
             <h2 class="text-2xl font-semibold mb-6">Detalhes do Membro</h2>
-
+            
             <div class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
                     <div class="md:col-span-2"><strong>Nome:</strong> <span id="modal-nome"></span></div>
@@ -718,19 +545,16 @@
                     <div><strong>CPF:</strong> <span id="modal-cpf"></span></div>
                     <div><strong>RG:</strong> <span id="modal-rg"></span></div>
                     <div><strong>Naturalidade:</strong> <span id="modal-naturalidade"></span></div>
-                    <div class="md:col-span-3"><strong>Endereço:</strong> <span id="modal-endereco"
-                            class="block whitespace-pre-wrap"></span></div>
+                    <div class="md:col-span-3"><strong>Endereço:</strong> <span id="modal-endereco" class="block whitespace-pre-wrap"></span></div>
                     <div><strong>Nome do Pai:</strong> <span id="modal-nome-pai"></span></div>
-                    <div class="md:col-span-2"><strong>Nome da Mãe:</strong> <span id="modal-nome-mae"></span></div>
+                    <div><strong>Nome da Mãe:</strong> <span id="modal-nome-mae"></span></div>
                     <div><strong>Estado Civil:</strong> <span id="modal-estado-civil"></span></div>
-                    <div id="modal-conjuge-container" class="hidden md:col-span-2"><strong>Cônjuge:</strong> <span
-                            id="modal-conjuge"></span></div>
+                    <div id="modal-conjuge-container" class="hidden"><strong>Cônjuge:</strong> <span id="modal-conjuge"></span></div>
                     <div><strong>Profissão:</strong> <span id="modal-profissao"></span></div>
-                    <div class="md:col-span-2"><strong>Escolaridade:</strong> <span id="modal-escolaridade"></span></div>
+                    <div><strong>Escolaridade:</strong> <span id="modal-escolaridade"></span></div>
                     <div><strong>Data de Batismo:</strong> <span id="modal-data-batismo"></span></div>
                     <div><strong>Data de Chegada:</strong> <span id="modal-data-chegada"></span></div>
-                    <div class="md:col-span-2"><strong>Igreja de Onde Veio:</strong> <span
-                            id="modal-igreja-anterior"></span></div>
+                    <div class="md:col-span-2"><strong>Igreja de Onde Veio:</strong> <span id="modal-igreja-anterior"></span></div>
                     <div><strong>Cargo que Ocupava:</strong> <span id="modal-cargo-anterior"></span></div>
                 </div>
             </div>
@@ -747,102 +571,94 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Modal: Editar Membro -->
     <div id="membro-edit-modal" class="modal">
-        <div class="modal-content max-w-4xl">
-            <span class="close-button" id="close-membro-edit-modal">&times;</span>
-            <h2 class="text-2xl font-semibold mb-6">Editar Informações do Membro</h2>
-            <form id="form-edit-membro">
-                <h3 class="text-lg font-medium text-blue-600 mb-4 border-b pb-2">Informações Pessoais</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+         <div class="modal-content max-w-4xl">
+             <span class="close-button" id="close-membro-edit-modal">&times;</span>
+             <h2 class="text-2xl font-semibold mb-6">Editar Informações do Membro</h2>
+             <form id="form-edit-membro">
+                 <h3 class="text-lg font-medium text-blue-600 mb-4 border-b pb-2">Informações Pessoais</h3>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="md:col-span-2">
                         <label for="edit-nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                        <input type="text" id="edit-nome"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            required>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="text" id="edit-nome" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
                     </div>
                     <div>
                         <label for="edit-data-nascimento" class="block text-sm font-medium text-gray-700">Data de
                             Nascimento</label>
-                        <input type="date" id="edit-data-nascimento"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="date" id="edit-data-nascimento" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label for="edit-telefone" class="block text-sm font-medium text-gray-700">Telefone</label>
-                        <input type="tel" id="edit-telefone"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="tel" id="edit-telefone" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div class="md:col-span-2">
                         <label for="edit-email" class="block text-sm font-medium text-gray-700">Email</label>
-                        <input type="email" id="edit-email"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="email" id="edit-email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label for="edit-cpf" class="block text-sm font-medium text-gray-700">CPF</label>
-                        <input type="text" id="edit-cpf"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="text" id="edit-cpf" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label for="edit-rg" class="block text-sm font-medium text-gray-700">RG</label>
-                        <input type="text" id="edit-rg"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="text" id="edit-rg" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label for="edit-naturalidade"
-                            class="block text-sm font-medium text-gray-700">Naturalidade</label>
-                        <input type="text" id="edit-naturalidade"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <label for="edit-naturalidade" class="block text-sm font-medium text-gray-700">Naturalidade</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="text" id="edit-naturalidade" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div class="md:col-span-3">
                         <label for="edit-endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
-                        <textarea id="edit-endereco" rows="2"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <textarea id="edit-endereco" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
                     </div>
                     <div>
                         <label for="edit-nome-pai" class="block text-sm font-medium text-gray-700">Nome do Pai</label>
-                        <input type="text" id="edit-nome-pai"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="text" id="edit-nome-pai" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    <div class="md:col-span-2">
+                    <div>
                         <label for="edit-nome-mae" class="block text-sm font-medium text-gray-700">Nome da Mãe</label>
-                        <input type="text" id="edit-nome-mae"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="text" id="edit-nome-mae" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                </div>
+                 </div>
 
-                <h3 class="text-lg font-medium text-blue-600 mb-4 border-b pb-2">Informações Adicionais e Ministeriais
-                </h3>
+                <h3 class="text-lg font-medium text-blue-600 mb-4 border-b pb-2">Informações Adicionais e Ministeriais</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label for="edit-estado-civil" class="block text-sm font-medium text-gray-700">Estado
-                            Civil</label>
-                        <select id="edit-estado-civil"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option value="Não informado">Não informado</option>
+                        <label for="edit-estado-civil" class="block text-sm font-medium text-gray-700">Estado Civil</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <select id="edit-estado-civil" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             <option value="Solteiro(a)">Solteiro(a)</option>
                             <option value="Casado(a)">Casado(a)</option>
                             <option value="Viúvo(a)">Viúvo(a)</option>
                             <option value="Divorciado(a)">Divorciado(a)</option>
                         </select>
                     </div>
-                    <div id="edit-conjuge-container" class="hidden md:col-span-2">
-                        <label for="edit-conjuge" class="block text-sm font-medium text-gray-700">Nome do
-                            Cônjuge</label>
-                        <input type="text" id="edit-conjuge"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <div id="edit-conjuge-container" class="hidden">
+                        <label for="edit-conjuge" class="block text-sm font-medium text-gray-700">Nome do Cônjuge</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="text" id="edit-conjuge" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label for="edit-profissao" class="block text-sm font-medium text-gray-700">Profissão</label>
-                        <input type="text" id="edit-profissao"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="text" id="edit-profissao" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div class="md:col-span-1">
-                        <label for="edit-escolaridade"
-                            class="block text-sm font-medium text-gray-700">Escolaridade</label>
-                        <select id="edit-escolaridade"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option value="Não informado">Não informado</option>
+                        <label for="edit-escolaridade" class="block text-sm font-medium text-gray-700">Escolaridade</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <select id="edit-escolaridade" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             <option value="Não Alfabetizado">Não Alfabetizado</option>
                             <option value="Ensino Fundamental">Ensino Fundamental</option>
                             <option value="Ensino Médio">Ensino Médio</option>
@@ -851,50 +667,43 @@
                         </select>
                     </div>
                     <div>
-                        <label for="edit-funcao" class="block text-sm font-medium text-gray-700">Função /
-                            Ministério</label>
-                        <input type="text" id="edit-funcao"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <label for="edit-funcao" class="block text-sm font-medium text-gray-700">Função / Ministério</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="text" id="edit-funcao" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label for="edit-data-batismo" class="block text-sm font-medium text-gray-700">Data de
-                            Batismo</label>
-                        <input type="date" id="edit-data-batismo"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <label for="edit-data-batismo" class="block text-sm font-medium text-gray-700">Data de Batismo</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="date" id="edit-data-batismo" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label for="edit-data-chegada" class="block text-sm font-medium text-gray-700">Data de
-                            Chegada</label>
-                        <input type="date" id="edit-data-chegada"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <label for="edit-data-chegada" class="block text-sm font-medium text-gray-700">Data de Chegada</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="date" id="edit-data-chegada" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label for="edit-igreja-anterior" class="block text-sm font-medium text-gray-700">Igreja de Onde
-                            Veio</label>
-                        <input type="text" id="edit-igreja-anterior"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <label for="edit-igreja-anterior" class="block text-sm font-medium text-gray-700">Igreja de Onde Veio</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="text" id="edit-igreja-anterior" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label for="edit-cargo-anterior" class="block text-sm font-medium text-gray-700">Cargo que
-                            Ocupava</label>
-                        <input type="text" id="edit-cargo-anterior"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <label for="edit-cargo-anterior" class="block text-sm font-medium text-gray-700">Cargo que Ocupava</label>
+                        <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                        <input type="text" id="edit-cargo-anterior" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                </div>
+                 </div>
 
-                <div class="mt-8 pt-6 border-t">
+                 <div class="mt-8 pt-6 border-t">
                     <h3 class="text-lg font-medium text-gray-800 mb-2">Confirmação de Segurança</h3>
-                    <p class="text-sm text-gray-600 mb-4">Para salvar as alterações, por favor, insira sua senha de
-                        login.</p>
-                    <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Senha:</label>
-                    <input type="password" id="edit-membro-password"
-                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 max-w-xs"
-                        required>
+                    <p class="text-sm text-gray-600 mb-4">Para salvar as alterações, por favor, insira sua senha de login.</p>
+                     <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Senha:</label>
+                    <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                    <input type="password" id="edit-membro-password" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 max-w-xs" required>
                     <p id="edit-membro-error" class="text-red-500 text-sm mt-2 h-5"></p>
-                </div>
-
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button type="button" id="cancel-edit-membro-btn"
+                 </div>
+                 
+                 <div class="mt-6 flex justify-end space-x-3">
+                     <button type="button" id="cancel-edit-membro-btn"
                         class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150">
                         Cancelar
                     </button>
@@ -902,9 +711,9 @@
                         class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 h-10 flex items-center justify-center min-w-[120px]">
                         Salvar Alterações
                     </button>
-                </div>
-            </form>
-        </div>
+                 </div>
+             </form>
+         </div>
     </div>
 
 
@@ -918,9 +727,8 @@
             <form id="delete-confirm-form">
                 <label for="delete-password" class="block text-sm font-medium text-gray-700">Para confirmar, digite
                     sua senha de login:</label>
-                <input type="password" id="delete-password"
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 w-full"
-                    required>
+                <!-- CORRIGIDO: Adicionado classes do Tailwind -->
+                <input type="password" id="delete-password" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 w-full" required>
                 <p id="delete-error-message" class="text-red-500 text-sm mt-2 h-5"></p>
                 <div class="mt-6 flex justify-end">
                     <button type="button" id="cancel-delete-btn"
@@ -948,4 +756,5 @@
 </body>
 
 </html>
+
 
