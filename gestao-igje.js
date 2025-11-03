@@ -5,9 +5,9 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    onAuthStateChanged,
-    EmailAuthProvider,
-    reauthenticateWithCredential
+    onAuthStateChanged, // Adicionado de volta
+    EmailAuthProvider, // Adicionado de volta
+    reauthenticateWithCredential // Adicionado de volta
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
     getFirestore,
@@ -48,7 +48,98 @@ try {
     document.body.innerHTML = "<p>Erro crítico ao conectar ao banco de dados. Verifique a configuração do Firebase.</p>";
 }
 
-// Variáveis de estado global
+// --- Referências do DOM (Movidas para o topo) ---
+const authScreen = document.getElementById("auth-screen");
+const appContent = document.getElementById("app-content");
+const loginForm = document.getElementById("login-form");
+const registerForm = document.getElementById("register-form");
+const loginError = document.getElementById("login-error");
+const registerError = document.getElementById("register-error");
+const userEmailDisplay = document.getElementById("user-email-display");
+const logoutButton = document.getElementById("logout-button");
+const loginSubmitBtn = document.getElementById("login-submit-btn");
+const registerSubmitBtn = document.getElementById("register-submit-btn");
+
+const loginTabButton = document.getElementById("auth-login-tab-button"); // ID corrigido
+const registerTabButton = document.getElementById("auth-register-tab-button"); // ID corrigido
+const loginTab = document.getElementById("auth-login-tab"); // ID corrigido
+const registerTab = document.getElementById("auth-register-tab"); // ID corrigido
+
+// Abas da Aplicação
+const appTabButtons = document.querySelectorAll(".app-tab-button");
+const tabContents = document.querySelectorAll(".app-content-tab"); // Corrigido
+
+// Formulário de Membros
+const formMembro = document.getElementById("form-membro");
+const membroSubmitBtn = document.getElementById("membro-submit-btn");
+const estadoCivilSelect = document.getElementById("estado-civil");
+const conjugeContainer = document.getElementById("conjuge-container");
+
+// Tabela de Membros
+const listaMembros = document.getElementById("lista-membros");
+const filtroMembros = document.getElementById("filtro-membros");
+
+// Modal Detalhes do Membro
+const membroDetalhesModal = document.getElementById("membro-detalhes-modal");
+const closeMembroModal = document.getElementById("close-membro-modal");
+const showDeleteMembroBtn = document.getElementById("show-delete-membro-btn");
+const showEditMembroBtn = document.getElementById("show-edit-membro-btn");
+
+// Modal Editar Membro
+const membroEditModal = document.getElementById("membro-edit-modal");
+const closeMembroEditModal = document.getElementById("close-membro-edit-modal");
+const cancelEditMembroBtn = document.getElementById("cancel-edit-membro-btn");
+const formEditMembro = document.getElementById("form-edit-membro");
+const editMembroError = document.getElementById("edit-membro-error");
+const editMembroSubmitBtn = document.getElementById("edit-membro-submit-btn");
+const editEstadoCivilSelect = document.getElementById("edit-estado-civil");
+const editConjugeContainer = document.getElementById("edit-conjuge-container");
+
+// Formulário Dízimos
+const formDizimo = document.getElementById("form-dizimo");
+const dizimoSubmitBtn = document.getElementById("dizimo-submit-btn");
+const dizimoMembroSelect = document.getElementById("dizimo-membro");
+const filtroDizimoMes = document.getElementById("filtro-dizimo-mes");
+const filtroDizimoAno = document.getElementById("filtro-dizimo-ano");
+const listaDizimos = document.getElementById("lista-dizimos");
+
+// Formulário Ofertas
+const formOferta = document.getElementById("form-oferta");
+const ofertaSubmitBtn = document.getElementById("oferta-submit-btn");
+const filtroOfertaMes = document.getElementById("filtro-oferta-mes");
+const filtroOfertaAno = document.getElementById("filtro-oferta-ano");
+const listaOfertas = document.getElementById("lista-ofertas");
+
+// Formulário Financeiro (Saídas)
+const formFinanceiro = document.getElementById("form-financeiro");
+const financeiroSubmitBtn = document.getElementById("financeiro-submit-btn");
+const filtroFinanceiroMes = document.getElementById("filtro-financeiro-mes");
+const filtroFinanceiroAno = document.getElementById("filtro-financeiro-ano");
+const listaFinanceiro = document.getElementById("lista-financeiro");
+const saldoTotalFinanceiro = document.getElementById("saldo-total-financeiro");
+
+// Dashboard
+const saldoDashboard = document.getElementById("saldo-total-dashboard");
+const entradasDashboard = document.getElementById("entradas-mes-dashboard");
+const saidasDashboard = document.getElementById("saidas-mes-dashboard");
+const membrosDashboard = document.getElementById("total-membros-dashboard");
+const dashboardLoading = document.getElementById("dashboard-loading");
+const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
+
+// Modal Universal de Exclusão
+const deleteConfirmModal = document.getElementById("delete-confirm-modal");
+const closeDeleteModal = document.getElementById("close-delete-modal");
+const deleteConfirmForm = document.getElementById("delete-confirm-form");
+const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
+const deleteErrorMsg = document.getElementById("delete-error-message");
+const deleteCascadeWarning = document.getElementById("delete-cascade-warning");
+const deleteSubmitBtn = document.getElementById("delete-submit-btn");
+
+// Notificações (Toasts)
+const toastContainer = document.getElementById("toast-container");
+
+
+// --- Variáveis de Estado Global ---
 let localMembros = [];
 let localDizimos = [];
 let localOfertas = [];
@@ -63,89 +154,6 @@ let itemParaExcluir = {
 
 // ID do membro a ser editado
 let membroParaEditarId = null;
-
-
-// --- REFERÊNCIAS DE ELEMENTOS DO DOM ---
-const authScreen = document.getElementById("auth-screen");
-const appContent = document.getElementById("app-content");
-const loginForm = document.getElementById("login-form");
-const registerForm = document.getElementById("register-form");
-const loginError = document.getElementById("login-error");
-const registerError = document.getElementById("register-error");
-const userEmailDisplay = document.getElementById("user-email-display");
-const logoutButton = document.getElementById("logout-button");
-const loginSubmitBtn = document.getElementById("login-submit-btn");
-const registerSubmitBtn = document.getElementById("register-submit-btn");
-
-const loginTabButton = document.getElementById("login-tab-button");
-const registerTabButton = document.getElementById("register-tab-button");
-const loginTab = document.getElementById("login-tab");
-const registerTab = document.getElementById("register-tab");
-
-// Elementos do formulário de Membros
-const formMembro = document.getElementById("form-membro");
-const membroSubmitBtn = document.getElementById("membro-submit-btn");
-const estadoCivilSelect = document.getElementById("estado-civil");
-const conjugeContainer = document.getElementById("conjuge-container");
-const listaMembros = document.getElementById("lista-membros");
-const filtroMembros = document.getElementById("filtro-membros");
-
-// Elementos do formulário de Dízimos
-const formDizimo = document.getElementById("form-dizimo");
-const dizimoSubmitBtn = document.getElementById("dizimo-submit-btn");
-const dizimoMembroSelect = document.getElementById("dizimo-membro");
-const filtroDizimoMes = document.getElementById("filtro-dizimo-mes");
-const filtroDizimoAno = document.getElementById("filtro-dizimo-ano");
-const listaDizimos = document.getElementById("lista-dizimos");
-
-// Elementos do formulário de Ofertas
-const formOferta = document.getElementById("form-oferta");
-const ofertaSubmitBtn = document.getElementById("oferta-submit-btn");
-const filtroOfertaMes = document.getElementById("filtro-oferta-mes");
-const filtroOfertaAno = document.getElementById("filtro-oferta-ano");
-const listaOfertas = document.getElementById("lista-ofertas");
-
-// Elementos do formulário Financeiro
-const formFinanceiro = document.getElementById("form-financeiro");
-const financeiroSubmitBtn = document.getElementById("financeiro-submit-btn");
-const listaFinanceiro = document.getElementById("lista-financeiro");
-const saldoTotalFinanceiro = document.getElementById("saldo-total-financeiro");
-const filtroFinanceiroMes = document.getElementById("filtro-financeiro-mes");
-const filtroFinanceiroAno = document.getElementById("filtro-financeiro-ano");
-
-// REMOVIDO: Elementos do Relatório Mensal
-
-// Elementos do Dashboard
-const saldoDashboard = document.getElementById("saldo-total-dashboard");
-const entradasDashboard = document.getElementById("entradas-mes-dashboard");
-const saidasDashboard = document.getElementById("saidas-mes-dashboard");
-const membrosDashboard = document.getElementById("total-membros-dashboard");
-const dashboardLoading = document.getElementById("dashboard-loading");
-
-// Elementos dos Modais de Membro (Detalhes, Edição, Exclusão)
-const membroDetalhesModal = document.getElementById("membro-detalhes-modal");
-const closeMembroModal = document.getElementById("close-membro-modal");
-const membroEditModal = document.getElementById("membro-edit-modal");
-const closeMembroEditModal = document.getElementById("close-membro-edit-modal");
-const showEditMembroBtn = document.getElementById("show-edit-membro-btn");
-const cancelEditMembroBtn = document.getElementById("cancel-edit-membro-btn");
-const formEditMembro = document.getElementById("form-edit-membro");
-const editMembroError = document.getElementById("edit-membro-error");
-const editMembroSubmitBtn = document.getElementById("edit-membro-submit-btn");
-const editEstadoCivilSelect = document.getElementById("edit-estado-civil");
-const editConjugeContainer = document.getElementById("edit-conjuge-container");
-const deleteConfirmModal = document.getElementById("delete-confirm-modal");
-const closeDeleteModal = document.getElementById("close-delete-modal");
-const deleteConfirmForm = document.getElementById("delete-confirm-form");
-const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
-const deleteErrorMsg = document.getElementById("delete-error-message");
-const deleteCascadeWarning = document.getElementById("delete-cascade-warning");
-const showDeleteMembroBtn = document.getElementById("show-delete-membro-btn");
-const deleteSubmitBtn = document.getElementById("delete-submit-btn");
-const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
-const toastContainer = document.getElementById("toast-container");
-// --- FIM DAS REFERÊNCIAS DO DOM ---
-
 
 // --- CONTROLE DE AUTENTICAÇÃO ---
 
@@ -173,11 +181,15 @@ registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     registerError.textContent = "";
     toggleButtonLoading(registerSubmitBtn, true, "Cadastrar");
-    
+
+    // Campos novos
     const nome = document.getElementById("register-name").value;
-    const telefone = document.getElementById("register-phone").value;
+    const telefone = document.getElementById("register-phone").value.replace(/\D/g, ''); // Limpa formatação
+    // Campos existentes
     const email = document.getElementById("register-email").value;
     const password = document.getElementById("register-password").value;
+
+    // --- INÍCIO DAS NOVAS VERIFICAÇÕES ---
 
     // 1. Validar campos
     if (!nome || !telefone) {
@@ -185,37 +197,36 @@ registerForm.addEventListener("submit", async (e) => {
         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
         return;
     }
-    
-    // 2. Normalizar dados para verificação
+
+    // 2. Verificar combinação de nome e telefone (case-insensitive para nome)
     const nomeLimpo = nome.trim().toLowerCase();
-    const telefoneLimpo = telefone.replace(/\D/g, ""); // Remove tudo exceto números
-    
-    // 3. Verificar combinações permitidas
-    const usersPermitidos = {
+    const telefoneLimpo = telefone.trim();
+
+    const usuariosAutorizados = {
         "gabriel angelino": "21964597378",
         "lorrane": "21979626240"
     };
 
-    if (usersPermitidos[nomeLimpo] !== telefoneLimpo) {
-         registerError.textContent = "Nome e telefone não correspondem a um utilizador autorizado.";
-         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
-         return;
+    if (usuariosAutorizados[nomeLimpo] !== telefoneLimpo) {
+        registerError.textContent = "Nome e Telefone não correspondem a um utilizador autorizado.";
+        toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
+        return;
     }
-    
+
+    // --- FIM DAS NOVAS VERIFICAÇÕES ---
+
     try {
-        // 4. Criar o usuário na Autenticação
+        // 3. Criar o usuário na Autenticação
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 5. Salvar dados do perfil no Firestore
+        // 4. Salvar dados do perfil no Firestore (no caminho partilhado)
         await setDoc(doc(db, "dadosIgreja/ADCA-CG/perfisUtilizadores", user.uid), {
             nome: nome.trim(),
             telefone: telefone.trim(),
             email: email,
-            createdAt: Timestamp.now(),
+            createdAt: Timestamp.now()
         });
-
-        // O onAuthStateChanged vai pegar a partir daqui
         
     } catch (error) {
         console.error("Erro no cadastro:", error.code, error.message);
@@ -267,7 +278,7 @@ logoutButton.addEventListener("click", async () => {
 onAuthStateChanged(auth, (user) => {
     if (user) {
         // Usuário está logado
-        userId = user.uid;
+        userId = user.uid; // Define o userId global
         userEmailDisplay.textContent = user.email;
         authScreen.style.display = "none";
         appContent.style.display = "block";
@@ -290,13 +301,14 @@ onAuthStateChanged(auth, (user) => {
 
 // --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
 
+// Esta função é crucial para operações seguras (excluir, editar)
 async function reauthenticate(password) {
     const user = auth.currentUser;
     if (!user) {
-        throw new Error("Usuário não está logado.");
+        throw new Error("Utilizador não está logado.");
     }
     if (!user.email) {
-         throw new Error("Usuário não tem email associado (ex: anônimo).");
+         throw new Error("Utilizador não tem email associado (ex: anônimo).");
     }
 
     try {
@@ -316,14 +328,12 @@ async function reauthenticate(password) {
 
 // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
 
-const tabButtons = document.querySelectorAll(".app-tab-button"); 
-
-tabButtons.forEach(button => {
+appTabButtons.forEach(button => {
     button.addEventListener("click", () => {
         const targetTab = button.dataset.tab;
 
         // Desativa todos
-        tabButtons.forEach(btn => btn.classList.remove("active"));
+        appTabButtons.forEach(btn => btn.classList.remove("active"));
         tabContents.forEach(content => content.classList.remove("active"));
 
         // Ativa o clicado
@@ -334,9 +344,6 @@ tabButtons.forEach(button => {
         if (targetTab === 'dashboard') {
             updateDashboard();
         }
-        
-        // REMOVIDO: Atualização de filtros do relatório mensal
-
         // Atualiza ícones quando muda de aba
         lucide.createIcons();
     });
@@ -344,6 +351,7 @@ tabButtons.forEach(button => {
 
 // --- FORMULÁRIO DE MEMBROS (CADASTRO) ---
 
+// Campos condicionais de Cônjuge
 estadoCivilSelect.addEventListener("change", () => {
     if (estadoCivilSelect.value === 'Casado(a)') {
         conjugeContainer.classList.remove("hidden");
@@ -369,10 +377,10 @@ formMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("rg").value,
         naturalidade: document.getElementById("naturalidade").value,
         endereco: document.getElementById("endereco").value,
-        estadoCivil: document.getElementById("estado-civil").value,
-        conjuge: (document.getElementById("estado-civil").value === 'Casado(a)') ? document.getElementById("conjuge").value : "",
         nomePai: document.getElementById("nome-pai").value,
         nomeMae: document.getElementById("nome-mae").value,
+        estadoCivil: document.getElementById("estado-civil").value,
+        conjuge: (document.getElementById("estado-civil").value === 'Casado(a)') ? document.getElementById("conjuge").value : "",
         profissao: document.getElementById("profissao").value,
         escolaridade: document.getElementById("escolaridade").value,
         funcao: document.getElementById("funcao").value,
@@ -399,6 +407,7 @@ formMembro.addEventListener("submit", async (e) => {
 
 // --- FORMULÁRIO DE MEMBROS (EDIÇÃO) ---
 
+// Campos condicionais de Cônjuge (Edição)
 editEstadoCivilSelect.addEventListener("change", () => {
     if (editEstadoCivilSelect.value === 'Casado(a)') {
         editConjugeContainer.classList.remove("hidden");
@@ -441,10 +450,10 @@ formEditMembro.addEventListener("submit", async (e) => {
         rg: document.getElementById("edit-rg").value,
         naturalidade: document.getElementById("edit-naturalidade").value,
         endereco: document.getElementById("edit-endereco").value,
-        estadoCivil: document.getElementById("edit-estado-civil").value,
-        conjuge: (document.getElementById("edit-estado-civil").value === 'Casado(a)') ? document.getElementById("edit-conjuge").value : "",
         nomePai: document.getElementById("edit-nome-pai").value,
         nomeMae: document.getElementById("edit-nome-mae").value,
+        estadoCivil: document.getElementById("edit-estado-civil").value,
+        conjuge: (document.getElementById("edit-estado-civil").value === 'Casado(a)') ? document.getElementById("edit-conjuge").value : "",
         profissao: document.getElementById("edit-profissao").value,
         escolaridade: document.getElementById("edit-escolaridade").value,
         funcao: document.getElementById("edit-funcao").value,
@@ -493,33 +502,40 @@ formDizimo.addEventListener("submit", async (e) => {
     }
 
     try {
+        // Usar um "batch" para garantir que as duas operações ocorram
         const batch = writeBatch(db);
-        const dizimoDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/dizimos"));
-        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
 
+        // 1. Cria o documento de dízimo
+        const dizimoDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/dizimos"));
         batch.set(dizimoDocRef, {
             membroId: membroId,
             membroNome: membroNome,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            financeiroId: financeiroDocRef.id 
+            financeiroId: null // Será atualizado depois
         });
 
+        // 2. Cria o documento financeiro
+        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `Dízimo - ${membroNome}`,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            origemId: dizimoDocRef.id, 
-            origemTipo: "dizimo"      
+            origemId: dizimoDocRef.id, // ID do dízimo original
+            origemTipo: "dizimo"      // Tipo da origem
         });
 
+        // 3. Atualiza o dízimo com o ID do financeiro
+        batch.update(dizimoDocRef, { financeiroId: financeiroDocRef.id });
+
+        // 4. Executa o batch
         await batch.commit();
 
         formDizimo.reset();
-        document.getElementById("dizimo-data").valueAsDate = new Date(); 
+        document.getElementById("dizimo-data").valueAsDate = new Date(); // Reseta data para hoje
         showToast("Dízimo registado com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar dízimo: ", error);
@@ -549,33 +565,40 @@ formOferta.addEventListener("submit", async (e) => {
     }
 
     try {
+        // Usar um "batch"
         const batch = writeBatch(db);
-        const ofertaDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/ofertas"));
-        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
 
+        // 1. Cria o documento de oferta
+        const ofertaDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/ofertas"));
         batch.set(ofertaDocRef, {
             tipo: tipo,
             descricao: descricao,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            financeiroId: financeiroDocRef.id
+            financeiroId: null // Será atualizado
         });
 
+        // 2. Cria o documento financeiro
+        const financeiroDocRef = doc(collection(db, "dadosIgreja/ADCA-CG/financeiro"));
         batch.set(financeiroDocRef, {
             tipo: "entrada",
             descricao: `${tipo} - ${descricao}`,
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            origemId: ofertaDocRef.id, 
-            origemTipo: "oferta"      
+            origemId: ofertaDocRef.id, // ID da oferta original
+            origemTipo: "oferta"      // Tipo da origem
         });
 
+        // 3. Atualiza a oferta com o ID do financeiro
+        batch.update(ofertaDocRef, { financeiroId: financeiroDocRef.id });
+
+        // 4. Executa
         await batch.commit();
 
         formOferta.reset();
-        document.getElementById("oferta-data").valueAsDate = new Date(); 
+        document.getElementById("oferta-data").valueAsDate = new Date(); // Reseta data para hoje
         showToast("Entrada registada com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar oferta: ", error);
@@ -609,15 +632,15 @@ formFinanceiro.addEventListener("submit", async (e) => {
         await addDoc(colRef, {
             tipo: "saida",
             descricao: descricao,
-            valor: valor * -1, 
+            valor: valor * -1, // Salva saídas como valor negativo
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            origemId: null, 
+            origemId: null, // Saídas não têm origem em dízimo/oferta
             origemTipo: null
         });
 
         formFinanceiro.reset();
-        document.getElementById("fin-data").valueAsDate = new Date(); 
+        document.getElementById("fin-data").valueAsDate = new Date(); // Reseta data para hoje
         showToast("Saída registada com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar saída: ", error);
@@ -630,11 +653,13 @@ formFinanceiro.addEventListener("submit", async (e) => {
 
 // --- CARREGAMENTO E RENDERIZAÇÃO DE DADOS ---
 
-function loadAllData() { 
-    if (!userId) return;
+// Função principal para carregar dados
+function loadAllData() {
+    if (!userId) return; // Proteção
     console.log("Carregando dados partilhados...");
     dashboardLoading.innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
 
+    // Parar listeners antigos se existirem
     stopAllListeners();
 
     let loadsPending = 4;
@@ -644,7 +669,6 @@ function loadAllData() {
             console.log("Todos os dados carregados.");
             dashboardLoading.innerHTML = "";
             updateDashboard();
-            // REMOVIDO: renderRelatorioMensal();
         }
     };
 
@@ -653,7 +677,7 @@ function loadAllData() {
         const qMembros = query(collection(db, "dadosIgreja/ADCA-CG/membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
             localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            localMembros.sort((a, b) => a.nome.localeCompare(b.nome)); 
+            localMembros.sort((a, b) => a.nome.localeCompare(b.nome)); // Ordena por nome
             renderMembros(localMembros);
             populateMembrosSelect(localMembros);
             onDataLoaded();
@@ -665,7 +689,7 @@ function loadAllData() {
         const qDizimos = query(collection(db, "dadosIgreja/ADCA-CG/dizimos"));
         unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
             localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderFiltroDizimos(); 
+            renderFiltroDizimos(); // Renderiza os filtros
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir dízimos:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de dízimos:", e); onDataLoaded(); }
@@ -675,7 +699,7 @@ function loadAllData() {
         const qOfertas = query(collection(db, "dadosIgreja/ADCA-CG/ofertas"));
         unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
             localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderFiltroOfertas(); 
+            renderFiltroOfertas(); // Renderiza os filtros
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir ofertas:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de ofertas:", e); onDataLoaded(); }
@@ -690,7 +714,6 @@ function loadAllData() {
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir financeiro:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de financeiro:", e); onDataLoaded(); }
-
 }
 
 // Parar todos os listeners
@@ -714,7 +737,6 @@ function clearAllTables() {
     entradasDashboard.textContent = "R$ 0,00";
     saidasDashboard.textContent = "R$ 0,00";
     membrosDashboard.textContent = "0";
-    // REMOVIDO: relatorioContainer.innerHTML
 }
 
 
@@ -726,7 +748,7 @@ filtroMembros.addEventListener("input", (e) => {
 });
 
 function renderMembros(membros) {
-    listaMembros.innerHTML = ""; 
+    listaMembros.innerHTML = ""; // Limpa a lista
     if (membros.length === 0) {
         listaMembros.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhum membro encontrado.</td></tr>';
         return;
@@ -739,10 +761,11 @@ function renderMembros(membros) {
             <a href="#" class="text-blue-600 hover:text-blue-800 font-medium" data-id="${membro.id}">${membro.nome}</a>
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.funcao || ''}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${calcularIdade(membro.dataNascimento)}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${calcularIdade(membro.dataNascimento) || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.telefone || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.email || ''}</td>
     `;
+        // Adiciona listener para abrir modal
         tr.querySelector("a").addEventListener("click", (e) => {
             e.preventDefault();
             showMembroDetalhesModal(membro.id);
@@ -792,7 +815,10 @@ function renderFinanceiro(transacoes) {
         listaFinanceiro.appendChild(tr);
     });
 
+    // Adiciona listeners aos botões de excluir
     adicionarListenersExcluir();
+
+    // Atualiza ícones Lucide
     lucide.createIcons();
 }
 
@@ -804,6 +830,7 @@ const mesAtual = hoje.getMonth();
 const anoAtual = hoje.getFullYear();
 
 function popularFiltros(selectMes, selectAno) {
+    // Meses
     selectMes.innerHTML = "";
     meses.forEach((mes, index) => {
         const option = document.createElement("option");
@@ -813,6 +840,7 @@ function popularFiltros(selectMes, selectAno) {
         selectMes.appendChild(option);
     });
 
+    // Anos (Ano atual + 2 anteriores)
     selectAno.innerHTML = "";
     for (let i = 0; i < 3; i++) {
         const ano = anoAtual - i;
@@ -827,7 +855,6 @@ function popularFiltros(selectMes, selectAno) {
 popularFiltros(filtroDizimoMes, filtroDizimoAno);
 popularFiltros(filtroOfertaMes, filtroOfertaAno);
 popularFiltros(filtroFinanceiroMes, filtroFinanceiroAno);
-// REMOVIDO: popularFiltros(filtroRelatorioMes, filtroRelatorioAno);
 
 filtroDizimoMes.addEventListener("change", renderFiltroDizimos);
 filtroDizimoAno.addEventListener("change", renderFiltroDizimos);
@@ -835,18 +862,20 @@ filtroOfertaMes.addEventListener("change", renderFiltroOfertas);
 filtroOfertaAno.addEventListener("change", renderFiltroOfertas);
 filtroFinanceiroMes.addEventListener("change", renderFiltroFinanceiro);
 filtroFinanceiroAno.addEventListener("change", renderFiltroFinanceiro);
-// REMOVIDO: Listeners do relatório mensal
 
+// NOVA FUNÇÃO para filtrar e renderizar o financeiro
 function renderFiltroFinanceiro() {
     const mes = parseInt(filtroFinanceiroMes.value);
     const ano = parseInt(filtroFinanceiroAno.value);
 
+    // 1. Filtrar os dados
     const dadosFiltrados = localFinanceiro.filter(d => {
         const data = getDateFromInput(d.data);
         if (!data) return false;
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
 
+    // 2. Ordenar os dados filtrados (mais recente primeiro)
     dadosFiltrados.sort((a, b) => {
         const dataA = getDateFromInput(a.data);
         const dataB = getDateFromInput(b.data);
@@ -855,8 +884,10 @@ function renderFiltroFinanceiro() {
         return dataB - dataA;
     });
 
+    // 3. Renderizar a tabela com os dados filtrados
     renderFinanceiro(dadosFiltrados);
 
+    // 4. Calcular e renderizar o SALDO TOTAL (usando todos os dados)
     const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
     const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
     saldoTotalFinanceiro.className = `text-2xl font-bold ${corSaldo}`;
@@ -869,17 +900,18 @@ function renderFiltroDizimos() {
     const ano = parseInt(filtroDizimoAno.value);
 
     const dadosFiltrados = localDizimos.filter(d => {
-        const data = getDateFromInput(d.data); 
-        if (!data) return false; 
+        const data = getDateFromInput(d.data); // <-- CORRIGIDO
+        if (!data) return false; // Ignora datas inválidas
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
 
+    // Ordena por data
     dadosFiltrados.sort((a, b) => {
         const dataA = getDateFromInput(a.data);
         const dataB = getDateFromInput(b.data);
         if (!dataA) return 1;
         if (!dataB) return -1;
-        return dataA - dataB; 
+        return dataA - dataB; // Mais antigo primeiro
     });
 
     listaDizimos.innerHTML = "";
@@ -902,7 +934,7 @@ function renderFiltroDizimos() {
     `;
         listaDizimos.appendChild(tr);
     });
-    adicionarListenersExcluir(); 
+    adicionarListenersExcluir(); // Adiciona listeners aos novos botões
     lucide.createIcons();
 }
 
@@ -911,17 +943,18 @@ function renderFiltroOfertas() {
     const ano = parseInt(filtroOfertaAno.value);
 
     const dadosFiltrados = localOfertas.filter(d => {
-        const data = getDateFromInput(d.data); 
+        const data = getDateFromInput(d.data); // <-- CORRIGIDO
         if (!data) return false;
         return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
     });
 
+    // Ordena por data
     dadosFiltrados.sort((a, b) => {
         const dataA = getDateFromInput(a.data);
         const dataB = getDateFromInput(b.data);
         if (!dataA) return 1;
         if (!dataB) return -1;
-        return dataA - dataB; 
+        return dataA - dataB; // Mais antigo primeiro
     });
 
     listaOfertas.innerHTML = "";
@@ -945,18 +978,15 @@ function renderFiltroOfertas() {
     `;
         listaOfertas.appendChild(tr);
     });
-    adicionarListenersExcluir(); 
+    adicionarListenersExcluir(); // Adiciona listeners aos novos botões
     lucide.createIcons();
 }
-
-
-// --- (REMOVIDO) RELATÓRIO FINANCEIRO MENSAL ---
 
 
 // --- ATUALIZAÇÃO DO DASHBOARD ---
 
 function updateDashboard() {
-    if (!localFinanceiro || !localMembros) return; 
+    if (!localFinanceiro || !localMembros) return; // Não atualiza se os dados não chegaram
 
     // 1. Saldo Total
     const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
@@ -972,7 +1002,7 @@ function updateDashboard() {
     const anoCorrente = new Date().getFullYear();
 
     const transacoesMes = localFinanceiro.filter(t => {
-        const data = getDateFromInput(t.data); 
+        const data = getDateFromInput(t.data); // <-- CORRIGIDO
         if (!data) return false;
         return data.getUTCMonth() === mesCorrente && data.getUTCFullYear() === anoCorrente;
     });
@@ -983,7 +1013,7 @@ function updateDashboard() {
 
     const saidasMes = transacoesMes
         .filter(t => t.valor < 0)
-        .reduce((acc, t) => acc + t.valor, 0); 
+        .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
 
     entradasDashboard.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
     saidasDashboard.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
@@ -996,11 +1026,10 @@ function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
     if (!membro) return;
 
-    // Remove as abas, mostra só o conteúdo
-    document.getElementById("modal-nome").textContent = membro.nome || 'N/A';
+    // Preenche todos os campos (incluindo os novos)
+    document.getElementById("modal-nome").textContent = membro.nome;
     document.getElementById("modal-funcao").textContent = membro.funcao || 'N/A';
     document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
-    document.getElementById("modal-idade").textContent = calcularIdade(membro.dataNascimento);
     document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
     document.getElementById("modal-email").textContent = membro.email || 'N/A';
     document.getElementById("modal-cpf").textContent = membro.cpf || 'N/A';
@@ -1009,23 +1038,21 @@ function showMembroDetalhesModal(id) {
     document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
     document.getElementById("modal-nome-pai").textContent = membro.nomePai || 'N/A';
     document.getElementById("modal-nome-mae").textContent = membro.nomeMae || 'N/A';
-    
     document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
-    const modalConjuge = document.getElementById("modal-conjuge-container");
-    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
-        document.getElementById("modal-conjuge").textContent = membro.conjuge;
-        modalConjuge.classList.remove("hidden");
-    } else {
-        modalConjuge.classList.add("hidden");
-    }
-    
+    document.getElementById("modal-conjuge").textContent = membro.conjuge || 'N/A';
     document.getElementById("modal-profissao").textContent = membro.profissao || 'N/A';
     document.getElementById("modal-escolaridade").textContent = membro.escolaridade || 'N/A';
     document.getElementById("modal-data-batismo").textContent = formatarData(membro.dataBatismo) || 'N/A';
     document.getElementById("modal-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
     document.getElementById("modal-igreja-anterior").textContent = membro.igrejaAnterior || 'N/A';
     document.getElementById("modal-cargo-anterior").textContent = membro.cargoAnterior || 'N/A';
-    
+
+    // Lógica para mostrar/esconder o campo cônjuge
+    if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
+        document.getElementById("modal-conjuge-container").classList.remove("hidden");
+    } else {
+        document.getElementById("modal-conjuge-container").classList.add("hidden");
+    }
     
     // Define o ID para os botões de ação
     membroParaEditarId = id; // Para edição
@@ -1053,6 +1080,7 @@ function showMembroEditModal() {
     document.getElementById("edit-nome-pai").value = membro.nomePai || '';
     document.getElementById("edit-nome-mae").value = membro.nomeMae || '';
     document.getElementById("edit-estado-civil").value = membro.estadoCivil || '';
+    document.getElementById("edit-conjuge").value = membro.conjuge || '';
     document.getElementById("edit-profissao").value = membro.profissao || '';
     document.getElementById("edit-escolaridade").value = membro.escolaridade || '';
     document.getElementById("edit-funcao").value = membro.funcao || '';
@@ -1060,16 +1088,13 @@ function showMembroEditModal() {
     document.getElementById("edit-data-chegada").value = membro.dataChegada || '';
     document.getElementById("edit-igreja-anterior").value = membro.igrejaAnterior || '';
     document.getElementById("edit-cargo-anterior").value = membro.cargoAnterior || '';
-    
-    // Campo Cônjuge
-    if (membro.estadoCivil === 'Casado(a)') {
-        document.getElementById("edit-conjuge").value = membro.conjuge || '';
+
+    // Lógica para mostrar/esconder o campo cônjuge na edição
+    if (document.getElementById("edit-estado-civil").value === 'Casado(a)') {
         editConjugeContainer.classList.remove("hidden");
     } else {
-         document.getElementById("edit-conjuge").value = '';
-         editConjugeContainer.classList.add("hidden");
+        editConjugeContainer.classList.add("hidden");
     }
-
     
     // Limpa erros e senha
     document.getElementById("edit-membro-password").value = "";
@@ -1119,13 +1144,18 @@ cancelDeleteBtn.onclick = () => deleteConfirmModal.style.display = "none";
 
 function adicionarListenersExcluir() {
      document.querySelectorAll(".delete-btn").forEach(button => {
+        // Remove listener antigo para evitar duplicados
         button.removeEventListener("click", handleDeleteClick); 
+        // Adiciona novo listener
         button.addEventListener("click", handleDeleteClick);
     });
 }
 
 function handleDeleteClick(e) {
+    // Impede que o clique se propague (caso esteja dentro de outro link)
     e.stopPropagation(); 
+    
+    // Pega o botão (pode ser o ícone ou o botão)
     const button = e.currentTarget;
     itemParaExcluir.id = button.dataset.id;
     itemParaExcluir.tipo = button.dataset.tipo;
@@ -1152,7 +1182,7 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
         await reauthenticate(password);
     } catch (error) {
         console.error(error);
-        deleteErrorMsg.textContent = error.message; 
+        deleteErrorMsg.textContent = error.message; // Exibe "Senha incorreta."
         toggleButtonLoading(deleteSubmitBtn, false, "Excluir Permanentemente");
         return;
     }
@@ -1160,52 +1190,61 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
     // 2. Executar a Exclusão
     try {
         const batch = writeBatch(db);
+        const basePath = "dadosIgreja/ADCA-CG"; // Caminho partilhado
         
         if (itemParaExcluir.tipo === 'financeiro') {
-            const finDocRef = doc(db, "dadosIgreja/ADCA-CG/financeiro", itemParaExcluir.id);
+            const finDocRef = doc(db, basePath, "financeiro", itemParaExcluir.id);
             const finData = localFinanceiro.find(f => f.id === itemParaExcluir.id);
             
-            batch.delete(finDocRef); 
+            batch.delete(finDocRef); // Apaga o financeiro
 
+            // Se tiver origem, apaga a origem
             if (finData && finData.origemId && finData.origemTipo) {
                  const origemCollection = finData.origemTipo === 'dizimo' ? 'dizimos' : 'ofertas';
-                 const origemDocRef = doc(db, "dadosIgreja/ADCA-CG", origemCollection, finData.origemId);
+                 const origemDocRef = doc(db, basePath, origemCollection, finData.origemId);
                  batch.delete(origemDocRef);
             }
         
         } else if (itemParaExcluir.tipo === 'dizimo') {
-            const dizimoDocRef = doc(db, "dadosIgreja/ADCA-CG/dizimos", itemParaExcluir.id);
+            const dizimoDocRef = doc(db, basePath, "dizimos", itemParaExcluir.id);
             const dizimoData = localDizimos.find(d => d.id === itemParaExcluir.id);
             
-            batch.delete(dizimoDocRef); 
+            batch.delete(dizimoDocRef); // Apaga o dízimo
             
+            // Apaga o financeiro associado
             if (dizimoData && dizimoData.financeiroId) {
-                const finDocRef = doc(db, "dadosIgreja/ADCA-CG/financeiro", dizimoData.financeiroId);
+                const finDocRef = doc(db, basePath, "financeiro", dizimoData.financeiroId);
                 batch.delete(finDocRef);
             }
 
         } else if (itemParaExcluir.tipo === 'oferta') {
-            const ofertaDocRef = doc(db, "dadosIgreja/ADCA-CG/ofertas", itemParaExcluir.id);
+            const ofertaDocRef = doc(db, basePath, "ofertas", itemParaExcluir.id);
             const ofertaData = localOfertas.find(o => o.id === itemParaExcluir.id);
 
-            batch.delete(ofertaDocRef); 
+            batch.delete(ofertaDocRef); // Apaga a oferta
 
+            // Apaga o financeiro associado
             if (ofertaData && ofertaData.financeiroId) {
-                const finDocRef = doc(db, "dadosIgreja/ADCA-CG/financeiro", ofertaData.financeiroId);
+                const finDocRef = doc(db, basePath, "financeiro", ofertaData.financeiroId);
                 batch.delete(finDocRef);
             }
             
         } else if (itemParaExcluir.tipo === 'membro') {
-            const membroDocRef = doc(db, "dadosIgreja/ADCA-CG/membros", itemParaExcluir.id);
+            // Exclusão de membro não é em batch, pois não tem cascata financeira
+            const membroDocRef = doc(db, basePath, "membros", itemParaExcluir.id);
             await deleteDoc(membroDocRef);
             
+            // Fechamos os modais manually
             deleteConfirmModal.style.display = "none";
             showToast("Membro excluído com sucesso.", "success");
             toggleButtonLoading(deleteSubmitBtn, false, "Excluir Permanentemente");
-            return; 
+            return; // Sai da função aqui
         }
 
+        // 3. Commit do Batch (para fin, dizimo, oferta)
         await batch.commit();
+        
+        // 4. Fechar modal
         deleteConfirmModal.style.display = "none";
         showToast("Registo excluído com sucesso.", "success");
 
@@ -1233,9 +1272,12 @@ window.onclick = function (event) {
 // --- GERAÇÃO DE RELATÓRIO ---
 
 gerarRelatorioBtn.addEventListener("click", () => {
+    // ADICIONADO: try...catch global
     try {
+        // 1. Coletar todos os dados
         const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
         
+        // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
         const financOrdenado = [...localFinanceiro].sort((a, b) => {
             const dataA = getDateFromInput(a.data);
             const dataB = getDateFromInput(b.data);
@@ -1258,6 +1300,8 @@ gerarRelatorioBtn.addEventListener("click", () => {
             return dataA - dataB;
         });
 
+
+        // 3. Construir o HTML do Relatório
         let relatorioHTML = `
             <html>
             <head>
@@ -1289,6 +1333,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
+                    <!-- Resumo -->
                     <div class="mb-8">
                         <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
                             <h3 class="text-lg font-semibold text-blue-800">Saldo Atual (Caixa)</h3>
@@ -1296,6 +1341,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                         </div>
                     </div>
                     
+                    <!-- Dízimos -->
                     <h2>Registos de Dízimos</h2>
                     <table>
                         <thead>
@@ -1317,6 +1363,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                         </tbody>
                     </table>
                     
+                    <!-- Ofertas -->
                     <h2>Registos de Ofertas e Outras Entradas</h2>
                     <table>
                         <thead>
@@ -1340,6 +1387,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                         </tbody>
                     </table>
 
+                    <!-- Extrato Financeiro -->
                     <h2>Extrato Financeiro (Caixa)</h2>
                     <table>
                         <thead>
@@ -1360,6 +1408,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 </tr>
                             `).join('')}
                             ${financOrdenado.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum lançamento no caixa.</td></tr>' : ''}
+                            <!-- Linha de Saldo Total -->
                             <tr class="total bg-gray-50">
                                 <td colspan="2" class="text-right font-bold">SALDO TOTAL</td>
                                 <td class="currency ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">
@@ -1373,8 +1422,10 @@ gerarRelatorioBtn.addEventListener("click", () => {
             </html>
         `;
 
+        // 4. Abrir numa nova janela
         const relatorioJanela = window.open("", "_blank");
 
+        // Verificação de bloqueador de pop-up
         if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
             console.error("Falha ao abrir janela de relatório. Provável bloqueador de pop-up.");
             showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
@@ -1385,6 +1436,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
         relatorioJanela.document.close();
     
     } catch (error) {
+        // Pega qualquer erro que possa ter acontecido
         console.error("Erro ao gerar relatório:", error);
         showToast("Ocorreu um erro inesperado ao gerar o relatório.", "error");
     }
@@ -1393,6 +1445,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
 
 // --- FUNÇÕES UTILITÁRIAS ---
 
+// Controla o estado de loading de um botão
 function toggleButtonLoading(button, isLoading, defaultText) {
     if (isLoading) {
         button.disabled = true;
@@ -1403,6 +1456,7 @@ function toggleButtonLoading(button, isLoading, defaultText) {
     }
 }
 
+// Mostra um toast de notificação
 function showToast(message, type = 'success') {
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
@@ -1410,6 +1464,7 @@ function showToast(message, type = 'success') {
     
     toastContainer.appendChild(toast);
 
+    // Remove o toast após 3 segundos
     setTimeout(() => {
         toast.style.animation = "slideOut 0.3s ease-out forwards";
         setTimeout(() => {
@@ -1421,20 +1476,25 @@ function showToast(message, type = 'success') {
 
 // Função de formatação de data
 function formatarData(dataString) {
+    // Se for um Timestamp do Firebase, converte para Date
     if (dataString && typeof dataString.toDate === 'function') {
         dataString = dataString.toDate();
     }
+    // Se for um objeto Date
     else if (dataString instanceof Date) {
-         // Não faz nada
+         // Não faz nada, já é um Date
     }
+    // Se for uma string (ex: '2025-11-01')
     else if (typeof dataString === 'string' && dataString.includes('-')) {
-         dataString = getDateFromInput(dataString); 
+         dataString = getDateFromInput(dataString); // Usa a função robusta
     } 
+    // Se for inválido ou nulo
     else {
-        return 'N/A'; 
+        return 'N/A'; // Retorna 'N/A' se a data for inválida
     }
     
     try {
+        // Formata para dd/mm/aaaa
         return dataString.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
     } catch (e) {
         console.warn("Erro ao formatar data:", dataString, e);
@@ -1442,17 +1502,24 @@ function formatarData(dataString) {
     }
 }
 
+// Converte string 'aaaa-mm-dd' ou Timestamp para um Date UTC
+// CORRIGIDO para ser mais robusto
 function getDateFromInput(dataInput) {
     try {
+        // Se for um Timestamp do Firebase
         if (dataInput && typeof dataInput.toDate === 'function') {
-            return dataInput.toDate(); 
+            return dataInput.toDate(); // Retorna o objeto Date
         }
+        // Se já for um objeto Date
         if (dataInput instanceof Date) {
-            return dataInput;
+            return dataInput; // Corrigido: dataInput
         }
+        // Se for uma string (ex: '2025-11-01')
         if (typeof dataInput === 'string' && dataInput.includes('-')) {
             const parts = dataInput.split('-');
             if (parts.length === 3) {
+                // Ano, Mês (base 0), Dia
+                // Garante que seja UTC para evitar problemas de fuso
                 return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
             }
         }
@@ -1460,6 +1527,7 @@ function getDateFromInput(dataInput) {
         console.error("Data inválida:", dataInput, e);
         return null;
     }
+    // Fallback para data inválida ou formato desconhecido
     return null;
 }
 
@@ -1467,22 +1535,18 @@ function getDateFromInput(dataInput) {
 function calcularIdade(dataNascimento) {
     if (!dataNascimento) return 'N/A';
     
-    try {
-        const dataNasc = getDateFromInput(dataNascimento);
-        if (!dataNasc) return 'N/A';
+    const dataNasc = getDateFromInput(dataNascimento);
+    if (!dataNasc) return 'N/A';
 
-        const hoje = new Date();
-        let idade = hoje.getUTCFullYear() - dataNasc.getUTCFullYear();
-        const m = hoje.getUTCMonth() - dataNasc.getUTCMonth();
-        
-        if (m < 0 || (m === 0 && hoje.getUTCDate() < dataNasc.getUTCDate())) {
-            idade--;
-        }
-        return idade >= 0 ? idade : 'N/A';
-    } catch (e) {
-        console.warn("Erro ao calcular idade:", dataNascimento, e);
-        return 'N/A';
+    const hoje = new Date();
+    let idade = hoje.getFullYear() - dataNasc.getUTCFullYear();
+    const m = hoje.getMonth() - dataNasc.getUTCMonth();
+    
+    if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getUTCDate())) {
+        idade--;
     }
+    
+    return idade;
 }
 
 
