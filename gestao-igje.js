@@ -829,7 +829,6 @@ filtroOfertaAno.addEventListener("change", renderFiltroOfertas);
 filtroFinanceiroMes.addEventListener("change", renderFiltroFinanceiro);
 filtroFinanceiroAno.addEventListener("change", renderFiltroFinanceiro);
 
-// (NOVO) Função atualizada para calcular Entradas/Saídas do Mês
 function renderFiltroFinanceiro() {
     const mes = parseInt(filtroFinanceiroMes.value);
     const ano = parseInt(filtroFinanceiroAno.value);
@@ -853,7 +852,7 @@ function renderFiltroFinanceiro() {
     // 3. Renderizar a tabela com os dados filtrados
     renderFinanceiro(dadosFiltrados);
     
-    // 4. (NOVO) Calcular totais do mês filtrado
+    // 4. Calcular totais do mês filtrado
     const entradasMes = dadosFiltrados
         .filter(t => t.valor > 0)
         .reduce((acc, t) => acc + t.valor, 0);
@@ -862,7 +861,7 @@ function renderFiltroFinanceiro() {
         .filter(t => t.valor < 0)
         .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
 
-    // 5. (NOVO) Atualizar o resumo do mês na aba Financeiro
+    // 5. Atualizar o resumo do mês na aba Financeiro
     entradasMesFinanceiro.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
     saidasMesFinanceiro.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
 
@@ -1285,7 +1284,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
             .filter(f => f.valor < 0)
             .sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
 
-        // Calcular Totais (Corrigido para usar os dados filtrados)
+        // Calcular Totais
         const totalEntradas = extratoEntradas.reduce((acc, t) => acc + (t.valor || 0), 0);
         const totalSaidas = extratoSaidas.reduce((acc, t) => acc + (t.valor || 0), 0); // Já é negativo
         
@@ -1300,7 +1299,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     @media print {
                         body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                         .no-print { display: none; }
-                        /* Evita quebras de página dentro das assinaturas */
                         .assinatura-block { page-break-inside: avoid; }
                     }
                     body { font-family: sans-serif; }
@@ -1329,13 +1327,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
-                    <!-- Resumo (Removido o card de membros) -->
-                    <div class="mb-8">
-                        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                            <h3 class="text-lg font-semibold text-blue-800">Saldo Atual (Caixa)</h3>
-                            <p class="text-3xl font-bold ${saldoTotal >= 0 ? 'text-blue-700' : 'text-red-700'}">R$ ${saldoTotal.toFixed(2).replace(".", ",")}</p>
-                        </div>
-                    </div>
+                    <!-- Resumo (REMOVIDO) -->
                     
                     <!-- Dízimos (Apenas se houver) -->
                     ${dizimosOrdenados.length > 0 ? `
@@ -1462,15 +1454,8 @@ gerarRelatorioBtn.addEventListener("click", () => {
                         </div>
                     </div>
 
-                    <!-- Campos de Assinatura -->
-                    <div class="assinaturas-container">
-                        <div class="assinatura-block">
-                            <span class="assinatura-linha">Tesoureiro(a)</span>
-                        </div>
-                        <div class="assinatura-block">
-                            <span class="assinatura-linha">Pastor Local</span>
-                        </div>
-                    </div>
+                    <!-- Campos de Assinatura (REMOVIDO) -->
+                    
                 </div>
             </body>
             </html>
