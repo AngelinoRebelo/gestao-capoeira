@@ -691,7 +691,10 @@
             <!-- Conteúdo Unificado -->
             <div id="tab-pessoal" class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
                 <!-- Informações Pessoais -->
-                <div class="md:col-span-2"><strong>Nome:</strong> <span id="modal-nome"></span></div>
+                <!-- MODIFICADO: Nome e Função agora estão no topo -->
+                <div><strong>Nome:</strong> <span id="modal-nome"></span></div>
+                <div class="md:col-span-2"><strong>Função/Ministério:</strong> <span id="modal-funcao"></span></div>
+                
                 <div><strong>Data de Nasc.:</strong> <span id="modal-data-nascimento"></span></div>
                 <div><strong>Telefone:</strong> <span id="modal-telefone"></span></div>
                 <div class="md:col-span-2"><strong>Email:</strong> <span id="modal-email"></span></div>
@@ -713,7 +716,7 @@
                 <div class="md:col-span-3 h-px bg-gray-200 my-1"></div>
                 <div><strong>Profissão:</strong> <span id="modal-profissao"></span></div>
                 <div class="md:col-span-2"><strong>Escolaridade:</strong> <span id="modal-escolaridade"></span></div>
-                <div class="md:col-span-3"><strong>Função/Ministério:</strong> <span id="modal-funcao"></span></div>
+                <!-- REMOVIDO: Campo Função/Ministério movido para o topo -->
                 <div><strong>Data de Batismo:</strong> <span id="modal-data-batismo"></span></div>
                 <div class="md:col-span-2"><strong>Data de Chegada:</strong> <span id="modal-data-chegada"></span></div>
                 <div><strong>Igreja de Onde Veio:</strong> <span id="modal-igreja-anterior"></span></div>
@@ -950,4 +953,5 @@
 </body>
 
 </html>
+
 
