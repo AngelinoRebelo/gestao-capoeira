@@ -1,27 +1,45 @@
-/* Estilo para abas ativas e inativas (Login/Registo) */
-.auth-tab-button.active {
-    border-bottom-color: #3b82f6; /* Cor azul */
-    color: #3b82f6;
-    font-weight: 600;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- ESTILOS GERAIS --- */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
+/* Classe de utilitário para inputs de formulário */
+.form-input {
+    @apply mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500;
+}
+
+
+/* --- ABAS DE AUTENTICAÇÃO (LOGIN) --- */
+/* Corrigido: Botão de aba de autenticação */
 .auth-tab-button {
     border-bottom-width: 3px;
     border-bottom-color: transparent;
+    color: #6b7280; /* Cinza */
 }
-
-/* Estilo para abas ativas e inativas (Aplicação Principal) */
-.app-tab-button.active {
-    border-bottom-color: #ffffff; /* Cor branca */
-    color: #ffffff;
+.auth-tab-button.active {
+    border-bottom-color: #3b82f6; /* Cor azul */
+    color: #3b82f6; /* Cor azul */
     font-weight: 600;
 }
 
+/* --- ABAS DA APLICAÇÃO (CABEÇALHO) --- */
+/* Corrigido: Botão de aba da aplicação */
 .app-tab-button {
     border-bottom-width: 3px;
     border-bottom-color: transparent;
+    color: #ffffff; /* Branco */
+    opacity: 0.8;
 }
-
+.app-tab-button.active {
+    border-bottom-color: #ffffff; /* Cor branca */
+    font-weight: 600;
+    opacity: 1.0;
+}
 
 /* Ocultar abas por padrão */
 .tab-content {
@@ -33,10 +51,9 @@
     display: block;
 }
 
-/* Estilo para modal */
+/* --- MODAL (JANELA POP-UP) --- */
 .modal {
     display: none;
-    /* Oculto por padrão */
     position: fixed;
     z-index: 100;
     left: 0;
@@ -44,23 +61,28 @@
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-    padding-top: 2rem; /* Reduzido o padding para ecrãs menores */
+    background-color: rgba(0, 0, 0, 0.6);
+    padding-top: 2rem;
     padding-bottom: 2rem;
 }
 
 .modal-content {
     background-color: #fefefe;
-    margin: 2% auto; /* Reduzido a margem superior */
+    margin: 2% auto;
     padding: 24px;
     border: 1px solid #888;
-    /* REMOVIDO: max-width fixo para permitir que o Tailwind controle */
+    width: 90%;
+    /* REMOVIDO: max-width fixo para permitir modais maiores */
     border-radius: 8px;
+    position: relative;
+    animation: fadeIn 0.3s ease-out;
 }
 
 .close-button {
     color: #aaa;
-    float: right;
+    position: absolute;
+    top: 10px;
+    right: 20px;
     font-size: 28px;
     font-weight: bold;
 }
@@ -72,24 +94,25 @@
     cursor: pointer;
 }
 
-/* Estilo para o Spinner de Loading */
+/* --- SPINNER DE CARREGAMENTO (BOTÕES) --- */
 .spinner {
-    width: 1rem;
-    height: 1rem;
-    border-width: 2px;
-    border-style: solid;
-    border-color: white;
-    border-top-color: transparent;
-    border-radius: 50%;
     display: inline-block;
-    vertical-align: middle;
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
     margin-right: 0.5rem;
-    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
 }
 
-button:disabled .spinner {
-     border-color: #6b7280; /* cinza */
-     border-top-color: transparent;
+/* Spinner para o dashboard (azul) */
+.spinner-dashboard {
+    border-top-color: #3b82f6 !important;
+    border-left-color: #3b82f6 !important;
+    border-right-color: #bfdbfe !important;
+    border-bottom-color: #bfdbfe !important;
 }
 
 @keyframes spin {
@@ -98,10 +121,11 @@ button:disabled .spinner {
     }
 }
 
-/* Estilo para o Toast de Notificação */
+
+/* --- TOAST (NOTIFICAÇÃO) --- */
 #toast-container {
     position: fixed;
-    bottom: 20px;
+    top: 20px;
     right: 20px;
     z-index: 200;
     display: flex;
@@ -112,23 +136,23 @@ button:disabled .spinner {
 .toast {
     padding: 12px 20px;
     border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     color: white;
     font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     animation: slideIn 0.3s ease-out forwards;
     opacity: 0;
 }
 
-.toast.toast-success {
-    background-color: #22c55e; /* green-500 */
+.toast-success {
+    background-color: #22c55e; /* Verde */
 }
 
-.toast.toast-error {
-    background-color: #ef4444; /* red-500 */
+.toast-error {
+    background-color: #ef4444; /* Vermelho */
 }
 
-.toast.toast-warning {
-    background-color: #f97316; /* orange-500 */
+.toast-warning {
+    background-color: #f97316; /* Laranja */
 }
 
 @keyframes slideIn {
@@ -148,53 +172,21 @@ button:disabled .spinner {
         opacity: 1;
     }
     to {
-        transform: translateX(100%);
+        transform: translateX(110%);
         opacity: 0;
     }
 }
 
-/* Estilos para o Uploader de Foto */
-.photo-uploader-container {
-    position: relative;
-    width: 100%;
-    /* Mantém a proporção quadrada */
-    aspect-ratio: 1 / 1; 
-    border-radius: 0.5rem;
-    overflow: hidden;
-    cursor: pointer;
-    background-color: #f3f4f6; /* gray-100 */
-    border: 2px dashed #d1d5db; /* gray-300 */
+@keyframes fadeIn {
+    from {
+        opacity: 0.4;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.photo-preview {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Garante que a imagem cubra o espaço */
-    transition: filter 0.2s ease;
-}
-
-.photo-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-weight: 500;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.photo-uploader-container:hover .photo-overlay {
-    opacity: 1;
-}
-
-.photo-uploader-container:hover .photo-preview {
-    filter: blur(2px) brightness(0.7);
-}
+/* REMOVIDO: Estilos do Uploader de Foto */
 
