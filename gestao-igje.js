@@ -24,8 +24,6 @@ import {
     writeBatch,
     updateDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-// REMOVIDO: Importações do Storage
-// import { getStorage, ... }
 
 // Configuração do Firebase
 const firebaseConfig = {
@@ -39,12 +37,10 @@ const firebaseConfig = {
 
 // Inicialização do Firebase
 let app, auth, db, userId;
-// REMOVIDO: storage
 try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
-    // REMOVIDO: storage = getStorage(app);
     console.log("Firebase inicializado com sucesso.");
 } catch (error)
 {
@@ -135,32 +131,8 @@ registerForm.addEventListener("submit", async (e) => {
         return;
     }
 
-    // 3. Verificar se o telefone já está em uso (verificação de unicidade)
-    try {
-        // ATENÇÃO: Esta query requer uma regra de Firestore que permita
-        // ler a coleção 'users' publicamente (ou pelo menos o campo 'telefone')
-        // As regras atuais (revertidas) NÃO permitem isso.
-        // Vamos simplificar e assumir que a verificação de telefone não é
-        // mais necessária, ou confiar na verificação de nome.
-        // Para manter o estado anterior, vamos remover a verificação de telefone.
-        
-        /*
-        const q = query(collection(db, "users"), where("telefone", "==", telefone.trim()));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-            registerError.textContent = "Este número de telefone já está cadastrado.";
-            toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
-            return;
-        }
-        */
-    } catch (error) {
-         console.error("Erro ao verificar telefone (query desativada):", error);
-         // registerError.textContent = "Erro ao verificar dados. Tente novamente.";
-         // toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
-         // return;
-    }
-
+    // 3. REMOVIDO: Verificação de telefone (dependia de regras que removemos)
+   
     // --- FIM DAS NOVAS VERIFICAÇÕES ---
 
     try {
@@ -168,8 +140,7 @@ registerForm.addEventListener("submit", async (e) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 5. Salvar dados do perfil no Firestore
-        // REMOVIDO: A regra de segurança para /users/{userId} foi removida
+        // 5. REMOVIDO: Salvar dados do perfil no Firestore
         /*
         await setDoc(doc(db, "users", user.uid), {
             nome: nome.trim(),
@@ -254,8 +225,6 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// REMOVIDO: Funções loadUserProfile e handleLogoUpload
-
 // --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
 
 // Esta função é crucial para operações seguras (excluir, editar)
@@ -285,7 +254,8 @@ async function reauthenticate(password) {
 
 // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
 
-const tabButtons = document.querySelectorAll(".tab-button:not(#login-tab-button):not(#register-tab-button)");
+// MODIFICADO: Seletor atualizado para "app-tab-button"
+const tabButtons = document.querySelectorAll(".app-tab-button");
 const tabContents = document.querySelectorAll(".tab-content:not(#login-tab):not(#register-tab)");
 
 tabButtons.forEach(button => {
@@ -1024,7 +994,6 @@ function updateDashboard() {
 // Modal Detalhes do Membro
 const membroDetalhesModal = document.getElementById("membro-detalhes-modal");
 const closeMembroModal = document.getElementById("close-membro-modal");
-const modalConjugeContainer = document.getElementById("modal-conjuge-container");
 
 function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
@@ -1033,12 +1002,12 @@ function showMembroDetalhesModal(id) {
     // Preenche todos os campos
     document.getElementById("modal-nome").textContent = membro.nome || 'N/A';
     document.getElementById("modal-data-nascimento").textContent = formatarData(membro.dataNascimento) || 'N/A';
+    document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
     document.getElementById("modal-cpf").textContent = membro.cpf || 'N/A';
     document.getElementById("modal-rg").textContent = membro.rg || 'N/A';
-    document.getElementById("modal-naturalidade").textContent = membro.naturalidade || 'N/A';
+    document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
     document.getElementById("modal-telefone").textContent = membro.telefone || 'N/A';
     document.getElementById("modal-email").textContent = membro.email || 'N/A';
-    document.getElementById("modal-endereco").textContent = membro.endereco || 'N/A';
     document.getElementById("modal-estado-civil").textContent = membro.estadoCivil || 'N/A';
     document.getElementById("modal-profissao").textContent = membro.profissao || 'N/A';
     document.getElementById("modal-escolaridade").textContent = membro.escolaridade || 'N/A';
@@ -1047,13 +1016,14 @@ function showMembroDetalhesModal(id) {
     document.getElementById("modal-data-chegada").textContent = formatarData(membro.dataChegada) || 'N/A';
     document.getElementById("modal-igreja-anterior").textContent = membro.igrejaAnterior || 'N/A';
     document.getElementById("modal-cargo-anterior").textContent = membro.cargoAnterior || 'N/A';
-
-    // Lógica do Cônjuge
+    
+    // Campo condicional Cônjuge
+    const conjugeContainer = document.getElementById("modal-conjuge-container");
     if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
         document.getElementById("modal-conjuge").textContent = membro.conjuge;
-        modalConjugeContainer.classList.remove("hidden");
+        conjugeContainer.classList.remove("hidden");
     } else {
-        modalConjugeContainer.classList.add("hidden");
+        conjugeContainer.classList.add("hidden");
     }
     
     // Define o ID para os botões de ação
@@ -1084,23 +1054,24 @@ function showMembroEditModal() {
     document.getElementById("edit-rg").value = membro.rg || '';
     document.getElementById("edit-naturalidade").value = membro.naturalidade || '';
     document.getElementById("edit-endereco").value = membro.endereco || '';
-    document.getElementById("edit-estado-civil").value = membro.estadoCivil || '';
+    document.getElementById("edit-estado-civil").value = membro.estadoCivil || 'Solteiro(a)';
     document.getElementById("edit-profissao").value = membro.profissao || '';
-    document.getElementById("edit-escolaridade").value = membro.escolaridade || '';
+    document.getElementById("edit-escolaridade").value = membro.escolaridade || 'Não Alfabetizado';
     document.getElementById("edit-funcao").value = membro.funcao || '';
     document.getElementById("edit-data-batismo").value = membro.dataBatismo || '';
     document.getElementById("edit-data-chegada").value = membro.dataChegada || '';
     document.getElementById("edit-igreja-anterior").value = membro.igrejaAnterior || '';
     document.getElementById("edit-cargo-anterior").value = membro.cargoAnterior || '';
-
-    // Lógica do Cônjuge (Edição)
+    
+    // Campo condicional Cônjuge
     if (membro.estadoCivil === 'Casado(a)') {
         document.getElementById("edit-conjuge").value = membro.conjuge || '';
         editConjugeContainer.classList.remove("hidden");
     } else {
+         document.getElementById("edit-conjuge").value = '';
         editConjugeContainer.classList.add("hidden");
     }
-    
+
     // Limpa erros e senha
     document.getElementById("edit-membro-password").value = "";
     document.getElementById("edit-membro-error").textContent = "";
@@ -1291,7 +1262,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
     // ADICIONADO: try...catch global
     try {
         // 1. Coletar todos os dados
-        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
+        const saldoTotal = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0); // Verificação
         
         // 2. Ordenar dados financeiros por data (mais antigo primeiro para extrato)
         const financOrdenado = [...localFinanceiro].sort((a, b) => {
@@ -1321,6 +1292,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
         let relatorioHTML = `
             <html>
             <head>
+                <!-- TÍTULO ATUALIZADO -->
                 <title>Relatório GESTÃO ADCA - CAPOEIRA GRANDE</title>
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
@@ -1344,12 +1316,14 @@ gerarRelatorioBtn.addEventListener("click", () => {
             <body class="bg-gray-100 p-8">
                 <div class="container mx-auto bg-white p-10 rounded shadow-lg">
                     <div class="flex justify-between items-center mb-6">
+                        <!-- TÍTULO ATUALIZADO -->
                         <h1>Relatório GESTÃO ADCA - CAPOEIRA GRANDE</h1>
                         <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
                     <!-- Resumo -->
+                    <!-- MODIFICADO: Removido o card de membros -->
                     <div class="mb-8">
                         <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
                             <h3 class="text-lg font-semibold text-blue-800">Saldo Atual (Caixa)</h3>
@@ -1372,6 +1346,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 <tr>
                                     <td>${formatarData(d.data)}</td>
                                     <td>${d.membroNome}</td>
+                                    <!-- CORRIGIDO: Adicionado (d.valor || 0) -->
                                     <td class="currency entrada">R$ ${(d.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
@@ -1396,6 +1371,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                     <td>${formatarData(o.data)}</td>
                                     <td>${o.tipo}</td>
                                     <td>${o.descricao}</td>
+                                    <!-- CORRIGIDO: Adicionado (o.valor || 0) -->
                                     <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
@@ -1418,6 +1394,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 <tr>
                                     <td>${formatarData(f.data)}</td>
                                     <td>${f.descricao}</td>
+                                    <!-- CORRIGIDO: Adicionado (f.valor || 0) -->
                                     <td class="currency ${f.valor > 0 ? 'entrada' : 'saida'}">
                                         R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
                                     </td>
@@ -1551,5 +1528,4 @@ function getDateFromInput(dataInput) {
 
 // Inicializa ícones Lucide
 lucide.createIcons();
-// REMOVIDO: Event listener para logo-upload-input
 
