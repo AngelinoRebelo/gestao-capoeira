@@ -161,6 +161,7 @@ const saidasMesFinanceiro = document.getElementById("saidas-mes-financeiro");
 const listaAniversariantesAtual = document.getElementById("lista-aniversariantes-atual");
 const tituloAniversariantesAtual = document.getElementById("titulo-aniversariantes-atual");
 const listaAniversariantesProximos = document.getElementById("lista-aniversariantes-proximos");
+const gerarRelatorioAniversariantesBtn = document.getElementById("gerar-relatorio-aniversariantes-btn");
 
 
 // --- CONTROLE DE AUTENTICAÇÃO ---
@@ -649,23 +650,21 @@ function loadAllData() {
         }
     };
     
-    // Caminho partilhado
-    const basePath = "dadosIgreja/ADCA-CG";
-
+    // CORRIGIDO: Caminho direto
     try {
-        const qMembros = query(collection(db, basePath, "membros"));
+        const qMembros = query(collection(db, "dadosIgreja", "ADCA-CG", "membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
             localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             localMembros.sort((a, b) => a.nome.localeCompare(b.nome));
             renderMembros(localMembros);
             populateMembrosSelect(localMembros);
-            renderAniversariantes(localMembros); // (NOVO)
+            renderAniversariantes(localMembros);
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir membros:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de membros:", e); onDataLoaded(); }
 
     try {
-        const qDizimos = query(collection(db, basePath, "dizimos"));
+        const qDizimos = query(collection(db, "dadosIgreja", "ADCA-CG", "dizimos"));
         unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
             localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroDizimos();
@@ -674,7 +673,7 @@ function loadAllData() {
     } catch (e) { console.error("Erro ao criar query de dízimos:", e); onDataLoaded(); }
 
     try {
-        const qOfertas = query(collection(db, basePath, "ofertas"));
+        const qOfertas = query(collection(db, "dadosIgreja", "ADCA-CG", "ofertas"));
         unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
             localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroOfertas();
@@ -683,7 +682,7 @@ function loadAllData() {
     } catch (e) { console.error("Erro ao criar query de ofertas:", e); onDataLoaded(); }
 
     try {
-        const qFinanceiro = query(collection(db, basePath, "financeiro"));
+        const qFinanceiro = query(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
         unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
             localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderFiltroFinanceiro(); 
@@ -715,7 +714,6 @@ function clearAllTables() {
     entradasDashboard.textContent = "R$ 0,00";
     saidasDashboard.textContent = "R$ 0,00";
     membrosDashboard.textContent = "0";
-    // (NOVO) Limpar aniversariantes
     listaAniversariantesAtual.innerHTML = "";
     listaAniversariantesProximos.innerHTML = "";
     tituloAniversariantesAtual.textContent = "Aniversariantes de...";
@@ -756,10 +754,10 @@ function renderMembros(membros) {
     });
 }
 
-// (NOVA FUNÇÃO) --- RENDERIZAÇÃO DE ANIVERSARIANTES ---
+// --- RENDERIZAÇÃO DE ANIVERSARIANTES ---
 function renderAniversariantes(membros) {
     if (!tituloAniversariantesAtual || !listaAniversariantesAtual || !listaAniversariantesProximos) {
-        return; // Elementos não existem se a aba não estiver visível
+        return;
     }
 
     const hoje = new Date();
@@ -1366,7 +1364,7 @@ window.onclick = function (event) {
     }
 }
 
-// --- GERAÇÃO DE RELATÓRIO ---
+// --- GERAÇÃO DE RELATÓRIO GERAL (DASHBOARD) ---
 gerarRelatorioBtn.addEventListener("click", () => {
     try {
         const saldoTotal = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0);
@@ -1574,6 +1572,67 @@ gerarRelatorioBtn.addEventListener("click", () => {
     }
 });
 
+// --- (NOVO) GERAÇÃO DE RELATÓRIO DE ANIVERSARIANTES ---
+gerarRelatorioAniversariantesBtn.addEventListener("click", () => {
+    try {
+        const conteudoAtual = listaAniversariantesAtual.innerHTML;
+        const conteudoProximos = listaAniversariantesProximos.innerHTML;
+        const tituloAtual = tituloAniversariantesAtual.textContent;
+
+        let relatorioHTML = `
+            <html>
+            <head>
+                <title>Relatório de Aniversariantes - GESTÃO ADCA</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <style>
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .no-print { display: none; }
+                    }
+                    body { font-family: sans-serif; }
+                    h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
+                    h2 { font-size: 20px; font-weight: 600; color: #1d4ed8; margin-top: 24px; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; }
+                    h3 { font-size: 18px; font-weight: 600; color: #374151; margin-top: 16px; margin-bottom: 8px; }
+                    ul { list-style: none; padding-left: 0; }
+                    li { font-size: 16px; margin-bottom: 8px; }
+                    .text-blue-600 { color: #2563eb; }
+                    .font-semibold { font-weight: 600; }
+                </style>
+            </head>
+            <body class="bg-gray-100 p-8">
+                <div class="container mx-auto bg-white p-10 rounded shadow-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1>Relatório de Aniversariantes</h1>
+                        <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+                    
+                    <!-- Mês Vigente -->
+                    <h2>${tituloAtual}</h2>
+                    <div class="p-4">${conteudoAtual}</div>
+
+                    <!-- Próximos Meses -->
+                    <h2 class="mt-8">Próximos Meses</h2>
+                    <div class="p-4">${conteudoProximos}</div>
+                </div>
+            </body>
+            </html>
+        `;
+
+        const relatorioJanela = window.open("", "_blank");
+        if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
+            showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
+            return;
+        }
+        relatorioJanela.document.write(relatorioHTML);
+        relatorioJanela.document.close();
+
+    } catch (error) {
+        console.error("Erro ao gerar relatório de aniversariantes:", error);
+        showToast("Ocorreu um erro inesperado ao gerar o relatório.", "error");
+    }
+});
+
 
 // --- FUNÇÕES UTILITÁRIAS ---
 
@@ -1672,7 +1731,13 @@ function calcularIdade(dataNascimento) {
     const hoje = new Date();
     let idade = hoje.getFullYear() - dataNasc.getFullYear();
     const m = hoje.getMonth() - dataNasc.getMonth();
-    if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getDate())) {
+    // Ajuste para UTC: compara meses e dias em UTC
+    const diaNascUTC = dataNasc.getUTCDate();
+    const mesNascUTC = dataNasc.getUTCMonth();
+    const diaHojeUTC = hoje.getUTCDate();
+    const mesHojeUTC = hoje.getUTCMonth();
+
+    if (mesHojeUTC < mesNascUTC || (mesHojeUTC === mesNascUTC && diaHojeUTC < diaNascUTC)) {
         idade--;
     }
     return idade;
