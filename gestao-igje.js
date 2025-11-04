@@ -84,7 +84,7 @@ const registerTab = document.getElementById("auth-register-tab");
 
 // Abas da Aplicação
 const tabButtons = document.querySelectorAll(".app-tab-button");
-const tabContents = document.querySelectorAll(".app-content-tab"); // Corrigido
+const tabContents = document.querySelectorAll(".app-content-tab");
 
 // Formulários
 const formMembro = document.getElementById("form-membro");
@@ -156,6 +156,11 @@ const toastContainer = document.getElementById("toast-container");
 // Resumo Financeiro do Mês
 const entradasMesFinanceiro = document.getElementById("entradas-mes-financeiro");
 const saidasMesFinanceiro = document.getElementById("saidas-mes-financeiro");
+
+// Aniversariantes
+const listaAniversariantesAtual = document.getElementById("lista-aniversariantes-atual");
+const tituloAniversariantesAtual = document.getElementById("titulo-aniversariantes-atual");
+const listaAniversariantesProximos = document.getElementById("lista-aniversariantes-proximos");
 
 
 // --- CONTROLE DE AUTENTICAÇÃO ---
@@ -654,6 +659,7 @@ function loadAllData() {
             localMembros.sort((a, b) => a.nome.localeCompare(b.nome));
             renderMembros(localMembros);
             populateMembrosSelect(localMembros);
+            renderAniversariantes(localMembros); // (NOVO)
             onDataLoaded();
         }, (error) => { console.error("Erro ao ouvir membros:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de membros:", e); onDataLoaded(); }
@@ -709,6 +715,10 @@ function clearAllTables() {
     entradasDashboard.textContent = "R$ 0,00";
     saidasDashboard.textContent = "R$ 0,00";
     membrosDashboard.textContent = "0";
+    // (NOVO) Limpar aniversariantes
+    listaAniversariantesAtual.innerHTML = "";
+    listaAniversariantesProximos.innerHTML = "";
+    tituloAniversariantesAtual.textContent = "Aniversariantes de...";
 }
 
 
@@ -745,6 +755,93 @@ function renderMembros(membros) {
         listaMembros.appendChild(tr);
     });
 }
+
+// (NOVA FUNÇÃO) --- RENDERIZAÇÃO DE ANIVERSARIANTES ---
+function renderAniversariantes(membros) {
+    if (!tituloAniversariantesAtual || !listaAniversariantesAtual || !listaAniversariantesProximos) {
+        return; // Elementos não existem se a aba não estiver visível
+    }
+
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth(); // 0-11
+    const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+    // 1. Agrupar membros por mês
+    const membrosPorMes = new Map();
+    for (let i = 0; i < 12; i++) {
+        membrosPorMes.set(i, []);
+    }
+
+    for (const membro of membros) {
+        const dataNasc = getDateFromInput(membro.dataNascimento);
+        if (dataNasc) {
+            const mes = dataNasc.getUTCMonth(); // Use UTC month
+            membrosPorMes.get(mes).push(membro);
+        }
+    }
+
+    // 2. Ordenar membros dentro de cada mês pelo dia
+    for (let mes = 0; mes < 12; mes++) {
+        membrosPorMes.get(mes).sort((a, b) => {
+            const dataNascA = getDateFromInput(a.dataNascimento);
+            const dataNascB = getDateFromInput(b.dataNascimento);
+            if (!dataNascA) return 1;
+            if (!dataNascB) return -1;
+            
+            const diaA = dataNascA.getUTCDate(); // Use UTC day
+            const diaB = dataNascB.getUTCDate();
+            return diaA - diaB;
+        });
+    }
+
+    // 3. Renderizar Mês Atual
+    tituloAniversariantesAtual.textContent = `Aniversariantes de ${meses[mesAtual]}`;
+    const aniversariantesMesAtual = membrosPorMes.get(mesAtual);
+
+    listaAniversariantesAtual.innerHTML = "";
+    if (aniversariantesMesAtual.length === 0) {
+        listaAniversariantesAtual.innerHTML = '<p class="text-gray-500">Nenhum aniversariante este mês.</p>';
+    } else {
+        const ul = document.createElement("ul");
+        ul.className = "space-y-2";
+        aniversariantesMesAtual.forEach(membro => {
+            const dia = getDateFromInput(membro.dataNascimento).getUTCDate();
+            const li = document.createElement("li");
+            li.className = "text-gray-700";
+            li.innerHTML = `<span class="font-semibold text-blue-600">Dia ${String(dia).padStart(2, '0')}</span> - ${membro.nome}`;
+            ul.appendChild(li);
+        });
+        listaAniversariantesAtual.appendChild(ul);
+    }
+
+    // 4. Renderizar Próximos Meses
+    listaAniversariantesProximos.innerHTML = "";
+    let proximosMesesHTML = "";
+    for (let i = 1; i <= 11; i++) {
+        const proximoMesIndex = (mesAtual + i) % 12;
+        const nomeProximoMes = meses[proximoMesIndex];
+        const aniversariantesProximoMes = membrosPorMes.get(proximoMesIndex);
+
+        if (aniversariantesProximoMes.length > 0) {
+            proximosMesesHTML += `<div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-3">${nomeProximoMes}</h3>
+                <ul class="space-y-2">
+                    ${aniversariantesProximoMes.map(membro => {
+                        const dia = getDateFromInput(membro.dataNascimento).getUTCDate();
+                        return `<li class="text-gray-700"><span class="font-semibold text-blue-600">Dia ${String(dia).padStart(2, '0')}</span> - ${membro.nome}</li>`;
+                    }).join('')}
+                </ul>
+            </div>`;
+        }
+    }
+    
+    if (proximosMesesHTML === "") {
+        listaAniversariantesProximos.innerHTML = '<p class="text-gray-500">Nenhum aniversariante nos próximos meses.</p>';
+    } else {
+        listaAniversariantesProximos.innerHTML = proximosMesesHTML;
+    }
+}
+
 
 // Popular Select de Membros
 function populateMembrosSelect(membros) {
@@ -1326,8 +1423,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
                         <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
-
-                    <!-- Resumo (REMOVIDO) -->
                     
                     <!-- Dízimos (Apenas se houver) -->
                     ${dizimosOrdenados.length > 0 ? `
@@ -1453,8 +1548,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
                             </span>
                         </div>
                     </div>
-
-                    <!-- Campos de Assinatura (REMOVIDO) -->
                     
                 </div>
             </body>
