@@ -31,7 +31,7 @@
             <!-- Conteúdo das Abas de Autenticação -->
             <!-- Formulário de Login (ID Corrigido) -->
             <div id="auth-login-tab" class="auth-content-tab active">
-                <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">GESTÃO ADCA - CAPOEIRA</h2>
+                <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Aceder à GESTÃO ADCA</h2>
                 <form id="login-form">
                     <div class="mb-4">
                         <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email:</label>
@@ -126,6 +126,10 @@
                 </button>
                 <button data-tab="financeiro" class="app-tab-button py-3 px-3 text-sm font-medium text-white">
                     <i data-lucide="dollar-sign" class="inline-block w-4 h-4 mr-1"></i> Financeiro (Caixa)
+                </button>
+                <!-- (NOVO) Botão Aniversariantes -->
+                <button data-tab="aniversariantes" class="app-tab-button py-3 px-3 text-sm font-medium text-white">
+                    <i data-lucide="cake" class="inline-block w-4 h-4 mr-1"></i> Aniversariantes
                 </button>
             </nav>
         </header>
@@ -499,199 +503,25 @@
                 </div>
             </div>
 
-            <!-- (ABA) Ofertas e Outras (Classe Corrigida) -->
-            <div id="ofertas" class="app-content-tab">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Coluna de Registro -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <h2 class="text-2xl font-semibold mb-6">Registar Oferta / Outra Entrada</h2>
-                            <form id="form-oferta">
-                                <div class="mb-4">
-                                    <label for="oferta-tipo"
-                                        class="block text-sm font-medium text-gray-700">Tipo</label>
-                                    <select id="oferta-tipo"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required>
-                                        <option value="Oferta">Oferta</option>
-                                        <option value="Oferta Alçada">Oferta Alçada</option>
-                                        <option value="Venda Evento">Venda Evento</option>
-                                        <option value="Outro">Outro</option>
-                                    </select>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="oferta-descricao"
-                                        class="block text-sm font-medium text-gray-700">Descrição Breve</label>
-                                    <input type="text" id="oferta-descricao"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Ex: Oferta do culto de domingo" required>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="oferta-valor"
-                                        class="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                                    <input type="number" id="oferta-valor" step="0.01"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="oferta-data"
-                                        class="block text-sm font-medium text-gray-700">Data</label>
-                                    <input type="date" id="oferta-data"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required>
-                                </div>
-                                <div class="mt-6">
-                                    <button id="oferta-submit-btn" type="submit"
-                                        class="w-full bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
-                                        Registar Entrada
-                                    </button>
-                                </div>
-                            </form>
+            <!-- (NOVA ABA) Aniversariantes -->
+            <div id="aniversariantes" class="app-content-tab">
+                <h2 class="text-2xl font-semibold mb-6">Aniversariantes</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Bloco Mês Vigente -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h3 id="titulo-aniversariantes-atual" class="text-xl font-semibold mb-4 text-blue-700">
+                            Aniversariantes de...
+                        </h3>
+                        <div id="lista-aniversariantes-atual" class="space-y-3">
+                            <p class="text-gray-500">A carregar aniversariantes...</p>
                         </div>
                     </div>
-                    <!-- Coluna de Relatório -->
-                    <div class="lg:col-span-2">
-                        <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                                <h2 class="text-2xl font-semibold">Relatório de Ofertas e Outras Entradas</h2>
-                                <div class="flex gap-4">
-                                    <select id="filtro-oferta-mes"
-                                        class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                        <!-- Opções de mês -->
-                                    </select>
-                                    <select id="filtro-oferta-ano"
-                                        class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                        <!-- Opções de ano -->
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Data</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Tipo</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Descrição</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Valor (R$)</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Ação</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="lista-ofertas" class="bg-white divide-y divide-gray-200">
-                                        <!-- Linhas de ofertas serão inseridas aqui -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- (ABA) Financeiro (Caixa) (Classe Corrigida) -->
-            <div id="financeiro" class="app-content-tab">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Coluna de Registro -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <h2 class="text-2xl font-semibold mb-6">Registar Saída (Caixa)</h2>
-                            <form id="form-financeiro">
-                                <div class="mb-4">
-                                    <label for="fin-descricao"
-                                        class="block text-sm font-medium text-gray-700">Descrição da Saída</label>
-                                    <input type="text" id="fin-descricao"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Ex: Conta de luz, material de limpeza" required>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="fin-valor"
-                                        class="block text-sm font-medium text-gray-700">Valor (R$)</label>
-                                    <input type="number" id="fin-valor" step="0.01"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Digite o valor da saída" required>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="fin-data"
-                                        class="block text-sm font-medium text-gray-700">Data</label>
-                                    <input type="date" id="fin-data"
-                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        required>
-                                </div>
-                                <div class="mt-6">
-                                    <button id="financeiro-submit-btn" type="submit"
-                                        class="w-full bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150">
-                                        Registar Saída
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <!-- Coluna de Relatório -->
-                    <div class="lg:col-span-2">
-                        <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                                <h2 class="text-2xl font-semibold">Extrato do Caixa</h2>
-                                <div class="flex gap-4">
-                                    <!-- Filtros de Mês/Ano Adicionados -->
-                                    <select id="filtro-financeiro-mes"
-                                        class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                        <!-- Opções de mês -->
-                                    </select>
-                                    <select id="filtro-financeiro-ano"
-                                        class="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                        <!-- Opções de ano -->
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- (NOVO) Resumo do Mês -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 border-b pb-6">
-                                <div class="text-center md:text-left">
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase">Entradas (Mês)</h3>
-                                    <p id="entradas-mes-financeiro" class="text-2xl font-bold text-green-600">R$ 0,00</p>
-                                </div>
-                                <div class="text-center md:text-left">
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase">Saídas (Mês)</h3>
-                                    <p id="saidas-mes-financeiro" class="text-2xl font-bold text-red-600">R$ 0,00</p>
-                                </div>
-                                <div class="text-center md:text-right">
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase">Saldo Atual (Total)</h3>
-                                    <p id="saldo-total-financeiro" class="text-2xl font-bold text-blue-700">R$ 0,00</p>
-                                </div>
-                            </div>
-                            
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Data</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Descrição</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Valor (R$)</th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Ação</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="lista-financeiro" class="bg-white divide-y divide-gray-200">
-                                        <!-- Linhas do financeiro serão inseridas aqui -->
-                                    </tbody>
-                                </table>
-                            </div>
+                    
+                    <!-- Bloco Meses Sequentes -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg lg:row-span-2">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Próximos Meses</h3>
+                        <div id="lista-aniversariantes-proximos" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                            <p class="text-gray-500">A carregar...</p>
                         </div>
                     </div>
                 </div>
