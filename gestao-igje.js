@@ -1360,10 +1360,10 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     <p class="text-lg font-semibold text-gray-700">Mês de Referência: ${nomeMes} de ${ano}</p>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
-                    <!-- Resumo do Mês Vigente (NOVO) -->
+                    <!-- Resumo do Mês Vigente (MODIFICADO) -->
                     <div class="mb-8 p-6 rounded-lg bg-gray-50 border border-gray-200">
-                        <h3 class="text-xl font-semibold mb-4 text-center">Resumo do Mês (${nomeMes})</h3>
-                        <div class="grid grid-cols-3 gap-4 text-center">
+                        <h3 class="text-xl font-semibold mb-4 text-left">Resumo do Mês (${nomeMes})</h3> <!-- text-center removido -->
+                        <div class="grid grid-cols-3 gap-4 text-left"> <!-- text-center removido -->
                             <div>
                                 <h4 class="text-sm font-medium text-gray-500 uppercase">Entradas (Mês)</h4>
                                 <p class="text-2xl font-bold text-green-700">R$ ${totalEntradasMes.toFixed(2).replace(".", ",")}</p>
@@ -1405,83 +1405,25 @@ gerarRelatorioBtn.addEventListener("click", () => {
                         </tbody>
                     </table>
                     
-                    <!-- Ofertas -->
-                    <h2>Registos de Ofertas e Outras Entradas (${nomeMes})</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Descrição</th>
-                                <th class="currency-header">Valor (R$)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${ofertasDoMes.map(o => `
-                                <tr>
-                                    <td>${formatarData(o.data)}</td>
-                                    <td>${o.tipo}</td>
-                                    <td>${o.descricao}</td>
-                                    <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
-                                </tr>
-                            `).join('')}
-                            ${ofertasDoMes.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada neste mês.</td></tr>' : ''}
-                             <tr class="total bg-gray-50">
-                                <td colspan="3" class="text-right font-bold">Total Ofertas (Mês):</td>
-                                <td class="currency entrada">R$ ${totalOfertas.toFixed(2).replace(".", ",")}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- Extrato Financeiro - SAÍDAS -->
-                    <h2>Extrato Financeiro - SAÍDAS (${nomeMes})</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Descrição</th>
-                                <th class="currency-header">Valor (R$)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${extratoSaidas.map(f => `
-                                <tr>
-                                    <td>${formatarData(f.data)}</td>
-                                    <td>${f.descricao}</td>
-                                    <td class="currency saida">
-                                        R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
-                                    </td>
-                                </tr>
-                            `).join('')}
-                            ${extratoSaidas.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma saída registada neste mês.</td></tr>' : ''}
-                            <tr class="total bg-gray-50">
-                                <td colspan="2" class="text-right font-bold">Total Saídas (Mês):</td>
-                                <td class="currency saida">
-                                    R$ ${totalSaidasMes.toFixed(2).replace(".", ",")}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                    <!-- Resumo Final -->
-                    <div class="resumo-final space-y-3 text-right">
+                    <!-- Resumo Final (MODIFICADO) -->
+                    <div class="resumo-final space-y-3"> <!-- text-right removido -->
                         <div class="grid grid-cols-2">
-                            <span class="font-semibold text-lg">Total de Entradas (${nomeMes}):</span>
-                            <span class="font-semibold text-lg entrada">R$ ${totalEntradasMes.toFixed(2).replace(".", ",")}</span>
+                            <span class="font-semibold text-lg text-left">Total de Entradas (${nomeMes}):</span>
+                            <span class="font-semibold text-lg entrada text-right">R$ ${totalEntradasMes.toFixed(2).replace(".", ",")}</span>
                         </div>
                          <div class="grid grid-cols-2">
-                            <span class="font-semibold text-lg">Total de Saídas (${nomeMes}):</span>
-                            <span class="font-semibold text-lg saida">R$ ${totalSaidasMes.toFixed(2).replace(".", ",")}</span>
+                            <span class="font-semibold text-lg text-left">Total de Saídas (${nomeMes}):</span>
+                            <span class="font-semibold text-lg saida text-right">R$ ${totalSaidasMes.toFixed(2).replace(".", ",")}</span>
                         </div>
                         <div class="grid grid-cols-2 pt-2 border-t">
-                            <span class="font-bold text-xl">Saldo Final (${nomeMes}):</span>
-                            <span class="font-bold text-xl ${saldoMes >= 0 ? 'text-indigo-700' : 'text-red-700'}">
+                            <span class="font-bold text-xl text-left">Saldo Final (${nomeMes}):</span>
+                            <span class="font-bold text-xl ${saldoMes >= 0 ? 'text-indigo-700' : 'text-red-700'} text-right">
                                 R$ ${saldoMes.toFixed(2).replace(".", ",")}
                             </span>
                         </div>
                         <div class="grid grid-cols-2 pt-4 mt-4 border-t-2 border-blue-600">
-                            <span class="font-bold text-2xl">SALDO FINAL (CAIXA GERAL):</span>
-                            <span class="font-bold text-2xl ${saldoTotalGeral >= 0 ? 'text-blue-700' : 'text-red-700'}">
+                            <span class="font-bold text-2xl text-left">SALDO FINAL (CAIXA GERAL):</span>
+                            <span class="font-bold text-2xl ${saldoTotalGeral >= 0 ? 'text-blue-700' : 'text-red-700'} text-right">
                                 R$ ${saldoTotalGeral.toFixed(2).replace(".", ",")}
                             </span>
                         </div>
