@@ -128,7 +128,7 @@ const filtroFinanceiroAno = document.getElementById("filtro-financeiro-ano");
 const saldoDashboard = document.getElementById("saldo-total-dashboard");
 const entradasDashboard = document.getElementById("entradas-mes-dashboard");
 const saidasDashboard = document.getElementById("saidas-mes-dashboard");
-const saldoMesDashboard = document.getElementById("saldo-mes-dashboard"); // Novo
+const saldoMesDashboard = document.getElementById("saldo-mes-dashboard");
 const dashboardLoading = document.getElementById("dashboard-loading");
 
 // Modais
@@ -149,8 +149,8 @@ const deleteSubmitBtn = document.getElementById("delete-submit-btn");
 
 // Relatório
 const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
-const relatorioGeralMes = document.getElementById("relatorio-geral-mes"); // Novo
-const relatorioGeralAno = document.getElementById("relatorio-geral-ano"); // Novo
+const relatorioGeralMes = document.getElementById("relatorio-geral-mes");
+const relatorioGeralAno = document.getElementById("relatorio-geral-ano");
 
 // Aniversariantes
 const listaAniversariantesAtual = document.getElementById("lista-aniversariantes-atual");
@@ -162,9 +162,10 @@ const gerarRelatorioAniversariantesBtn = document.getElementById("gerar-relatori
 // Toast
 const toastContainer = document.getElementById("toast-container");
 
-// Resumo Financeiro do Mês
+// Resumo Financeiro do Mês (Aba Financeiro)
 const entradasMesFinanceiro = document.getElementById("entradas-mes-financeiro");
 const saidasMesFinanceiro = document.getElementById("saidas-mes-financeiro");
+const saldoMesFinanceiroAba = document.getElementById("saldo-mes-financeiro-aba"); // Corrigido
 
 // Meses para formatação
 const MESES_DO_ANO = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
@@ -301,7 +302,7 @@ onAuthStateChanged(auth, (user) => {
         popularFiltros(filtroDizimoMes, filtroDizimoAno, hoje);
         popularFiltros(filtroOfertaMes, filtroOfertaAno, hoje);
         popularFiltros(filtroFinanceiroMes, filtroFinanceiroAno, hoje);
-        popularFiltros(relatorioGeralMes, relatorioGeralAno, hoje); // Novo
+        popularFiltros(relatorioGeralMes, relatorioGeralAno, hoje);
 
 
     } else {
@@ -662,7 +663,7 @@ function loadAllData() {
             console.log("Todos os dados carregados.");
             dashboardLoading.innerHTML = "";
             updateDashboard();
-            renderAniversariantes(); // Renderiza aniversariantes após membros carregarem
+            renderAniversariantes(); // Renderiza aniversariantes após dados carregados
         }
     };
     
@@ -722,12 +723,15 @@ function clearAllTables() {
     listaFinanceiro.innerHTML = "";
     dizimoMembroSelect.innerHTML = '<option value="">Selecione o Membro</option>';
     saldoTotalFinanceiro.textContent = "R$ 0,00";
-    entradasMesFinanceiro.textContent = "R$ 0,00"; 
-    saidasMesFinanceiro.textContent = "R$ 0,00"; 
+    entradasMesFinanceiro.textContent = "R$ 0,00";
+    saidasMesFinanceiro.textContent = "R$ 0,00";
+    saldoMesFinanceiroAba.textContent = "R$ 0,00"; // Corrigido
     saldoDashboard.textContent = "R$ 0,00";
     entradasDashboard.textContent = "R$ 0,00";
     saidasDashboard.textContent = "R$ 0,00";
     saldoMesDashboard.textContent = "R$ 0,00"; // Novo
+    listaAniversariantesAtual.innerHTML = "";
+    listaAniversariantesProximos.innerHTML = "";
 }
 
 
@@ -812,28 +816,28 @@ function renderFinanceiro(transacoes) {
 
 // --- FILTROS E RENDERIZAÇÃO DE DÍZIMOS E OFERTAS ---
 const hoje = new Date();
-const mesAtual = hoje.getMonth();
 const anoAtual = hoje.getFullYear();
 
-function popularFiltros(selectMes, selectAno, dataPadrao) {
+function popularFiltros(selectMes, selectAno, dataDefault) {
     selectMes.innerHTML = "";
     MESES_DO_ANO.forEach((mes, index) => {
         const option = document.createElement("option");
         option.value = index;
         option.textContent = mes;
-        if (index === dataPadrao.getMonth()) option.selected = true;
+        if (index === dataDefault.getMonth()) option.selected = true;
         selectMes.appendChild(option);
     });
 
     selectAno.innerHTML = "";
-    const anoInicio = anoAtual - 2;
-    const anoFim = 2027; // Modificado
-    for (let i = anoFim; i >= anoInicio; i--) { // Modificado
-        const ano = i;
+    // Corrigido: Loop para incluir anos futuros até 2027
+    const anoInicial = Math.min(anoAtual - 2, 2023); // Começa 2 anos atrás ou 2023
+    const anoFinal = 2027;
+    
+    for (let i = anoFinal; i >= anoInicial; i--) {
         const option = document.createElement("option");
-        option.value = ano;
-        option.textContent = ano;
-        if (ano === dataPadrao.getFullYear()) option.selected = true;
+        option.value = i;
+        option.textContent = i;
+        if (i === dataDefault.getFullYear()) option.selected = true;
         selectAno.appendChild(option);
     }
 }
@@ -878,15 +882,23 @@ function renderFiltroFinanceiro() {
     const saidasMes = dadosFiltrados
         .filter(t => t.valor < 0)
         .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
+        
+    const saldoMes = entradasMes + saidasMes; // Soma (saídas são negativas)
 
     // 5. (NOVO) Atualizar o resumo do mês na aba Financeiro
     entradasMesFinanceiro.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
     saidasMesFinanceiro.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
+    
+    // Corrigido: Atualiza o novo cartão de Saldo do Mês
+    saldoMesFinanceiroAba.textContent = `R$ ${saldoMes.toFixed(2).replace(".", ",")}`;
+    const corSaldoMes = saldoMes >= 0 ? "text-indigo-700" : "text-red-700";
+    saldoMesFinanceiroAba.className = `text-2xl font-bold ${corSaldoMes}`;
+
 
     // 6. Calcular e renderizar o SALDO TOTAL (usando todos os dados)
     const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
-    const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
-    saldoTotalFinanceiro.className = `text-xl font-bold ${corSaldo}`; // Tamanho ajustado
+    const corSaldoTotal = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
+    saldoTotalFinanceiro.className = `text-2xl font-bold ${corSaldoTotal}`;
     saldoTotalFinanceiro.textContent = `R$ ${saldoTotal.toFixed(2).replace(".", ",")}`;
 }
 
@@ -1004,94 +1016,6 @@ function renderFiltroOfertas() {
     lucide.createIcons();
 }
 
-// --- ABA ANIVERSARIANTES ---
-function renderAniversariantes() {
-    if (localMembros.length === 0) {
-        listaAniversariantesAtual.innerHTML = '<p class="text-gray-500 p-4">Nenhum membro cadastrado.</p>';
-        listaAniversariantesProximos.innerHTML = '<p class="text-gray-500 p-4">Nenhum membro cadastrado.</p>';
-        return;
-    }
-    
-    const hoje = new Date();
-    const mesAtual = hoje.getMonth(); // 0-11
-    
-    tituloAniversariantesAtual.textContent = `Aniversariantes de ${MESES_DO_ANO[mesAtual]}`;
-    
-    // 1. Agrupar membros por mês
-    const mesesAgrupados = {};
-    for (let i = 0; i < 12; i++) {
-        mesesAgrupados[i] = [];
-    }
-    
-    localMembros.forEach(membro => {
-        const dataNasc = getDateFromInput(membro.dataNascimento);
-        if (dataNasc) {
-            const mes = dataNasc.getUTCMonth();
-            mesesAgrupados[mes].push(membro);
-        }
-    });
-
-    // 2. Ordenar aniversariantes dentro de cada mês pelo dia
-    for (let mes in mesesAgrupados) {
-        mesesAgrupados[mes].sort((a, b) => {
-            const diaA = getDateFromInput(a.dataNascimento).getUTCDate();
-            const diaB = getDateFromInput(b.dataNascimento).getUTCDate();
-            return diaA - diaB;
-        });
-    }
-
-    // 3. Renderizar Mês Atual
-    const aniversariantesDoMes = mesesAgrupados[mesAtual];
-    if (aniversariantesDoMes.length === 0) {
-        listaAniversariantesAtual.innerHTML = `<p class="text-gray-500 p-4">Nenhum aniversariante em ${MESES_DO_ANO[mesAtual]}.</p>`;
-    } else {
-        listaAniversariantesAtual.innerHTML = aniversariantesDoMes.map(membro => {
-            const dia = getDateFromInput(membro.dataNascimento).getUTCDate();
-            return `
-                <div class="p-3 hover:bg-gray-50 flex justify-between items-center">
-                    <div>
-                        <p class="font-medium text-gray-800">${membro.nome}</p>
-                        <p class="text-sm text-gray-600">${membro.funcao || 'Membro'}</p>
-                    </div>
-                    <div class="text-lg font-bold text-blue-600">${String(dia).padStart(2, '0')}</div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // 4. Renderizar Próximos Meses
-    listaAniversariantesProximos.innerHTML = ""; // Limpa
-    for (let i = 1; i < 12; i++) {
-        const proximoMesIndex = (mesAtual + i) % 12;
-        const mes = MESES_DO_ANO[proximoMesIndex];
-        const aniversariantesDoProximoMes = mesesAgrupados[proximoMesIndex];
-        
-        if (aniversariantesDoProximoMes.length > 0) {
-            const mesHtml = `
-                <div class="mb-3">
-                    <h4 class="font-semibold text-gray-700 border-b pb-1 mb-2">${mes}</h4>
-                    <div class="divide-y divide-gray-100">
-                        ${aniversariantesDoProximoMes.map(membro => {
-                            const dia = getDateFromInput(membro.dataNascimento).getUTCDate();
-                            return `
-                                <div class="p-2 flex justify-between items-center">
-                                    <p class="text-sm text-gray-700">${membro.nome}</p>
-                                    <p class="text-sm font-medium text-gray-600">${String(dia).padStart(2, '0')}/${String(proximoMesIndex + 1).padStart(2, '0')}</p>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `;
-            listaAniversariantesProximos.innerHTML += mesHtml;
-        }
-    }
-    
-    if (listaAniversariantesProximos.innerHTML === "") {
-         listaAniversariantesProximos.innerHTML = '<p class="text-gray-500 p-4">Nenhum aniversariante nos próximos meses.</p>';
-    }
-}
-
 
 // --- ATUALIZAÇÃO DO DASHBOARD ---
 function updateDashboard() {
@@ -1104,9 +1028,8 @@ function updateDashboard() {
     saldoDashboard.textContent = `R$ ${saldoTotal.toFixed(2).replace(".", ",")}`;
 
     // 2. Transações do Mês Atual
-    const hoje = new Date();
-    const mesCorrente = hoje.getMonth();
-    const anoCorrente = hoje.getFullYear();
+    const mesCorrente = new Date().getMonth();
+    const anoCorrente = new Date().getFullYear();
 
     const transacoesMes = localFinanceiro.filter(t => {
         const data = getDateFromInput(t.data);
@@ -1122,15 +1045,15 @@ function updateDashboard() {
         .filter(t => t.valor < 0)
         .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
         
-    const saldoMes = entradasMes + saidasMes;
+    const saldoMes = entradasMes + saidasMes; // Corrigido
 
     entradasDashboard.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
     saidasDashboard.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
     
-    // 3. Saldo do Mês
+    // 3. (Novo) Saldo do Mês
+    saldoMesDashboard.textContent = `R$ ${saldoMes.toFixed(2).replace(".", ",")}`;
     const corSaldoMes = saldoMes >= 0 ? "text-indigo-700" : "text-red-700";
     saldoMesDashboard.className = `text-3xl font-bold ${corSaldoMes} mt-1`;
-    saldoMesDashboard.textContent = `R$ ${saldoMes.toFixed(2).replace(".", ",")}`;
 }
 
 // --- CONTROLO DOS MODAIS (JANELAS POP-UP) ---
@@ -1141,8 +1064,7 @@ function setElementText(id, text) {
     if (element) {
         element.textContent = text || 'N/A';
     } else {
-        // Aviso removido para não poluir a consola, já que o HTML pode não ter o campo
-        // console.warn(`Elemento com ID "${id}" não encontrado no HTML.`);
+        console.warn(`Elemento com ID "${id}" não encontrado no HTML.`);
     }
 }
 
@@ -1151,6 +1073,7 @@ function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
     if (!membro) return;
     
+    // Corrigido: Adicionadas verificações (setElementText) para evitar o erro
     setElementText("modal-detalhes-nome", membro.nome);
     setElementText("modal-detalhes-funcao", membro.funcao);
     setElementText("modal-detalhes-email", membro.email);
@@ -1171,6 +1094,7 @@ function showMembroDetalhesModal(id) {
     setElementText("modal-detalhes-igreja-anterior", membro.igrejaAnterior);
     setElementText("modal-detalhes-cargo-anterior", membro.cargoAnterior);
     
+    // Oculta/mostra campo cônjuge
     const conjugeDetalhesEl = document.getElementById("conjuge-detalhes-container");
     if (conjugeDetalhesEl) {
         if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
@@ -1213,6 +1137,7 @@ function showMembroEditModal() {
     document.getElementById("edit-igreja-anterior").value = membro.igrejaAnterior || '';
     document.getElementById("edit-cargo-anterior").value = membro.cargoAnterior || '';
     
+    // Mostra/oculta cônjuge na edição
     if (membro.estadoCivil === 'Casado(a)') {
         editConjugeContainer.classList.remove("hidden");
     } else {
@@ -1393,37 +1318,38 @@ gerarRelatorioBtn.addEventListener("click", () => {
             const data = getDateFromInput(o.data);
             return data && data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
         }).sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
-
+        
         const financDoMes = localFinanceiro.filter(f => {
             const data = getDateFromInput(f.data);
             return data && data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
         });
 
-        // 2. Calcular totais
+        // 2. Calcular Totais do Mês
         const totalDizimos = dizimosDoMes.reduce((acc, d) => acc + (d.valor || 0), 0);
         const totalOfertas = ofertasDoMes.reduce((acc, o) => acc + (o.valor || 0), 0);
+        const totalEntradasMes = totalDizimos + totalOfertas;
         
-        const extratoEntradas = financDoMes.filter(f => f.valor > 0)
-                                    .sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
-        const extratoSaidas = financDoMes.filter(f => f.valor < 0)
-                                    .sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
-
-        const totalEntradasMes = extratoEntradas.reduce((acc, f) => acc + (f.valor || 0), 0);
-        const totalSaidasMes = extratoSaidas.reduce((acc, f) => acc + (f.valor || 0), 0); // é negativo
+        const saidasDoMes = financDoMes.filter(f => f.valor < 0);
+        const totalSaidasMes = saidasDoMes.reduce((acc, s) => acc + (s.valor || 0), 0); // Já é negativo
+        
         const saldoMes = totalEntradasMes + totalSaidasMes;
         
+        // 3. Calcular Saldo Geral (Total)
         const saldoGeral = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0);
         
-        
-        // 3. Construir o HTML do Relatório
+        // 4. Ordenar Saídas para o extrato
+        saidasDoMes.sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+
+
+        // 5. Construir o HTML do Relatório
         let relatorioHTML = `
             <html>
             <head>
-                <title>Relatório Mensal - ${nomeMes} ${ano}</title>
+                <title>Relatório Financeiro Mensal - ${nomeMes} ${ano}</title>
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
                     @media print {
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; print-color-adjust: exact; }
                         .no-print { display: none; }
                     }
                     body { font-family: sans-serif; }
@@ -1436,8 +1362,12 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     .currency-header { text-align: right; }
                     .entrada { color: #15803d; }
                     .saida { color: #b91c1c; }
-                    .total { font-weight: bold; font-size: 15px; }
-                    .summary-box { background-color: #f3f4f6; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; }
+                    .total { font-weight: bold; font-size: 16px; }
+                    .summary-box { background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-top: 16px; }
+                    .summary-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #d1d5db; }
+                    .summary-item:last-child { border-bottom: none; }
+                    .summary-label { font-weight: 600; color: #1f2937; }
+                    .summary-value { font-weight: 600; }
                 </style>
             </head>
             <body class="bg-gray-100 p-8">
@@ -1446,24 +1376,23 @@ gerarRelatorioBtn.addEventListener("click", () => {
                         <h1>Relatório Financeiro Mensal</h1>
                         <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
                     </div>
-                    <p class="text-sm text-gray-600 mb-6">Mês de Referência: <span class="font-medium">${nomeMes} de ${ano}</span><br>Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+                    <p class="text-sm text-gray-600 mb-2">Mês de Referência: <span class="font-medium">${nomeMes} de ${ano}</span></p>
+                    <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
                     <!-- Resumo do Mês (Alinhado à Esquerda) -->
-                    <div class="mb-8 summary-box">
-                        <h2 class="text-xl font-semibold mb-4 text-left">Resumo do Mês (${nomeMes})</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <h3 class="text-sm font-medium text-gray-500 uppercase">ENTRADAS (MÊS)</h3>
-                                <p class="text-2xl font-bold text-green-700 text-left">R$ ${totalEntradasMes.toFixed(2).replace(".", ",")}</p>
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-medium text-gray-500 uppercase">SAÍDAS (MÊS)</h3>
-                                <p class="text-2xl font-bold text-red-700 text-left">R$ ${Math.abs(totalSaidasMes).toFixed(2).replace(".", ",")}</p>
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-medium text-gray-500 uppercase">SALDO (MÊS)</h3>
-                                <p class="text-2xl font-bold ${saldoMes >= 0 ? 'text-blue-700' : 'text-red-700'} text-left">R$ ${saldoMes.toFixed(2).replace(".", ",")}</p>
-                            </div>
+                    <div class="summary-box">
+                        <h2 class="text-lg font-semibold text-blue-700 mb-2 text-left">Resumo do Mês (${nomeMes})</h2>
+                        <div class="summary-item">
+                            <span class="summary-label">Total de Entradas (${nomeMes}):</span>
+                            <span class="summary-value entrada">${formatarMoeda(totalEntradas)}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Total de Saídas (${nomeMes}):</span>
+                            <span class="summary-value saida">${formatarMoeda(totalSaidas)}</span>
+                        </div>
+                        <div class="summary-item total">
+                            <span class="summary-label">Saldo Final (${nomeMes}):</span>
+                            <span class="summary-value ${saldoMes >= 0 ? 'entrada' : 'saida'}">${formatarMoeda(saldoMes)}</span>
                         </div>
                     </div>
                     
@@ -1482,13 +1411,13 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                 <tr>
                                     <td>${formatarData(d.data)}</td>
                                     <td>${d.membroNome}</td>
-                                    <td class="currency entrada">R$ ${(d.valor || 0).toFixed(2).replace(".", ",")}</td>
+                                    <td class="currency entrada">${formatarMoeda(d.valor || 0)}</td>
                                 </tr>
                             `).join('')}
                             ${dizimosDoMes.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum dízimo registado neste mês.</td></tr>' : ''}
-                            <tr class="total bg-gray-50">
-                                <td colspan="2" class="text-right font-bold">Total Dízimos (Mês):</td>
-                                <td class="currency entrada">R$ ${totalDizimos.toFixed(2).replace(".", ",")}</td>
+                            <tr class="bg-gray-50 font-bold">
+                                <td colspan="2" class="text-right">Total Dízimos (Mês):</td>
+                                <td class="currency entrada">${formatarMoeda(totalDizimos)}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1510,13 +1439,13 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                     <td>${formatarData(o.data)}</td>
                                     <td>${o.tipo}</td>
                                     <td>${o.descricao}</td>
-                                    <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
+                                    <td class="currency entrada">${formatarMoeda(o.valor || 0)}</td>
                                 </tr>
                             `).join('')}
                             ${ofertasDoMes.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada neste mês.</td></tr>' : ''}
-                            <tr class="total bg-gray-50">
-                                <td colspan="3" class="text-right font-bold">Total Ofertas (Mês):</td>
-                                <td class="currency entrada">R$ ${totalOfertas.toFixed(2).replace(".", ",")}</td>
+                             <tr class="bg-gray-50 font-bold">
+                                <td colspan="3" class="text-right">Total Ofertas (Mês):</td>
+                                <td class="currency entrada">${formatarMoeda(totalOfertas)}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1532,41 +1461,39 @@ gerarRelatorioBtn.addEventListener("click", () => {
                             </tr>
                         </thead>
                         <tbody>
-                             ${extratoSaidas.map(f => `
+                             ${saidasDoMes.map(f => `
                                 <tr>
                                     <td>${formatarData(f.data)}</td>
                                     <td>${f.descricao}</td>
-                                    <td class="currency saida">R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}</td>
+                                    <td class="currency saida">${formatarMoeda(f.valor || 0)}</td>
                                 </tr>
                             `).join('')}
-                            ${extratoSaidas.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma saída registada neste mês.</td></tr>' : ''}
-                            <tr class="total bg-gray-50">
-                                <td colspan="2" class="text-right font-bold">Total Saídas (Mês):</td>
-                                <td class="currency saida">R$ ${totalSaidasMes.toFixed(2).replace(".", ",")}</td>
+                            ${saidasDoMes.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma saída registada neste mês.</td></tr>' : ''}
+                            <tr class="bg-gray-50 font-bold">
+                                <td colspan="2" class="text-right">Total Saídas (Mês):</td>
+                                <td class="currency saida">${formatarMoeda(totalSaidas)}</td>
                             </tr>
                         </tbody>
                     </table>
                     
                     <!-- Resumo Final -->
-                    <div class="mt-8 pt-6 border-t-2 border-gray-300">
-                        <h2 class="text-xl font-semibold mb-4 text-left">Resumo Financeiro</h2>
-                        <div class="summary-box max-w-md space-y-3 text-left">
-                            <div class="flex justify-between total">
-                                <span>Total de Entradas (${nomeMes}):</span>
-                                <span class="entrada">R$ ${totalEntradasMes.toFixed(2).replace(".", ",")}</span>
-                            </div>
-                            <div class="flex justify-between total">
-                                <span>Total de Saídas (${nomeMes}):</span>
-                                <span class="saida">R$ ${totalSaidasMes.toFixed(2).replace(".", ",")}</span>
-                            </div>
-                            <div class="flex justify-between total border-t pt-3">
-                                <span>Saldo Final (${nomeMes}):</span>
-                                <span class="${saldoMes >= 0 ? 'text-blue-700' : 'text-red-700'}">R$ ${saldoMes.toFixed(2).replace(".", ",")}</span>
-                            </div>
-                            <div class="flex justify-between total border-t pt-3 mt-4">
-                                <span>SALDO FINAL (CAIXA GERAL):</span>
-                                <span class="${saldoGeral >= 0 ? 'text-blue-700' : 'text-red-700'}">R$ ${saldoGeral.toFixed(2).replace(".", ",")}</span>
-                            </div>
+                    <div class="summary-box mt-8">
+                         <h2 class="text-lg font-semibold text-blue-700 mb-2 text-left">Resumo Financeiro Final</h2>
+                         <div class="summary-item">
+                            <span class="summary-label">Total de Entradas (${nomeMes}):</span>
+                            <span class="summary-value entrada">${formatarMoeda(totalEntradasMes)}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Total de Saídas (${nomeMes}):</span>
+                            <span class="summary-value saida">${formatarMoeda(totalSaidasMes)}</span>
+                        </div>
+                        <div class="summary-item total">
+                            <span class="summary-label">Saldo Final (${nomeMes}):</span>
+                            <span class="summary-value ${saldoMes >= 0 ? 'entrada' : 'saida'}">${formatarMoeda(saldoMes)}</span>
+                        </div>
+                         <div class="summary-item total border-t-2 border-blue-200 mt-2 pt-2">
+                            <span class="summary-label text-blue-800">SALDO FINAL (CAIXA GERAL):</span>
+                            <span class="summary-value ${saldoGeral >= 0 ? 'text-blue-800' : 'saida'}">${formatarMoeda(saldoGeral)}</span>
                         </div>
                     </div>
                     
@@ -1575,7 +1502,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
             </html>
         `;
 
-        // 4. Abrir numa nova janela
+        // 6. Abrir numa nova janela
         const relatorioJanela = window.open("", "_blank");
         if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
             console.error("Falha ao abrir janela de relatório. Provável bloqueador de pop-up.");
@@ -1587,19 +1514,105 @@ gerarRelatorioBtn.addEventListener("click", () => {
         relatorioJanela.document.close();
     
     } catch (error) {
+        // Pega qualquer erro que possa ter acontecido
         console.error("Erro ao gerar relatório:", error);
         showToast("Ocorreu um erro inesperado ao gerar o relatório.", "error");
     }
 });
 
 
-// --- GERAÇÃO DE RELATÓRIO (ANIVERSARIANTES) ---
+// --- ABA DE ANIVERSARIANTES ---
+function renderAniversariantes() {
+    if (localMembros.length === 0) {
+        listaAniversariantesAtual.innerHTML = '<p class="text-gray-500 p-4">Nenhum membro cadastrado.</p>';
+        listaAniversariantesProximos.innerHTML = '<p class="text-gray-500 p-4">Nenhum membro cadastrado.</p>';
+        return;
+    }
+    
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth(); // 0-11
+    tituloAniversariantesAtual.textContent = `Aniversariantes de ${MESES_DO_ANO[mesAtual]}`;
+    
+    const aniversariantesPorMes = {};
+    for (let i = 0; i < 12; i++) {
+        aniversariantesPorMes[i] = [];
+    }
+
+    // 1. Agrupa membros por mês de aniversário
+    localMembros.forEach(membro => {
+        const dataNasc = getDateFromInput(membro.dataNascimento);
+        if (dataNasc) {
+            const mes = dataNasc.getUTCMonth(); // 0-11
+            const dia = dataNasc.getUTCDate();
+            aniversariantesPorMes[mes].push({ ...membro, dia });
+        }
+    });
+
+    // 2. Ordena aniversariantes dentro de cada mês pelo dia
+    for (let mes in aniversariantesPorMes) {
+        aniversariantesPorMes[mes].sort((a, b) => a.dia - b.dia);
+    }
+    
+    // 3. Renderiza o Mês Vigente
+    const aniversariantesAtuais = aniversariantesPorMes[mesAtual];
+    if (aniversariantesAtuais.length === 0) {
+         listaAniversariantesAtual.innerHTML = `<div class="p-4 text-center text-gray-500">Nenhum aniversariante este mês.</div>`;
+    } else {
+        listaAniversariantesAtual.innerHTML = aniversariantesAtuais.map(m => `
+            <div class="py-3 px-2 flex justify-between items-center hover:bg-gray-50 rounded">
+                <div>
+                    <div class="font-medium text-gray-800">${m.nome}</div>
+                    <div class="text-sm text-gray-500">Função: ${m.funcao || 'N/A'}</div>
+                </div>
+                <div class="text-lg font-bold text-blue-600">${String(m.dia).padStart(2, '0')}</div>
+            </div>
+        `).join('');
+    }
+    
+    // 4. Renderiza os Próximos Meses
+    listaAniversariantesProximos.innerHTML = ""; // Limpa
+    let mesesOrdenados = [];
+    for (let i = 1; i < 12; i++) {
+        mesesOrdenados.push((mesAtual + i) % 12);
+    }
+    
+    let encontrouProximos = false;
+    mesesOrdenados.forEach(mesIndex => {
+        const aniversariantesDoMes = aniversariantesPorMes[mesIndex];
+        if (aniversariantesDoMes.length > 0) {
+            encontrouProximos = true;
+            const mesDiv = document.createElement('div');
+            mesDiv.innerHTML = `<h4 class="font-semibold text-gray-700 border-b pb-1 mb-2">${MESES_DO_ANO[mesIndex]}</h4>`;
+            
+            const listaUl = document.createElement('ul');
+            listaUl.className = "divide-y divide-gray-100";
+            listaUl.innerHTML = aniversariantesDoMes.map(m => `
+                <li class="py-2 px-1 flex justify-between items-center">
+                    <span class="text-sm text-gray-700">${m.nome}</span>
+                    <span class="text-sm font-medium text-gray-600">${String(m.dia).padStart(2, '0')}</span>
+                </li>
+            `).join('');
+            
+            mesDiv.appendChild(listaUl);
+            listaAniversariantesProximos.appendChild(mesDiv);
+        }
+    });
+    
+    if (!encontrouProximos) {
+         listaAniversariantesProximos.innerHTML = `<p class="text-gray-500 p-4">Nenhum aniversariante nos próximos meses.</p>`;
+    }
+}
+
+// Relatório de Aniversariantes
 gerarRelatorioAniversariantesBtn.addEventListener("click", () => {
     try {
-        const conteudoAtual = listaAniversariantesAtual.innerHTML;
-        const conteudoProximos = listaAniversariantesProximos.innerHTML;
-        const tituloAtual = tituloAniversariantesAtual.textContent;
-
+        const hoje = new Date();
+        const mesAtual = hoje.getMonth();
+        const nomeMesAtual = MESES_DO_ANO[mesAtual];
+        
+        const htmlAtual = document.getElementById('lista-aniversariantes-atual').innerHTML;
+        const htmlProximos = document.getElementById('lista-aniversariantes-proximos').innerHTML;
+        
         let relatorioHTML = `
             <html>
             <head>
@@ -1613,16 +1626,17 @@ gerarRelatorioAniversariantesBtn.addEventListener("click", () => {
                     body { font-family: sans-serif; }
                     h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
                     h2 { font-size: 20px; font-weight: 600; color: #1d4ed8; margin-top: 24px; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; }
-                    /* Estilos copiados da aba */
-                    .divide-y > :not([hidden]) ~ :not([hidden]) { border-top-width: 1px; border-color: #e5e7eb; }
-                    .divide-y-100 > :not([hidden]) ~ :not([hidden]) { border-top-width: 1px; border-color: #f3f4f6; }
-                    .p-2 { padding: 0.5rem; } .p-3 { padding: 0.75rem; } .p-4 { padding: 1rem; }
-                    .flex { display: flex; } .justify-between { justify-content: space-between; } .items-center { align-items: center; }
-                    .font-medium { font-weight: 500; } .font-semibold { font-weight: 600; } .font-bold { font-weight: 700; }
-                    .text-gray-800 { color: #1f2937; } .text-gray-700 { color: #374151; } .text-gray-600 { color: #4b5563; } .text-gray-500 { color: #6b7280; }
-                    .text-blue-600 { color: #2563eb; } .text-sm { font-size: 0.875rem; } .text-lg { font-size: 1.125rem; }
-                    .mb-2 { margin-bottom: 0.5rem; } .mb-3 { margin-bottom: 0.75rem; } .pb-1 { padding-bottom: 0.25rem; }
-                    .border-b { border-bottom-width: 1px; border-color: #e5e7eb; } .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+                    /* Estilos do Mês Vigente (copiados do .js) */
+                    .aniversariante-atual { border-bottom: 1px solid #e5e7eb; padding: 12px 8px; display: flex; justify-content: space-between; align-items: center; }
+                    .aniversariante-atual-nome { font-weight: 500; color: #1f2937; }
+                    .aniversariante-atual-funcao { font-size: 14px; color: #6b7280; }
+                    .aniversariante-atual-dia { font-size: 20px; font-weight: 700; color: #2563eb; }
+                    /* Estilos dos Próximos Meses (copiados do .js) */
+                    .proximo-mes-titulo { font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 8px; margin-top: 16px; font-size: 18px; }
+                    .proximo-mes-lista { list-style: none; padding-left: 0; }
+                    .proximo-mes-item { padding: 8px 4px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; }
+                    .proximo-mes-nome { font-size: 14px; color: #374151; }
+                    .proximo-mes-dia { font-size: 14px; font-weight: 500; color: #4b5563; }
                 </style>
             </head>
             <body class="bg-gray-100 p-8">
@@ -1633,34 +1647,45 @@ gerarRelatorioAniversariantesBtn.addEventListener("click", () => {
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h2 class="text-xl font-semibold text-blue-700 mb-4">${tituloAtual}</h2>
-                            <div class="divide-y divide-gray-200">${conteudoAtual}</div>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Próximos Meses</h2>
-                            <div class="space-y-4">${conteudoProximos.replace(/class="/g, 'class="divide-y-100 ')}</div>
-                        </div>
+                    <!-- Mês Vigente -->
+                    <h2 class="text-xl font-semibold text-blue-700 mb-4">${tituloAniversariantesAtual.textContent}</h2>
+                    <div class="divide-y divide-gray-200">
+                        ${listaAniversariantesAtual.innerHTML}
+                    </div>
+                    
+                    <!-- Próximos Meses -->
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 mt-8">Próximos Meses</h2>
+                    <div class="space-y-4">
+                        ${listaAniversariantesProximos.innerHTML}
                     </div>
                 </div>
             </body>
             </html>
         `;
+        
+        // Substitui classes do Tailwind por estilos inline (para impressão)
+        relatorioHTML = relatorioHTML.replace(/class="py-3 px-2 flex justify-between items-center hover:bg-gray-50 rounded"/g, 'style="border-bottom: 1px solid #e5e7eb; padding: 12px 8px; display: flex; justify-content: space-between; align-items: center;"');
+        relatorioHTML = relatorioHTML.replace(/class="font-medium text-gray-800"/g, 'style="font-weight: 500; color: #1f2937;"');
+        relatorioHTML = relatorioHTML.replace(/class="text-sm text-gray-500"/g, 'style="font-size: 14px; color: #6b7280;"');
+        relatorioHTML = relatorioHTML.replace(/class="text-lg font-bold text-blue-600"/g, 'style="font-size: 20px; font-weight: 700; color: #2563eb;"');
+        relatorioHTML = relatorioHTML.replace(/class="font-semibold text-gray-700 border-b pb-1 mb-2"/g, 'style="font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 8px; margin-top: 16px; font-size: 18px;"');
+        relatorioHTML = relatorioHTML.replace(/class="divide-y divide-gray-100"/g, 'style="list-style: none; padding-left: 0;"');
+        relatorioHTML = relatorioHTML.replace(/class="py-2 px-1 flex justify-between items-center"/g, 'style="padding: 8px 4px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6;"');
+        relatorioHTML = relatorioHTML.replace(/class="text-sm text-gray-700"/g, 'style="font-size: 14px; color: #374151;"');
+        relatorioHTML = relatorioHTML.replace(/class="text-sm font-medium text-gray-600"/g, 'style="font-size: 14px; font-weight: 500; color: #4b5563;"');
+
 
         const relatorioJanela = window.open("", "_blank");
         if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
-            console.error("Falha ao abrir janela de relatório. Provável bloqueador de pop-up.");
             showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
             return;
         }
-
         relatorioJanela.document.write(relatorioHTML);
         relatorioJanela.document.close();
-
-    } catch (error) {
+        
+    } catch(error) {
         console.error("Erro ao gerar relatório de aniversariantes:", error);
-        showToast("Ocorreu um erro inesperado ao gerar o relatório.", "error");
+        showToast("Erro ao gerar relatório de aniversariantes.", "error");
     }
 });
 
@@ -1686,6 +1711,7 @@ function showToast(message, type = 'success') {
     
     toastContainer.appendChild(toast);
 
+    // Remove o toast após 3 segundos
     setTimeout(() => {
         toast.style.animation = "slideOut 0.3s ease-out forwards";
         setTimeout(() => {
@@ -1697,25 +1723,20 @@ function showToast(message, type = 'success') {
 
 // Função de formatação de data
 function formatarData(dataString) {
-    // Se for um Timestamp do Firebase, converte para Date
     if (dataString && typeof dataString.toDate === 'function') {
         dataString = dataString.toDate();
     }
-    // Se for um objeto Date
     else if (dataString instanceof Date) {
          // Não faz nada, já é um Date
     }
-    // Se for uma string (ex: '2025-11-01')
     else if (typeof dataString === 'string' && dataString.includes('-')) {
-         dataString = getDateFromInput(dataString); // Usa a função robusta
+         dataString = getDateFromInput(dataString);
     } 
-    // Se for inválido ou nulo
     else {
-        return 'N/A'; // Retorna 'N/A' se a data for inválida
+        return 'N/A';
     }
     
     try {
-        // Formata para dd/mm/aaaa
         return dataString.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
     } catch (e) {
         console.warn("Erro ao formatar data:", dataString, e);
@@ -1726,20 +1747,15 @@ function formatarData(dataString) {
 // Converte string 'aaaa-mm-dd' ou Timestamp para um Date UTC
 function getDateFromInput(dataInput) {
     try {
-        // Se for um Timestamp do Firebase
         if (dataInput && typeof dataInput.toDate === 'function') {
-            return dataInput.toDate(); // Retorna o objeto Date
+            return dataInput.toDate();
         }
-        // Se já for um objeto Date
         if (dataInput instanceof Date) {
             return dataInput;
         }
-        // Se for uma string (ex: '2025-11-01')
         if (typeof dataInput === 'string' && dataInput.includes('-')) {
             const parts = dataInput.split('-');
             if (parts.length === 3) {
-                // Ano, Mês (base 0), Dia
-                // Garante que seja UTC para evitar problemas de fuso
                 return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
             }
         }
@@ -1750,23 +1766,37 @@ function getDateFromInput(dataInput) {
     return null;
 }
 
-// Função para calcular idade
+// Calcula idade
 function calcularIdade(dataNascimento) {
-    if (!dataNascimento) return null;
+    // Corrigido: erro de digitação de 'dataNTascimento' para 'dataNascimento'
+    if (!dataNascimento) return null; 
     
-    // Corrigido: (dataNTascimento -> dataNascimento)
-    const dataNasc = getDateFromInput(dataNascimento); 
+    const dataNasc = getDateFromInput(dataNascimento);
     if (!dataNasc) return null;
 
     const hoje = new Date();
-    let idade = hoje.getFullYear() - dataNasc.getUTCFullYear();
-    const mes = hoje.getMonth() - dataNasc.getUTCMonth();
+    let idade = hoje.getUTCFullYear() - dataNasc.getUTCFullYear();
+    const m = hoje.getUTCMonth() - dataNasc.getUTCMonth();
     
-    if (mes < 0 || (mes === 0 && hoje.getDate() < dataNasc.getUTCDate())) {
+    if (m < 0 || (m === 0 && hoje.getUTCDate() < dataNasc.getUTCDate())) {
         idade--;
     }
     return idade;
 }
+
+// Formatar Moeda (para Relatório)
+function formatarMoeda(valor) {
+    if (typeof valor !== 'number') {
+        valor = 0;
+    }
+    const formatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+    // Remove o "R$" negativo (ex: -R$ 100) e coloca o sinal antes (ex: R$ -100)
+    if (valor < 0) {
+        return `R$ -${formatado.replace('R$', '').replace('-', '')}`;
+    }
+    return formatado;
+}
+
 
 // Inicializa ícones Lucide
 lucide.createIcons();
