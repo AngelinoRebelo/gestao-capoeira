@@ -192,7 +192,6 @@
                 </div>
 
                 <!-- Botão de Relatório -->
-                <!-- (MODIFICADO) - Agora é um Relatório Mensal -->
                 <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
                     <h3 class="text-xl font-semibold mb-4 text-center">Gerar Relatório Mensal</h3>
                     <p class="text-gray-600 mb-4 text-center">Selecione o mês e o ano para gerar um relatório financeiro detalhado.</p>
@@ -220,8 +219,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- (FIM DA MODIFICAÇÃO) -->
-
 
                 <!-- Aviso de Carregamento -->
                 <p id="dashboard-loading" class="text-gray-500 mt-4 flex items-center justify-center"></p>
@@ -646,7 +643,7 @@
                             </div>
 
                             <!-- (NOVO) Resumo do Mês -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-6 border-b pb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center mb-6 border-b pb-6">
                                 <div class="bg-green-100 p-4 rounded-lg">
                                     <div class="text-sm font-medium text-green-800">Entradas (Mês)</div>
                                     <p id="entradas-mes-financeiro" class="text-2xl font-bold text-green-700">R$ 0,00</p>
@@ -655,9 +652,14 @@
                                     <div class="text-sm font-medium text-red-800">Saídas (Mês)</div>
                                     <p id="saidas-mes-financeiro" class="text-2xl font-bold text-red-700">R$ 0,00</p>
                                 </div>
+                                <!-- NOVO BLOCO SALDO MÊS -->
+                                <div class="bg-indigo-100 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-indigo-800">Saldo (Mês)</div>
+                                    <p id="saldo-mes-financeiro-aba" class="text-2xl font-bold text-indigo-700">R$ 0,00</p>
+                                </div>
                                 <div class="bg-blue-100 p-4 rounded-lg">
                                     <div class="text-sm font-medium text-blue-800">Saldo Atual (Total)</div>
-                                    <p id="saldo-total-financeiro" class="text-xl font-bold text-blue-700">R$ 0,00</p>
+                                    <p id="saldo-total-financeiro" class="text-2xl font-bold text-blue-700">R$ 0,00</p>
                                 </div>
                             </div>
                             <!-- Fim Resumo do Mês -->
@@ -819,7 +821,7 @@
                         <label for="edit-rg" class="block text-sm font-medium text-gray-700">RG</label>
                         <input type="text" id="edit-rg" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                     <div>
+                    <div>
                         <label for="edit-naturalidade" class="block text-sm font-medium text-gray-700">Naturalidade</label>
                         <input type="text" id="edit-naturalidade" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
@@ -827,7 +829,7 @@
                         <label for="edit-endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
                         <textarea id="edit-endereco" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
                     </div>
-                    <div class="md:col-span-1">
+                     <div class="md:col-span-1">
                         <label for="edit-nome-pai" class="block text-sm font-medium text-gray-700">Nome do Pai</label>
                         <input type="text" id="edit-nome-pai" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
@@ -836,7 +838,7 @@
                         <input type="text" id="edit-nome-mae" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
-
+                
                 <!-- Seção 2: Informações Adicionais e Ministeriais -->
                 <h3 class="text-lg font-semibold mb-4 mt-8 border-b pb-2 text-blue-700">Informações Adicionais e Ministeriais</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
@@ -878,10 +880,10 @@
                         <input type="date" id="edit-data-batismo" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label for="edit-data-chegada" class="block text-sm font-medium text-gray-700">Data de Chegada</label>
+                        <label for="edit-data-chegada" class="block text-sm font-medium text-gray-700">Data de Chegada</Tscript> <!-- ERRO DE DIGITAÇÃO AQUI -->
                         <input type="date" id="edit-data-chegada" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                     <div>
+                    <div>
                         <label for="edit-igreja-anterior" class="block text-sm font-medium text-gray-700">Igreja de Onde Veio</label>
                         <input type="text" id="edit-igreja-anterior" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
@@ -892,18 +894,17 @@
                 </div>
                 
                 <!-- Confirmação de Segurança -->
-                <div class="mt-8 pt-6 border-t-2">
-                    <h3 class="text-lg font-semibold text-red-600">Confirmação de Segurança</h3>
-                    <p class="text-sm text-gray-600 mb-2">Para salvar as alterações, por favor, insira sua senha de login.</p>
-                    <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Senha:</label>
+                <div class="mt-6 pt-6 border-t">
+                     <h3 class="text-lg font-semibold text-red-600">Confirmação de Segurança</h3>
+                     <p class="text-sm text-gray-600 mb-2">Para salvar as alterações, por favor, insira sua senha de login.</p>
+                     <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Senha:</label>
                     <input type="password" id="edit-membro-password" class="mt-1 block w-full max-w-sm border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500" required>
                     <p id="edit-membro-error" class="text-red-500 text-sm mt-2"></p>
                 </div>
-                
-                <!-- Botões -->
+
                 <div class="mt-8 pt-4 border-t flex justify-end space-x-3">
-                    <button id="cancel-edit-membro-btn" type="button"
-                        class="bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-150">
+                    <button type="button" id="cancel-edit-membro-btn"
+                        class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150">
                         Cancelar
                     </button>
                     <button id="edit-membro-submit-btn" type="submit"
@@ -919,20 +920,21 @@
     <!-- Modal: Confirmação de Exclusão (Universal) -->
     <div id="delete-confirm-modal" class="modal">
         <div class="modal-content max-w-lg">
-            <span class="close-button" id="close-delete-modal">&times;</span>
-            <h2 class="text-xl font-semibold mb-4 text-red-600">Confirmar Exclusão</h2>
-            <p class="mb-4">Tem certeza que deseja excluir este registo? Esta ação é irreversível.</p>
-            <p id="delete-cascade-warning" class="text-sm text-yellow-700 font-medium bg-yellow-50 p-3 rounded-md mb-4"></p>
-            <p class="mb-4">Para confirmar, digite sua senha de login:</p>
-            <form id="delete-confirm-form">
-                <label for="delete-password" class="block text-sm font-medium text-gray-700">Senha:</label>
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-red-600">Confirmar Exclusão</h2>
+                <span class="close-button" id="close-delete-modal">&times;</span>
+            </div>
+            <p class="mt-4 mb-2">Tem certeza que deseja excluir este registo? Esta ação é irreversível.</p>
+            <p id="delete-cascade-warning" class="text-yellow-700 font-medium text-sm"></p>
+            <form id="delete-confirm-form" class="mt-4">
+                <label for="delete-password" class="block text-sm font-medium text-gray-700">Para confirmar, digite sua senha de login:</label>
                 <input type="password" id="delete-password"
                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500"
                     required>
                 <p id="delete-error-message" class="text-red-500 text-sm mt-2"></p>
-                <div class="mt-6 flex justify-end">
+                <div class="mt-6 flex justify-end space-x-3">
                     <button type="button" id="cancel-delete-btn"
-                        class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150 mr-2">
+                        class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150">
                         Cancelar
                     </button>
                     <button id="delete-submit-btn" type="submit"
@@ -944,14 +946,9 @@
         </div>
     </div>
 
-
-    <!-- Carrega o script principal -->
+    <!-- Script da Aplicação -->
     <script src="gestao-igje.js" type="module"></script>
-    
-    <!-- Inicializa o Lucide Icons -->
-    <script>
-        lucide.createIcons();
-    </script>
 
 </body>
+
 </html>
