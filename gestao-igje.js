@@ -165,7 +165,7 @@ const toastContainer = document.getElementById("toast-container");
 // Resumo Financeiro do Mês (Aba Financeiro)
 const entradasMesFinanceiro = document.getElementById("entradas-mes-financeiro");
 const saidasMesFinanceiro = document.getElementById("saidas-mes-financeiro");
-const saldoMesFinanceiroAba = document.getElementById("saldo-mes-financeiro-aba"); // Corrigido
+const saldoMesFinanceiroAba = document.getElementById("saldo-mes-financeiro-aba");
 
 // Meses para formatação
 const MESES_DO_ANO = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
@@ -725,11 +725,11 @@ function clearAllTables() {
     saldoTotalFinanceiro.textContent = "R$ 0,00";
     entradasMesFinanceiro.textContent = "R$ 0,00";
     saidasMesFinanceiro.textContent = "R$ 0,00";
-    saldoMesFinanceiroAba.textContent = "R$ 0,00"; // Corrigido
+    saldoMesFinanceiroAba.textContent = "R$ 0,00";
     saldoDashboard.textContent = "R$ 0,00";
     entradasDashboard.textContent = "R$ 0,00";
     saidasDashboard.textContent = "R$ 0,00";
-    saldoMesDashboard.textContent = "R$ 0,00"; // Novo
+    saldoMesDashboard.textContent = "R$ 0,00";
     listaAniversariantesAtual.innerHTML = "";
     listaAniversariantesProximos.innerHTML = "";
 }
@@ -815,8 +815,7 @@ function renderFinanceiro(transacoes) {
 }
 
 // --- FILTROS E RENDERIZAÇÃO DE DÍZIMOS E OFERTAS ---
-const hoje = new Date();
-const anoAtual = hoje.getFullYear();
+const anoAtual = new Date().getFullYear();
 
 function popularFiltros(selectMes, selectAno, dataDefault) {
     selectMes.innerHTML = "";
@@ -838,7 +837,12 @@ function popularFiltros(selectMes, selectAno, dataDefault) {
         option.value = i;
         option.textContent = i;
         if (i === dataDefault.getFullYear()) option.selected = true;
-        selectAno.appendChild(option);
+        // Adiciona anos passados no início
+        if (i < dataDefault.getFullYear()) {
+            selectAno.prepend(option);
+        } else {
+            selectAno.appendChild(option);
+        }
     }
 }
 
@@ -1045,7 +1049,7 @@ function updateDashboard() {
         .filter(t => t.valor < 0)
         .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
         
-    const saldoMes = entradasMes + saidasMes; // Corrigido
+    const saldoMes = entradasMes + saidasMes;
 
     entradasDashboard.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
     saidasDashboard.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
@@ -1064,6 +1068,7 @@ function setElementText(id, text) {
     if (element) {
         element.textContent = text || 'N/A';
     } else {
+        // Este aviso é importante para debugging de dessincronização HTML/JS
         console.warn(`Elemento com ID "${id}" não encontrado no HTML.`);
     }
 }
@@ -1349,7 +1354,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
                     @media print {
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; print-color-adjust: exact; }
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                         .no-print { display: none; }
                     }
                     body { font-family: sans-serif; }
@@ -1364,10 +1369,12 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     .saida { color: #b91c1c; }
                     .total { font-weight: bold; font-size: 16px; }
                     .summary-box { background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-top: 16px; }
-                    .summary-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #d1d5db; }
+                    /* Corrigido: Alinhamento à esquerda */
+                    .summary-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #d1d5db; text-align: left; }
                     .summary-item:last-child { border-bottom: none; }
-                    .summary-label { font-weight: 600; color: #1f2937; }
-                    .summary-value { font-weight: 600; }
+                    .summary-label { font-weight: 600; color: #1f2937; text-align: left; }
+                    .summary-value { font-weight: 600; text-align: right; }
+                    .summary-title { font-size: 1.125rem; font-weight: 600; color: #1e40af; margin-bottom: 8px; text-align: left; }
                 </style>
             </head>
             <body class="bg-gray-100 p-8">
@@ -1381,17 +1388,17 @@ gerarRelatorioBtn.addEventListener("click", () => {
 
                     <!-- Resumo do Mês (Alinhado à Esquerda) -->
                     <div class="summary-box">
-                        <h2 class="text-lg font-semibold text-blue-700 mb-2 text-left">Resumo do Mês (${nomeMes})</h2>
+                        <h2 class="summary-title">Resumo do Mês (${nomeMes})</h2>
                         <div class="summary-item">
-                            <span class="summary-label">Total de Entradas (${nomeMes}):</span>
-                            <span class="summary-value entrada">${formatarMoeda(totalEntradas)}</span>
+                            <span class="summary-label">Entradas (Mês):</span>
+                            <span class="summary-value entrada">${formatarMoeda(totalEntradasMes)}</span>
                         </div>
                         <div class="summary-item">
-                            <span class="summary-label">Total de Saídas (${nomeMes}):</span>
-                            <span class="summary-value saida">${formatarMoeda(totalSaidas)}</span>
+                            <span class="summary-label">Saídas (Mês):</span>
+                            <span class="summary-value saida">${formatarMoeda(totalSaidasMes)}</span>
                         </div>
                         <div class="summary-item total">
-                            <span class="summary-label">Saldo Final (${nomeMes}):</span>
+                            <span class="summary-label">Saldo (Mês):</span>
                             <span class="summary-value ${saldoMes >= 0 ? 'entrada' : 'saida'}">${formatarMoeda(saldoMes)}</span>
                         </div>
                     </div>
@@ -1471,14 +1478,14 @@ gerarRelatorioBtn.addEventListener("click", () => {
                             ${saidasDoMes.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma saída registada neste mês.</td></tr>' : ''}
                             <tr class="bg-gray-50 font-bold">
                                 <td colspan="2" class="text-right">Total Saídas (Mês):</td>
-                                <td class="currency saida">${formatarMoeda(totalSaidas)}</td>
+                                <td class="currency saida">${formatarMoeda(totalSaidasMes)}</td>
                             </tr>
                         </tbody>
                     </table>
                     
-                    <!-- Resumo Final -->
+                    <!-- Resumo Final (Alinhado à Esquerda) -->
                     <div class="summary-box mt-8">
-                         <h2 class="text-lg font-semibold text-blue-700 mb-2 text-left">Resumo Financeiro Final</h2>
+                         <h2 class="summary-title">Resumo Financeiro Final</h2>
                          <div class="summary-item">
                             <span class="summary-label">Total de Entradas (${nomeMes}):</span>
                             <span class="summary-value entrada">${formatarMoeda(totalEntradasMes)}</span>
@@ -1516,6 +1523,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
     } catch (error) {
         // Pega qualquer erro que possa ter acontecido
         console.error("Erro ao gerar relatório:", error);
+        // Corrigido: `totalEntradas` para `totalEntradasMes` (erro de digitação)
         showToast("Ocorreu um erro inesperado ao gerar o relatório.", "error");
     }
 });
