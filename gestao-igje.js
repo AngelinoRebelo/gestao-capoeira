@@ -711,9 +711,9 @@ function clearAllTables() {
     saldoDashboard.textContent = "R$ 0,00";
     entradasDashboard.textContent = "R$ 0,00";
     saidasDashboard.textContent = "R$ 0,00";
-    saldoMesDashboard.textContent = "R$ 0,00"; // Novo
-    listaAniversariantesAtual.innerHTML = ""; // Novo
-    listaAniversariantesProximos.innerHTML = ""; // Novo
+    saldoMesDashboard.textContent = "R$ 0,00";
+    listaAniversariantesAtual.innerHTML = "";
+    listaAniversariantesProximos.innerHTML = "";
 }
 
 
@@ -1174,9 +1174,7 @@ function setElementText(id, text) {
     if (element) {
         element.textContent = text || 'N/A';
     } else {
-        // Aviso removido para evitar poluir a consola,
-        // já que agora sabemos que o HTML pode estar dessincronizado.
-        // console.warn(`Elemento com ID "${id}" não encontrado no HTML.`);
+        console.warn(`Elemento com ID "${id}" não encontrado no HTML.`);
     }
 }
 
@@ -1755,7 +1753,8 @@ function getDateFromInput(dataInput) {
 function calcularIdade(dataNascimento) {
     if (!dataNascimento) return null;
     
-    const dataNasc = getDateFromInput(dataNTascimento);
+    // CORRIGIDO: O nome da variável estava errado aqui
+    const dataNasc = getDateFromInput(dataNascimento); 
     if (!dataNasc) return null;
 
     const hoje = new Date();
