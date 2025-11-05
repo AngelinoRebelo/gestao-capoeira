@@ -17,7 +17,7 @@
 <body class="bg-gray-100 font-sans antialiased text-gray-800">
 
     <!-- Toast Container -->
-    <div id="toast-container" class="fixed top-5 right-5 z-[200] space-y-2">
+    <div id="toast-container">
         <!-- Toasts serão injetados aqui -->
     </div>
 
@@ -192,15 +192,36 @@
                 </div>
 
                 <!-- Botão de Relatório -->
-                <div class="mt-8 bg-white p-6 rounded-lg shadow-lg text-center">
-                    <h3 class="text-xl font-semibold mb-4">Relatório Geral</h3>
-                    <p class="text-gray-600 mb-4">Gere um relatório completo das finanças para impressão.</p>
-                    <button id="gerar-relatorio-btn"
-                        class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
-                        <i data-lucide="printer" class="inline-block w-4 h-4 mr-2"></i>
-                        Gerar Relatório Completo
-                    </button>
+                <!-- (MODIFICADO) - Agora é um Relatório Mensal -->
+                <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Gerar Relatório Mensal</h3>
+                    <p class="text-gray-600 mb-4 text-center">Selecione o mês e o ano para gerar um relatório financeiro detalhado.</p>
+                    <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                        <div class="flex-1 w-full sm:w-auto">
+                            <label for="relatorio-geral-mes" class="block text-sm font-medium text-gray-700">Mês</label>
+                            <select id="relatorio-geral-mes"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <!-- Opções de mês -->
+                            </select>
+                        </div>
+                         <div class="flex-1 w-full sm:w-auto">
+                            <label for="relatorio-geral-ano" class="block text-sm font-medium text-gray-700">Ano</label>
+                            <select id="relatorio-geral-ano"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <!-- Opções de ano -->
+                            </select>
+                        </div>
+                        <div class="mt-5 sm:mt-0">
+                            <button id="gerar-relatorio-btn"
+                                class="w-full sm:w-auto bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center">
+                                <i data-lucide="printer" class="inline-block w-4 h-4 mr-2"></i>
+                                Gerar Relatório do Mês
+                            </button>
+                        </div>
+                    </div>
                 </div>
+                <!-- (FIM DA MODIFICAÇÃO) -->
+
 
                 <!-- Aviso de Carregamento -->
                 <p id="dashboard-loading" class="text-gray-500 mt-4 flex items-center justify-center"></p>
@@ -623,22 +644,25 @@
                                     </select>
                                 </div>
                             </div>
-                            <!-- Resumo do Mês -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 border-t border-b py-4">
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase">Entradas (Mês)</h3>
-                                    <p id="entradas-mes-financeiro" class="text-xl font-bold text-green-600">R$ 0,00</p>
+
+                            <!-- (NOVO) Resumo do Mês -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-6 border-b pb-6">
+                                <div class="bg-green-100 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-green-800">Entradas (Mês)</div>
+                                    <p id="entradas-mes-financeiro" class="text-2xl font-bold text-green-700">R$ 0,00</p>
                                 </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase">Saídas (Mês)</h3>
-                                    <p id="saidas-mes-financeiro" class="text-xl font-bold text-red-600">R$ 0,00</p>
+                                <div class="bg-red-100 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-red-800">Saídas (Mês)</div>
+                                    <p id="saidas-mes-financeiro" class="text-2xl font-bold text-red-700">R$ 0,00</p>
                                 </div>
-                                <div class="md:text-right">
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase">Saldo Atual (Total)</h3>
+                                <div class="bg-blue-100 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-blue-800">Saldo Atual (Total)</div>
                                     <p id="saldo-total-financeiro" class="text-xl font-bold text-blue-700">R$ 0,00</p>
                                 </div>
                             </div>
-                            <!-- Fim do Resumo -->
+                            <!-- Fim Resumo do Mês -->
+
+
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
@@ -671,21 +695,22 @@
             <div id="aniversariantes" class="app-content-tab">
                 <h2 class="text-2xl font-semibold mb-6">Aniversariantes</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Bloco Mês Vigente -->
+                    <!-- Mês Vigente -->
                     <div class="bg-white p-6 rounded-lg shadow-lg">
-                        <h3 id="titulo-aniversariantes-atual" class="text-xl font-semibold text-blue-700 mb-4">Aniversariantes de...</h3>
-                        <div id="lista-aniversariantes-atual" class="overflow-y-auto max-h-96">
-                            <p class="text-gray-500">A carregar...</p>
+                        <h3 id="titulo-aniversariantes-atual" class="text-xl font-semibold text-blue-700 mb-4">...</h3>
+                        <div id="lista-aniversariantes-atual" class="divide-y divide-gray-200">
+                            <p class="text-gray-500 p-4">Carregando...</p>
                         </div>
                     </div>
-                    <!-- Bloco Próximos Meses -->
+                    <!-- Próximos Meses -->
                     <div class="bg-white p-6 rounded-lg shadow-lg">
                          <h3 class="text-xl font-semibold text-gray-800 mb-4">Próximos Meses</h3>
-                         <div id="lista-aniversariantes-proximos" class="overflow-y-auto max-h-96">
-                            <p class="text-gray-500">A carregar...</p>
+                         <div id="lista-aniversariantes-proximos" class="space-y-4 max-h-96 overflow-y-auto">
+                            <p class="text-gray-500 p-4">Carregando...</p>
                          </div>
                     </div>
                 </div>
+                
                  <!-- Botão de Relatório -->
                 <div class="mt-8 bg-white p-6 rounded-lg shadow-lg text-center">
                     <h3 class="text-xl font-semibold mb-4">Relatório de Aniversariantes</h3>
@@ -693,134 +718,83 @@
                     <button id="gerar-relatorio-aniversariantes-btn"
                         class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-150">
                         <i data-lucide="printer" class="inline-block w-4 h-4 mr-2"></i>
-                        Gerar Relatório
+                        Gerar Relatório de Aniversariantes
                     </button>
                 </div>
             </div>
-
 
         </main>
     </div>
 
     <!-- Modal: Detalhes do Membro -->
     <div id="membro-detalhes-modal" class="modal">
-        <div class="modal-content md:max-w-3xl">
-            <span class="close-button" id="close-membro-modal">&times;</span>
-            <h2 class="text-2xl font-semibold mb-6">Detalhes do Membro</h2>
-
-            <!-- Conteúdo dos Detalhes -->
-            <div class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2 pb-4 border-b">
-                    <div>
-                        <span class="block text-sm font-medium text-gray-500">Nome Completo</span>
-                        <p id="modal-detalhes-nome" class="text-lg font-semibold text-blue-700">N/A</p>
-                    </div>
-                    <div class="md:col-span-2">
-                         <span class="block text-sm font-medium text-gray-500">Função/Ministério</span>
-                         <p id="modal-detalhes-funcao" class="text-lg font-semibold text-gray-800">N/A</p>
-                    </div>
+        <div class="modal-content max-w-4xl"> <!-- Layout aumentado -->
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                 <h2 class="text-2xl font-semibold">Detalhes do Membro</h2>
+                <span class="close-button" id="close-membro-modal">&times;</span>
+            </div>
+            
+            <!-- Conteúdo -->
+            <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                <!-- Informações Pessoais -->
+                <h3 class="text-lg font-semibold text-blue-700">Informações Pessoais</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2 text-sm">
+                    <div class="md:col-span-2"><strong>Nome:</strong> <span id="modal-detalhes-nome"></span></div>
+                    <div><strong>Função/Ministério:</strong> <span id="modal-detalhes-funcao"></span></div>
+                    <div><strong>Data de Nasc.:</strong> <span id="modal-detalhes-data-nascimento"></span></div>
+                    <div><strong>Telefone:</strong> <span id="modal-detalhes-telefone"></span></div>
+                    <div><strong>Email:</strong> <span id="modal-detalhes-email"></span></div>
+                    <div><strong>CPF:</strong> <span id="modal-detalhes-cpf"></span></div>
+                    <div><strong>RG:</strong> <span id="modal-detalhes-rg"></span></div>
+                    <div><strong>Naturalidade:</strong> <span id="modal-detalhes-naturalidade"></span></div>
+                    <div class="md:col-span-3"><strong>Endereço:</strong> <span id="modal-detalhes-endereco" class="block whitespace-pre-wrap"></span></div>
+                    <div class="md:col-span-1"><strong>Nome do Pai:</strong> <span id="modal-detalhes-pai"></span></div>
+                    <div class="md:col-span-2"><strong>Nome da Mãe:</strong> <span id="modal-detalhes-mae"></span></div>
                 </div>
                 
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 pb-4 border-b">
-                     <div>
-                        <span class="block text-sm font-medium text-gray-500">Data de Nasc.</span>
-                        <p id="modal-detalhes-data-nascimento" class="text-gray-800">N/A</p>
-                    </div>
-                    <div>
-                        <span class="block text-sm font-medium text-gray-500">Telefone</span>
-                        <p id="modal-detalhes-telefone" class="text-gray-800">N/A</p>
-                    </div>
-                    <div>
-                        <span class="block text-sm font-medium text-gray-500">Email</span>
-                        <p id="modal-detalhes-email" class="text-gray-800">N/A</p>
-                    </div>
-                     <div>
-                        <span class="block text-sm font-medium text-gray-500">CPF</span>
-                        <p id="modal-detalhes-cpf" class="text-gray-800">N/A</p>
-                    </div>
-                    <div>
-                        <span class="block text-sm font-medium text-gray-500">RG</span>
-                        <p id="modal-detalhes-rg" class="text-gray-800">N/A</p>
-                    </div>
-                    <div>
-                        <span class="block text-sm font-medium text-gray-500">Naturalidade</span>
-                        <p id="modal-detalhes-naturalidade" class="text-gray-800">N/A</p>
-                    </div>
-                     <div class="md:col-span-3">
-                        <span class="block text-sm font-medium text-gray-500">Endereço</span>
-                        <p id="modal-detalhes-endereco" class="text-gray-800 whitespace-pre-wrap">N/A</p>
-                    </div>
-                    <div>
-                        <span class="block text-sm font-medium text-gray-500">Nome do Pai</span>
-                        <p id="modal-detalhes-pai" class="text-gray-800">N/A</p>
-                    </div>
-                    <div class="md:col-span-2">
-                        <span class="block text-sm font-medium text-gray-500">Nome da Mãe</span>
-                        <p id="modal-detalhes-mae" class="text-gray-800">N/A</p>
-                    </div>
-                 </div>
-
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
-                     <div>
-                        <span class="block text-sm font-medium text-gray-500">Estado Civil</span>
-                        <p id="modal-detalhes-estado-civil" class="text-gray-800">N/A</p>
-                    </div>
-                    <div id="conjuge-detalhes-container" class="hidden md:col-span-2">
-                        <span class="block text-sm font-medium text-gray-500">Cônjuge</span>
-                        <p id="modal-detalhes-conjuge" class="text-gray-800">N/A</p>
-                    </div>
-                     <div>
-                        <span class="block text-sm font-medium text-gray-500">Profissão</span>
-                        <p id="modal-detalhes-profissao" class="text-gray-800">N/A</p>
-                    </div>
-                    <div>
-                        <span class="block text-sm font-medium text-gray-500">Escolaridade</span>
-                        <p id="modal-detalhes-escolaridade" class="text-gray-800">N/A</p>
-                    </div>
-                     <div>
-                        <span class="block text-sm font-medium text-gray-500">Data de Batismo</span>
-                        <p id="modal-detalhes-data-batismo" class="text-gray-800">N/A</p>
-                    </div>
-                    <div>
-                        <span class="block text-sm font-medium text-gray-500">Data de Chegada</span>
-                        <p id="modal-detalhes-data-chegada" class="text-gray-800">N/A</p>
-                    </div>
-                     <div>
-                        <span class="block text-sm font-medium text-gray-500">Igreja de Onde Veio</span>
-                        <p id="modal-detalhes-igreja-anterior" class="text-gray-800">N/A</p>
-                    </div>
-                    <div>
-                        <span class="block text-sm font-medium text-gray-500">Cargo que Ocupava</span>
-                        <p id="modal-detalhes-cargo-anterior" class="text-gray-800">N/A</p>
-                    </div>
-                 </div>
+                 <!-- Informações Adicionais -->
+                <h3 class="text-lg font-semibold mt-4 pt-4 border-t text-blue-700">Informações Adicionais e Ministeriais</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2 text-sm">
+                     <div><strong>Estado Civil:</strong> <span id="modal-detalhes-estado-civil"></span></div>
+                    <div id="conjuge-detalhes-container" class="hidden md:col-span-2"><strong>Cônjuge:</strong> <span id="modal-detalhes-conjuge"></span></div>
+                    <div><strong>Profissão:</strong> <span id="modal-detalhes-profissao"></span></div>
+                    <div class="md:col-span-2"><strong>Escolaridade:</strong> <span id="modal-detalhes-escolaridade"></span></div>
+                    <div><strong>Data de Batismo:</strong> <span id="modal-detalhes-data-batismo"></span></div>
+                    <div><strong>Data de Chegada:</strong> <span id="modal-detalhes-data-chegada"></span></div>
+                    <div class="md:col-span-3"></div> <!-- Espaçador -->
+                    <div><strong>Igreja de Onde Veio:</strong> <span id="modal-detalhes-igreja-anterior"></span></div>
+                    <div class="md:col-span-2"><strong>Cargo que Ocupava:</strong> <span id="modal-detalhes-cargo-anterior"></span></div>
+                </div>
             </div>
 
-            <!-- Botões de Ação -->
-            <div class="mt-8 flex justify-end space-x-3">
+            <div class="mt-8 pt-4 border-t flex justify-end space-x-3">
                 <button id="show-delete-membro-btn"
-                    class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150">
+                    class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 flex items-center justify-center">
+                    <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i>
                     Excluir Membro
                 </button>
                  <button id="show-edit-membro-btn"
-                    class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150">
+                    class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center">
+                    <i data-lucide="edit" class="w-4 h-4 mr-2"></i>
                     Editar Informações
                 </button>
             </div>
         </div>
     </div>
     
-     <!-- Modal: Editar Membro -->
+    <!-- Modal: Editar Membro -->
     <div id="membro-edit-modal" class="modal">
-        <div class="modal-content md:max-w-4xl">
-            <span class="close-button" id="close-membro-edit-modal">&times;</span>
-            <h2 class="text-2xl font-semibold mb-6">Editar Informações do Membro</h2>
+        <div class="modal-content max-w-4xl">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                 <h2 class="text-2xl font-semibold">Editar Membro</h2>
+                <span class="close-button" id="close-membro-edit-modal">&times;</span>
+            </div>
             
-            <form id="form-edit-membro" class="max-h-[70vh] overflow-y-auto pr-2">
+            <!-- Formulário de Edição -->
+            <form id="form-edit-membro" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
                  <!-- Seção 1: Informações Pessoais -->
                 <h3 class="text-lg font-semibold mb-4 border-b pb-2 text-blue-700">Informações Pessoais</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
-                    <!-- Coluna 1 -->
                     <div class="md:col-span-2">
                         <label for="edit-nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
                         <input type="text" id="edit-nome" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
@@ -845,7 +819,7 @@
                         <label for="edit-rg" class="block text-sm font-medium text-gray-700">RG</label>
                         <input type="text" id="edit-rg" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                        <div>
+                     <div>
                         <label for="edit-naturalidade" class="block text-sm font-medium text-gray-700">Naturalidade</label>
                         <input type="text" id="edit-naturalidade" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
@@ -857,7 +831,7 @@
                         <label for="edit-nome-pai" class="block text-sm font-medium text-gray-700">Nome do Pai</label>
                         <input type="text" id="edit-nome-pai" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                        <div class="md:col-span-2">
+                     <div class="md:col-span-2">
                         <label for="edit-nome-mae" class="block text-sm font-medium text-gray-700">Nome da Mãe</label>
                         <input type="text" id="edit-nome-mae" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
@@ -886,7 +860,7 @@
                     </div>
                     <div class="md:col-span-2">
                         <label for="edit-escolaridade" class="block text-sm font-medium text-gray-700">Escolaridade</label>
-                            <select id="edit-escolaridade" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                         <select id="edit-escolaridade" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             <option value="">Selecione</option>
                             <option value="Não Alfabetizado">Não Alfabetizado</option>
                             <option value="Ensino Fundamental">Ensino Fundamental</option>
@@ -907,7 +881,7 @@
                         <label for="edit-data-chegada" class="block text-sm font-medium text-gray-700">Data de Chegada</label>
                         <input type="date" id="edit-data-chegada" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                        <div>
+                     <div>
                         <label for="edit-igreja-anterior" class="block text-sm font-medium text-gray-700">Igreja de Onde Veio</label>
                         <input type="text" id="edit-igreja-anterior" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
@@ -917,19 +891,19 @@
                     </div>
                 </div>
                 
-                 <!-- Confirmação de Segurança -->
-                <div class="mt-8 pt-6 border-t">
-                    <h3 class="text-lg font-semibold mb-3 text-red-600">Confirmação de Segurança</h3>
-                    <p class="text-sm text-gray-600 mb-3">Para salvar as alterações, por favor, insira sua senha de login.</p>
+                <!-- Confirmação de Segurança -->
+                <div class="mt-8 pt-6 border-t-2">
+                    <h3 class="text-lg font-semibold text-red-600">Confirmação de Segurança</h3>
+                    <p class="text-sm text-gray-600 mb-2">Para salvar as alterações, por favor, insira sua senha de login.</p>
                     <label for="edit-membro-password" class="block text-sm font-medium text-gray-700">Senha:</label>
                     <input type="password" id="edit-membro-password" class="mt-1 block w-full max-w-sm border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500" required>
                     <p id="edit-membro-error" class="text-red-500 text-sm mt-2"></p>
                 </div>
                 
-                <!-- Botões de Ação -->
-                <div class="mt-8 flex justify-end space-x-3">
-                    <button type="button" id="cancel-edit-membro-btn"
-                        class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-150">
+                <!-- Botões -->
+                <div class="mt-8 pt-4 border-t flex justify-end space-x-3">
+                    <button id="cancel-edit-membro-btn" type="button"
+                        class="bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-150">
                         Cancelar
                     </button>
                     <button id="edit-membro-submit-btn" type="submit"
@@ -941,13 +915,14 @@
         </div>
     </div>
 
+
     <!-- Modal: Confirmação de Exclusão (Universal) -->
     <div id="delete-confirm-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content max-w-lg">
             <span class="close-button" id="close-delete-modal">&times;</span>
             <h2 class="text-xl font-semibold mb-4 text-red-600">Confirmar Exclusão</h2>
             <p class="mb-4">Tem certeza que deseja excluir este registo? Esta ação é irreversível.</p>
-            <p class="mb-2 text-yellow-700 font-medium" id="delete-cascade-warning"></p>
+            <p id="delete-cascade-warning" class="text-sm text-yellow-700 font-medium bg-yellow-50 p-3 rounded-md mb-4"></p>
             <p class="mb-4">Para confirmar, digite sua senha de login:</p>
             <form id="delete-confirm-form">
                 <label for="delete-password" class="block text-sm font-medium text-gray-700">Senha:</label>
@@ -969,8 +944,14 @@
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script type="module" src="gestao-igje.js"></script>
+
+    <!-- Carrega o script principal -->
+    <script src="gestao-igje.js" type="module"></script>
     
+    <!-- Inicializa o Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+
 </body>
 </html>
