@@ -127,7 +127,7 @@ const filtroFinanceiroAno = document.getElementById("filtro-financeiro-ano");
 const saldoDashboard = document.getElementById("saldo-total-dashboard");
 const entradasDashboard = document.getElementById("entradas-mes-dashboard");
 const saidasDashboard = document.getElementById("saidas-mes-dashboard");
-const saldoMesDashboard = document.getElementById("saldo-mes-dashboard"); // Novo
+const saldoMesDashboard = document.getElementById("saldo-mes-dashboard");
 const dashboardLoading = document.getElementById("dashboard-loading");
 
 // Modais
@@ -646,7 +646,7 @@ function loadAllData() {
             console.log("Todos os dados carregados.");
             dashboardLoading.innerHTML = "";
             updateDashboard();
-            renderAniversariantes(); // (NOVO) Renderiza aniversariantes
+            renderAniversariantes(); // Renderiza aniversariantes
         }
     };
     
@@ -813,9 +813,8 @@ function popularFiltros(selectMes, selectAno) {
     });
 
     selectAno.innerHTML = "";
-    // Intervalo de anoAtual - 2 até 2027
     const anoInicial = anoAtual - 2;
-    const anoFinal = 2027;
+    const anoFinal = 2027; // Alterado
     for (let i = anoInicial; i <= anoFinal; i++) {
         const option = document.createElement("option");
         option.value = i;
@@ -875,7 +874,7 @@ function renderFiltroFinanceiro() {
     // 6. Calcular e renderizar o SALDO TOTAL (usando todos os dados)
     const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
     const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
-    saldoTotalFinanceiro.className = `text-xl font-bold ${corSaldo}`; // Ajustado tamanho
+    saldoTotalFinanceiro.className = `text-xl font-bold ${corSaldo}`;
     saldoTotalFinanceiro.textContent = `R$ ${saldoTotal.toFixed(2).replace(".", ",")}`;
 }
 
@@ -1027,13 +1026,13 @@ function updateDashboard() {
     entradasDashboard.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
     saidasDashboard.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
     
-    // 3. (NOVO) Saldo do Mês
+    // 3. Saldo do Mês
     const corSaldoMes = saldoMes >= 0 ? "text-indigo-700" : "text-red-700";
     saldoMesDashboard.className = `text-3xl font-bold ${corSaldoMes} mt-1`;
     saldoMesDashboard.textContent = `R$ ${saldoMes.toFixed(2).replace(".", ",")}`;
 }
 
-// --- (NOVO) ABA ANIVERSARIANTES ---
+// --- ABA ANIVERSARIANTES ---
 function renderAniversariantes() {
     if (!localMembros) return;
 
@@ -1103,7 +1102,7 @@ function renderAniversariantes() {
     }
 }
 
-// (NOVO) Gerar Relatório de Aniversariantes
+// Gerar Relatório de Aniversariantes
 gerarRelatorioAniversariantesBtn.addEventListener("click", () => {
     try {
         const htmlAtual = listaAniversariantesAtual.innerHTML;
@@ -1414,7 +1413,7 @@ window.onclick = function (event) {
 // --- GERAÇÃO DE RELATÓRIO ---
 gerarRelatorioBtn.addEventListener("click", () => {
     try {
-        // --- (NOVO) Resumo do Mês Atual ---
+        // --- Resumo do Mês Atual ---
         const mesCorrente = new Date().getMonth();
         const anoCorrente = new Date().getFullYear();
         const nomeMesCorrente = meses[mesCorrente];
@@ -1464,7 +1463,6 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     @media print {
                         body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                         .no-print { display: none; }
-                        /* Evita quebra de página dentro das tabelas */
                         tbody tr { page-break-inside: avoid; }
                         h2, h3 { page-break-after: avoid; }
                     }
@@ -1496,7 +1494,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
-                    <!-- (NOVO) Resumo do Mês Atual -->
+                    <!-- Resumo do Mês Atual -->
                     <div class="mb-8 p-6 rounded-lg bg-gray-50 border border-gray-200">
                         <h2 class="text-xl font-semibold text-blue-700 mb-4 !mt-0 !border-b-0">Resumo de ${nomeMesCorrente} / ${anoCorrente}</h2>
                         <div class="grid grid-cols-3 gap-4">
@@ -1622,12 +1620,16 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     <!-- Resumo Final -->
                     <div class="resumo-final space-y-2">
                          <div class="flex justify-between">
-                            <span class="font-semibold">Total de Entradas:</span>
+                            <span class="font-semibold">Total de Entradas (Geral):</span>
                             <span class="font-bold entrada">R$ ${totalEntradas.toFixed(2).replace(".", ",")}</span>
                         </div>
                          <div class="flex justify-between">
-                            <span class="font-semibold">Total de Saídas:</span>
+                            <span class="font-semibold">Total de Saídas (Geral):</span>
                             <span class="font-bold saida">R$ ${totalSaidas.toFixed(2).replace(".", ",")}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="font-semibold text-indigo-700">Saldo Final (${nomeMesCorrente}):</span>
+                            <span class="font-bold text-indigo-700">R$ ${saldoMes.toFixed(2).replace(".", ",")}</span>
                         </div>
                          <div class="flex justify-between pt-2 border-t mt-2">
                             <span class="font-bold text-xl text-blue-800">SALDO FINAL (CAIXA):</span>
@@ -1749,7 +1751,7 @@ function getDateFromInput(dataInput) {
     return null;
 }
 
-// (NOVO) Função para calcular idade
+// Função para calcular idade
 function calcularIdade(dataNascimento) {
     if (!dataNascimento) return null;
     
