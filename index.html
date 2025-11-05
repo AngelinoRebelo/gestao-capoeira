@@ -35,7 +35,7 @@
             <!-- Conteúdo das Abas de Autenticação -->
             <!-- Formulário de Login -->
             <div id="auth-login-tab" class="auth-content-tab active">
-                <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">GESTÃO ADCA - CAPOEIRA</h2>
+                <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Aceder à GESTÃO ADCA</h2>
                 <form id="login-form">
                     <div class="mb-4">
                         <label for="login-email" class="block text-sm font-medium text-gray-700 mb-1">Email:</label>
@@ -177,15 +177,15 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Card Total de Membros -->
+                    <!-- Card Saldo do Mês -->
                     <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-indigo-500">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="text-sm font-medium text-gray-500 uppercase">Total de Membros</h3>
-                                <p id="total-membros-dashboard" class="text-3xl font-bold text-indigo-700 mt-1">0</p>
+                                <h3 class="text-sm font-medium text-gray-500 uppercase">Saldo (Mês Atual)</h3>
+                                <p id="saldo-mes-dashboard" class="text-3xl font-bold text-indigo-700 mt-1">R$ 0,00</p>
                             </div>
                             <div class="bg-indigo-100 p-3 rounded-full">
-                                <i data-lucide="users" class="w-6 h-6 text-indigo-600"></i>
+                                <i data-lucide="trending-up" class="w-6 h-6 text-indigo-600"></i>
                             </div>
                         </div>
                     </div>
@@ -623,8 +623,8 @@
                                     </select>
                                 </div>
                             </div>
-                            <!-- (NOVO) Resumo do Mês -->
-                            <div class="grid grid-cols-3 gap-4 mb-6 border-t border-b py-4">
+                            <!-- Resumo do Mês -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 border-t border-b py-4">
                                 <div>
                                     <h3 class="text-sm font-medium text-gray-500 uppercase">Entradas (Mês)</h3>
                                     <p id="entradas-mes-financeiro" class="text-xl font-bold text-green-600">R$ 0,00</p>
@@ -633,7 +633,7 @@
                                     <h3 class="text-sm font-medium text-gray-500 uppercase">Saídas (Mês)</h3>
                                     <p id="saidas-mes-financeiro" class="text-xl font-bold text-red-600">R$ 0,00</p>
                                 </div>
-                                <div>
+                                <div class="md:text-right">
                                     <h3 class="text-sm font-medium text-gray-500 uppercase">Saldo Atual (Total)</h3>
                                     <p id="saldo-total-financeiro" class="text-xl font-bold text-blue-700">R$ 0,00</p>
                                 </div>
@@ -974,4 +974,3 @@
     
 </body>
 </html>
-
