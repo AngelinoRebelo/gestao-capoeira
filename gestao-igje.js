@@ -7,14 +7,14 @@ import {
     signOut,
     onAuthStateChanged,
     EmailAuthProvider,
-    reauthenticateWithCredential,
-    getDoc, // Adicionada importação para getDoc
-    doc // Adicionada importação para doc
+    reauthenticateWithCredential
+    // REMOVIDO: getDoc e doc daqui
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
     getFirestore,
     setDoc,
-    // doc, // Já importado do auth, mas pode ser importado daqui também
+    doc, // CORRIGIDO: Adicionado aqui
+    getDoc, // CORRIGIDO: Adicionado aqui
     addDoc,
     collection,
     onSnapshot,
@@ -56,7 +56,7 @@ let localDizimos = [];
 let localOfertas = [];
 let localFinanceiro = [];
 let unsubMembros, unsubDizimos, unsubOfertas, unsubFinanceiro;
-let userRole = 'membro'; // Padrão
+let userRole = 'membro'; // Padrão 'membro'
 
 // Objeto para guardar os dados da exclusão
 let itemParaExcluir = {
@@ -88,6 +88,13 @@ const registerTab = document.getElementById("auth-register-tab");
 // Abas da Aplicação
 const tabButtons = document.querySelectorAll(".app-tab-button");
 const tabContents = document.querySelectorAll(".app-content-tab"); 
+
+// (IDs para ocultar abas por função)
+const tabBtnDashboard = document.getElementById("tab-btn-dashboard");
+const tabBtnDizimos = document.getElementById("tab-btn-dizimos");
+const tabBtnOfertas = document.getElementById("tab-btn-ofertas");
+const tabBtnFinanceiro = document.getElementById("tab-btn-financeiro");
+
 
 // Formulários
 const formMembro = document.getElementById("form-membro");
@@ -292,40 +299,61 @@ logoutButton.addEventListener("click", async () => {
     }
 });
 
+// (NOVO) Função para buscar a "função" (role) do usuário no Firestore
+async function getUserRole(uid) {
+    try {
+        const userProfileRef = doc(db, "dadosIgreja", "ADCA-CG", "perfisUtilizadores", uid);
+        const docSnap = await getDoc(userProfileRef);
+        if (docSnap.exists()) {
+            return docSnap.data().role || 'membro'; // Retorna 'membro' se a função não existir
+        } else {
+            console.warn("Perfil do utilizador não encontrado no Firestore. A usar função 'membro'.");
+            return 'membro';
+        }
+    } catch (error) {
+        console.error("Erro ao buscar função do utilizador:", error);
+        return 'membro'; // Retorna 'membro' em caso de erro
+    }
+}
+
+// (NOVO) Função para mostrar/ocultar abas com base na função
+function setupUIForRole(role) {
+    userRole = role; // Armazena a função globalmente
+    
+    if (role === 'admin') {
+        // Mostra tudo (estado padrão)
+        tabBtnDashboard.style.display = 'flex';
+        tabBtnDizimos.style.display = 'flex';
+        tabBtnOfertas.style.display = 'flex';
+        tabBtnFinanceiro.style.display = 'flex';
+    } else {
+        // Esconde abas financeiras para 'membro'
+        tabBtnDashboard.style.display = 'none';
+        tabBtnDizimos.style.display = 'none';
+        tabBtnOfertas.style.display = 'none';
+        tabBtnFinanceiro.style.display = 'none';
+        
+        // Ativa a aba "Cadastrar Membro" como padrão se o Dashboard for ocultado
+        if (document.querySelector('.app-tab-button.active').id === 'tab-btn-dashboard') {
+            changeTab('cadastrar-membro');
+        }
+    }
+}
+
 // Observador do estado de autenticação (principal)
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async (user) => { // (NOVO) Marcado como async
     if (user) {
         // Usuário está logado
         userId = user.uid; // Definido globalmente
         userEmailDisplay.textContent = user.email;
         
-        // ** (NOVO) BUSCAR A FUNÇÃO (ROLE) DO UTILIZADOR **
-        try {
-            const userProfileRef = doc(db, "dadosIgreja", "ADCA-CG", "perfisUtilizadores", user.uid);
-            const docSnap = await getDoc(userProfileRef);
-
-            if (docSnap.exists()) {
-                userRole = docSnap.data().role || 'membro'; // Pega a "função", senão 'membro'
-            } else {
-                // Perfil não encontrado, define como membro por segurança
-                userRole = 'membro';
-                console.warn("Perfil de utilizador não encontrado no Firestore. Acesso de 'membro' atribuído.");
-            }
-        } catch (error) {
-            console.error("Erro ao buscar função do utilizador:", error);
-            userRole = 'membro'; // Define como membro por segurança em caso de erro
-        }
+        // (NOVO) Busca a função do usuário
+        const role = await getUserRole(userId);
+        setupUIForRole(role); // Configura a UI (mostra/oculta abas)
         
-        console.log("Função (Role) do Utilizador:", userRole);
-
-        // ** (NOVO) CONTROLAR A INTERFACE COM BASE NA FUNÇÃO **
-        controlarVisibilidadeAbas(userRole);
-
-        // Mostrar o app
         authScreen.style.display = "none";
         appContent.style.display = "block";
-        
-        loadAllData(userRole); // Carrega os dados (passando a função)
+        loadAllData(role); // (NOVO) Passa a função para o carregador de dados
         
         // Define as datas dos formulários para hoje
         document.getElementById("dizimo-data").valueAsDate = new Date();
@@ -343,54 +371,15 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         // Usuário está deslogado
         userId = null;
-        userRole = 'membro'; // Reseta a função
         authScreen.style.display = "flex";
         appContent.style.display = "none";
         clearAllTables(); // Limpa dados da tela
         stopAllListeners(); // Para de ouvir dados
+        
+        // (NOVO) Reseta a UI para o padrão (admin) quando deslogado
+        setupUIForRole('admin'); 
     }
 });
-
-// ** (NOVA FUNÇÃO) Controla quais abas são visíveis **
-function controlarVisibilidadeAbas(role) {
-    // Abas que só o ADMIN pode ver
-    const abasAdmin = [
-        "tab-btn-dashboard",
-        "tab-btn-dizimos",
-        "tab-btn-ofertas",
-        "tab-btn-financeiro"
-    ];
-    
-    // Abas que TODOS podem ver
-    const abasTodos = [
-        "tab-btn-cadastrar-membro",
-        "tab-btn-visualizar-membros",
-        "tab-btn-aniversariantes"
-    ];
-    
-    if (role === 'admin') {
-        // Admin vê tudo
-        [...abasAdmin, ...abasTodos].forEach(id => {
-            const tab = document.getElementById(id);
-            if (tab) tab.style.display = "flex";
-        });
-        // Define o Dashboard como a aba ativa para o admin
-        changeTab('dashboard', true); 
-    } else {
-        // Membro (Vitoria) vê acesso restrito
-        abasAdmin.forEach(id => {
-            const tab = document.getElementById(id);
-            if (tab) tab.style.display = "none"; // Esconde
-        });
-        abasTodos.forEach(id => {
-            const tab = document.getElementById(id);
-            if (tab) tab.style.display = "flex"; // Mostra
-        });
-        // Define o 'Cadastrar Membro' como a aba ativa para o membro
-        changeTab('cadastrar-membro', true); 
-    }
-}
-
 
 // --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
 async function reauthenticate(password) {
@@ -418,56 +407,41 @@ async function reauthenticate(password) {
 
 
 // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
-tabButtons.forEach(button => {
-    button.addEventListener("click", (e) => {
-        changeTab(e.currentTarget.dataset.tab);
-    });
-});
-
-// Função de troca de aba (agora chamada internamente)
-function changeTab(targetTab, force = false) {
-     // Se a aba estiver escondida (ex: 'dashboard' para 'membro'), não faz nada
-    const targetButton = document.getElementById(`tab-btn-${targetTab}`);
-    if (!targetButton || (targetButton.style.display === "none" && !force)) {
-        // Se a aba ativa foi escondida, muda para a primeira visível
-        if (document.querySelector(".app-tab-button.active").style.display === "none") {
-             const firstVisibleTab = document.querySelector(".app-tab-button[style*='display: flex']");
-             if (firstVisibleTab) {
-                 changeTab(firstVisibleTab.dataset.tab, true);
-             }
-        }
-        return;
-    }
-
+// (NOVO) Função separada para lidar com cliques em abas
+function changeTab(targetTab) {
     // Desativa todos
     tabButtons.forEach(btn => btn.classList.remove("active"));
-    tabContents.forEach(content => content.classList.remove("active"));
+    tabContents.forEach(content => content.classList.remove("active")); 
 
     // Ativa o clicado
-    if (targetButton) {
-        targetButton.classList.add("active");
+    const activeButton = document.querySelector(`.app-tab-button[data-tab="${targetTab}"]`);
+    if (activeButton) {
+        activeButton.classList.add("active");
     }
-    const targetContent = document.getElementById(targetTab);
-    if(targetContent) {
-        targetContent.classList.add("active");
-    } else {
-        console.error(`Conteúdo da aba "${targetTab}" não encontrado.`);
-        return;
+    const activeContent = document.getElementById(targetTab);
+    if (activeContent) {
+        activeContent.classList.add("active");
     }
 
-    // Atualiza dados se a aba for o dashboard (e o user for admin)
-    if (targetTab === 'dashboard' && userRole === 'admin') {
+    // Atualiza dados se a aba for o dashboard
+    if (targetTab === 'dashboard') {
         updateDashboard();
     }
     // Atualiza dados se a aba for aniversariantes
     if (targetTab === 'aniversariantes') {
         renderAniversariantes();
     }
-
+    
     // Atualiza ícones quando muda de aba
     lucide.createIcons();
 }
 
+// Adiciona o listener aos botões
+tabButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        changeTab(button.dataset.tab);
+    });
+});
 
 // --- FORMULÁRIO DE MEMBROS (CADASTRO) ---
 estadoCivilSelect.addEventListener("change", () => {
@@ -751,38 +725,37 @@ formFinanceiro.addEventListener("submit", async (e) => {
 
 
 // --- CARREGAMENTO E RENDERIZAÇÃO DE DADOS ---
-function loadAllData(role) { // Recebe a "função"
+function loadAllData(role) { // (NOVO) Recebe a "função"
     if (!userId) return;
     console.log(`Carregando dados partilhados como: ${role}`);
-    
-    if (role === 'admin') {
-        dashboardLoading.innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
-    }
+    dashboardLoading.innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
 
     stopAllListeners();
     
-    // ** (NOVO) Lógica de carregamento baseada na função **
-    
-    let loadsPending = 1; // Todos carregam membros
-    
-    // Admin carrega tudo
-    if (role === 'admin') {
-        loadsPending = 4; // Membros, Dizimos, Ofertas, Financeiro
-    }
+    // (NOVO) Define quantos listeners esperamos
+    // Se for 'membro', só esperamos 1 (membros)
+    // Se for 'admin', esperamos 4 (membros, dizimos, ofertas, financeiro)
+    let loadsPending = (role === 'admin') ? 4 : 1;
     
     const onDataLoaded = () => {
         loadsPending--;
         if (loadsPending === 0) {
             console.log("Todos os dados carregados.");
-            if (role === 'admin') {
-                dashboardLoading.innerHTML = "";
-                updateDashboard();
+            dashboardLoading.innerHTML = "";
+            
+            // (NOVO) Só atualiza o dashboard e aniversariantes se os dados existirem
+            if (localMembros.length > 0) {
+                 renderAniversariantes();
             }
-            renderAniversariantes(); // Processa aniversariantes
+            if (role === 'admin' && localFinanceiro.length > 0) {
+                 updateDashboard();
+            } else if (role === 'membro') {
+                dashboardLoading.innerHTML = ""; // Limpa o "carregando"
+            }
         }
     };
     
-    // 1. Membros (Todos carregam)
+    // 1. Carrega Membros (Todos os utilizadores)
     try {
         const qMembros = query(collection(db, "dadosIgreja", "ADCA-CG", "membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
@@ -791,10 +764,10 @@ function loadAllData(role) { // Recebe a "função"
             renderMembros(localMembros);
             populateMembrosSelect(localMembros);
             onDataLoaded();
-        }, (error) => { console.error("Erro ao ouvir membros:", error); onDataLoaded(); });
+        }, (error) => { console.error("Erro ao ouvir membros:", error.message); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de membros:", e); onDataLoaded(); }
 
-    // 2. Dados Financeiros (Apenas Admin)
+    // 2. Carrega Dados Financeiros (APENAS SE FOR ADMIN)
     if (role === 'admin') {
         try {
             const qDizimos = query(collection(db, "dadosIgreja", "ADCA-CG", "dizimos"));
@@ -828,6 +801,7 @@ function loadAllData(role) { // Recebe a "função"
 // Parar todos os listeners
 function stopAllListeners() {
     if (unsubMembros) unsubMembros();
+    // (NOVO) Só pára os listeners financeiros se eles existirem
     if (unsubDizimos) unsubDizimos();
     if (unsubOfertas) unsubOfertas();
     if (unsubFinanceiro) unsubFinanceiro();
@@ -950,7 +924,6 @@ function popularFiltros(selectMes, selectAno, dataSelecionada) {
 
     selectAno.innerHTML = "";
     const anoBase = dataSelecionada.getFullYear();
-    // Modificado: de (anoBase - 2) até 2027
     for (let i = anoBase - 2; i <= 2027; i++) {
         const ano = i;
         const option = document.createElement("option");
@@ -1137,7 +1110,8 @@ function renderFiltroOfertas() {
 
 // --- ATUALIZAÇÃO DO DASHBOARD ---
 function updateDashboard() {
-    if (!localFinanceiro || !localMembros) return;
+    // (NOVO) Só executa se for admin
+    if (userRole !== 'admin' || !localFinanceiro || !localMembros) return;
 
     // 1. Saldo Total
     const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
@@ -1253,7 +1227,6 @@ function showMembroEditModal() {
     document.getElementById("edit-igreja-anterior").value = membro.igrejaAnterior || '';
     document.getElementById("edit-cargo-anterior").value = membro.cargoAnterior || '';
     
-    // Mostra/oculta cônjuge na edição
     if (membro.estadoCivil === 'Casado(a)') {
         editConjugeContainer.classList.remove("hidden");
     } else {
@@ -1417,54 +1390,57 @@ window.onclick = function (event) {
     }
 }
 
-// --- GERAÇÃO DE RELATÓRIO MENSAL (DO DASHBOARD) ---
+// --- GERAÇÃO DE RELATÓRIO ---
 gerarRelatorioBtn.addEventListener("click", () => {
     try {
-        const mesIndex = parseInt(relatorioGeralMes.value);
+        const mes = parseInt(relatorioGeralMes.value);
         const ano = parseInt(relatorioGeralAno.value);
-        const nomeMes = MESES_DO_ANO[mesIndex];
+        const nomeMes = MESES_DO_ANO[mes];
 
-        // 1. Filtrar todos os dados para o Mês/Ano selecionado
-        const dizimosMes = localDizimos.filter(d => {
+        // 1. Filtrar todos os dados para o mês/ano selecionado
+        const dizimosDoMes = localDizimos.filter(d => {
             const data = getDateFromInput(d.data);
-            return data && data.getUTCMonth() === mesIndex && data.getUTCFullYear() === ano;
+            return data && data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
         }).sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
 
-        const ofertasMes = localOfertas.filter(d => {
+        const ofertasDoMes = localOfertas.filter(d => {
             const data = getDateFromInput(d.data);
-            return data && data.getUTCMonth() === mesIndex && data.getUTCFullYear() === ano;
+            return data && data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
         }).sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
-
-        const financMes = localFinanceiro.filter(d => {
+        
+        const financDoMes = localFinanceiro.filter(d => {
             const data = getDateFromInput(d.data);
-            return data && data.getUTCMonth() === mesIndex && data.getUTCFullYear() === ano;
-        });
+            return data && data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
+        }).sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
 
         // 2. Calcular Totais do Mês
-        const totalDizimosMes = dizimosMes.reduce((acc, d) => acc + (d.valor || 0), 0);
-        const totalOfertasMes = ofertasMes.reduce((acc, o) => acc + (o.valor || 0), 0);
-        const totalEntradasMes = totalDizimosMes + totalOfertasMes;
-
-        const extratoSaidasMes = financMes
-            .filter(f => f.valor < 0)
-            .sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+        const totalEntradasMes = financDoMes
+            .filter(f => f.valor > 0)
+            .reduce((acc, t) => acc + (t.valor || 0), 0);
             
-        const totalSaidasMes = extratoSaidasMes.reduce((acc, s) => acc + (s.valor || 0), 0); // Já é negativo
-        const saldoMes = totalEntradasMes + totalSaidasMes;
+        const totalSaidasMes = financDoMes
+            .filter(f => f.valor < 0)
+            .reduce((acc, t) => acc + (t.valor || 0), 0); // Já é negativo
+            
+        const saldoFinalMes = totalEntradasMes + totalSaidasMes;
         
-        // 3. Calcular Saldo Geral (Total)
+        // Calcular Totais (Geral)
         const saldoTotalGeral = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0);
+        
+        // (NOVO) Separar extrato em Entradas e Saídas
+        const extratoEntradas = financDoMes.filter(f => f.valor > 0);
+        const extratoSaidas = financDoMes.filter(f => f.valor < 0);
+        
 
-
-        // 4. Construir o HTML do Relatório
+        // 3. Construir o HTML do Relatório
         let relatorioHTML = `
             <html>
             <head>
-                <title>Relatório Financeiro Mensal - ${nomeMes} ${ano}</title>
+                <title>Relatório Mensal - ${nomeMes} ${ano}</title>
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
                     @media print {
-                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; print-color-adjust: exact; }
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                         .no-print { display: none; }
                     }
                     body { font-family: sans-serif; }
@@ -1475,15 +1451,12 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     th { background-color: #f3f4f6; font-weight: 600; }
                     .currency { text-align: right; font-weight: 500; }
                     .currency-header { text-align: right; }
-                    .total-row { background-color: #f9fafb; font-weight: bold; }
                     .entrada { color: #15803d; }
                     .saida { color: #b91c1c; }
                     .total { font-weight: bold; font-size: 16px; }
-                    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-                    .summary-card { padding: 1rem; border-radius: 0.5rem; }
-                    .summary-card-title { font-size: 0.875rem; font-medium; text-transform: uppercase; }
-                    .summary-card-value { font-size: 1.875rem; font-weight: 700; }
-                    .resumo-final-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 0.5rem; margin-top: 1rem; }
+                    .summary-box { background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-top: 16px; }
+                    .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+                    .summary-item { text-align: left; }
                 </style>
             </head>
             <body class="bg-gray-100 p-8">
@@ -1492,54 +1465,62 @@ gerarRelatorioBtn.addEventListener("click", () => {
                         <h1>Relatório Financeiro Mensal</h1>
                         <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
                     </div>
-                    <p class="text-sm text-gray-600 mb-2">Mês de Referência: <span class="font-semibold">${nomeMes} de ${ano}</span></p>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
 
-                    <!-- Resumo do Mês (Alinhado à Esquerda) -->
-                    <div class="mb-8 p-6 rounded-lg bg-gray-50 border border-gray-200">
-                         <h2 class="text-xl font-semibold text-blue-700 mb-4 -mt-2" style="border: none; text-align: left;">Resumo do Mês (${nomeMes})</h2>
-                         <div class="summary-grid" style="grid-template-columns: 1fr 1fr 1fr;">
-                            <div class="summary-card bg-green-100 text-left">
-                                <div class="summary-card-title text-green-800">ENTRADAS (MÊS)</div>
-                                <p class="summary-card-value text-green-700">R$ ${totalEntradasMes.toFixed(2).replace(".", ",")}</p>
+                    <!-- Resumo do Mês -->
+                    <div class="summary-box">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-4 text-left">Resumo do Mês (${nomeMes})</h3>
+                        <div class="summary-grid">
+                            <div class="summary-item bg-green-100 p-4 rounded-lg">
+                                <h4 class="text-sm font-medium text-green-800">ENTRADAS (MÊS)</h4>
+                                <p class="text-2xl font-bold text-green-700">R$ ${totalEntradasMes.toFixed(2).replace(".", ",")}</p>
                             </div>
-                            <div class="summary-card bg-red-100 text-left">
-                                <div class="summary-card-title text-red-800">SAÍDAS (MÊS)</div>
-                                <p class="summary-card-value text-red-700">R$ ${Math.abs(totalSaidasMes).toFixed(2).replace(".", ",")}</p>
+                            <div class="summary-item bg-red-100 p-4 rounded-lg">
+                                <h4 class="text-sm font-medium text-red-800">SAÍDAS (MÊS)</h4>
+                                <p class="text-2xl font-bold text-red-700">R$ ${Math.abs(totalSaidasMes).toFixed(2).replace(".", ",")}</p>
                             </div>
-                            <div class="summary-card bg-indigo-100 text-left">
-                                <div class="summary-card-title text-indigo-800">SALDO (MÊS)</div>
-                                <p class="summary-card-value ${saldoMes >= 0 ? 'text-indigo-700' : 'text-red-700'}">R$ ${saldoMes.toFixed(2).replace(".", ",")}</p>
+                            <div class="summary-item bg-indigo-100 p-4 rounded-lg">
+                                <h4 class="text-sm font-medium text-indigo-800">SALDO (MÊS)</h4>
+                                <p class="text-2xl font-bold ${saldoFinalMes >= 0 ? 'text-indigo-700' : 'text-red-700'}">R$ ${saldoFinalMes.toFixed(2).replace(".", ",")}</p>
                             </div>
-                         </div>
+                        </div>
                     </div>
-                    
+
                     <!-- Dízimos -->
                     <h2>Registos de Dízimos (${nomeMes})</h2>
                     <table>
-                        <thead><tr><th>Data</th><th>Membro</th><th class="currency-header">Valor (R$)</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Membro</th>
+                                <th class="currency-header">Valor (R$)</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            ${dizimosMes.map(d => `
+                            ${dizimosDoMes.map(d => `
                                 <tr>
                                     <td>${formatarData(d.data)}</td>
                                     <td>${d.membroNome}</td>
                                     <td class="currency entrada">R$ ${(d.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
-                            ${dizimosMes.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum dízimo registado.</td></tr>' : ''}
-                            <tr class="total-row">
-                                <td colspan="2" class="currency-header">Total Dízimos (Mês):</td>
-                                <td class="currency entrada">R$ ${totalDizimosMes.toFixed(2).replace(".", ",")}</td>
-                            </tr>
+                            ${dizimosDoMes.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum dízimo registado neste mês.</td></tr>' : ''}
                         </tbody>
                     </table>
                     
                     <!-- Ofertas -->
                     <h2>Registos de Ofertas e Outras Entradas (${nomeMes})</h2>
                     <table>
-                        <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th class="currency-header">Valor (R$)</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                                <th class="currency-header">Valor (R$)</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            ${ofertasMes.map(o => `
+                            ${ofertasDoMes.map(o => `
                                 <tr>
                                     <td>${formatarData(o.data)}</td>
                                     <td>${o.tipo}</td>
@@ -1547,64 +1528,70 @@ gerarRelatorioBtn.addEventListener("click", () => {
                                     <td class="currency entrada">R$ ${(o.valor || 0).toFixed(2).replace(".", ",")}</td>
                                 </tr>
                             `).join('')}
-                            ${ofertasMes.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada.</td></tr>' : ''}
-                             <tr class="total-row">
-                                <td colspan="3" class="currency-header">Total Ofertas (Mês):</td>
-                                <td class="currency entrada">R$ ${totalOfertasMes.toFixed(2).replace(".", ",")}</td>
-                            </tr>
+                            ${ofertasDoMes.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada neste mês.</td></tr>' : ''}
                         </tbody>
                     </table>
 
-                    <!-- Saídas -->
+                    <!-- Extrato Financeiro - SAÍDAS -->
                     <h2>Extrato Financeiro - SAÍDAS (${nomeMes})</h2>
                     <table>
-                        <thead><tr><th>Data</th><th>Descrição</th><th class="currency-header">Valor (R$)</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th class="currency-header">Valor (R$)</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            ${extratoSaidasMes.map(f => `
+                            ${extratoSaidas.map(f => `
                                 <tr>
                                     <td>${formatarData(f.data)}</td>
                                     <td>${f.descricao}</td>
-                                    <td class="currency saida">R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}</td>
+                                    <td class="currency saida">
+                                        R$ ${(f.valor || 0).toFixed(2).replace(".", ",")}
+                                    </td>
                                 </tr>
                             `).join('')}
-                            ${extratoSaidasMes.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma saída registada.</td></tr>' : ''}
-                            <tr class="total-row">
-                                <td colspan="2" class="currency-header">Total Saídas (Mês):</td>
-                                <td class="currency saida">R$ ${totalSaidasMes.toFixed(2).replace(".", ",")}</td>
-                            </tr>
+                            ${extratoSaidas.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma saída registada neste mês.</td></tr>' : ''}
                         </tbody>
                     </table>
                     
-                    <!-- Resumo Final (Alinhado à Esquerda) -->
-                    <div class="mt-8 pt-6 border-t-2">
-                         <h2 class="text-xl font-semibold text-blue-700 mb-4" style="border: none; text-align: left;">Resumo Financeiro Final</h2>
-                         <div class="resumo-final-grid max-w-lg" style="text-align: left;">
-                            <span class="font-medium text-left">Total de Entradas (${nomeMes}):</span>
-                            <span class="currency entrada font-semibold text-left">R$ ${totalEntradasMes.toFixed(2).replace(".", ",")}</span>
-                            
-                            <span class="font-medium text-left">Total de Saídas (${nomeMes}):</span>
-                            <span class="currency saida font-semibold text-left">R$ ${totalSaidasMes.toFixed(2).replace(".", ",")}</span>
-                            
-                            <span class="font-medium text-left total pt-2 border-t">Saldo Final (${nomeMes}):</span>
-                            <span class="currency font-semibold text-left total pt-2 border-t ${saldoMes >= 0 ? 'text-blue-700' : 'text-red-700'}">
-                                R$ ${saldoMes.toFixed(2).replace(".", ",")}
-                            </span>
-                            
-                            <span class="font-medium text-left total pt-4 mt-4 border-t-4">SALDO FINAL (CAIXA GERAL):</span>
-                            <span class="currency font-semibold text-left total pt-4 mt-4 border-t-4 ${saldoTotalGeral >= 0 ? 'text-blue-700' : 'text-red-700'}">
-                                R$ ${saldoTotalGeral.toFixed(2).replace(".", ",")}
-                            </span>
-                         </div>
+                    <!-- Resumo Final -->
+                    <div class="summary-box mt-8 text-left">
+                        <h2 class="text-xl font-semibold mb-4 text-left">Resumo Final</h2>
+                        <table class="min-w-full">
+                           <tbody>
+                                <tr class="border-b">
+                                    <td class="py-2 font-medium text-gray-700">Total de Entradas (${nomeMes}):</td>
+                                    <td class="py-2 currency entrada font-semibold">R$ ${totalEntradasMes.toFixed(2).replace(".", ",")}</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-2 font-medium text-gray-700">Total de Saídas (${nomeMes}):</td>
+                                    <td class="py-2 currency saida font-semibold">R$ ${totalSaidasMes.toFixed(2).replace(".", ",")}</td>
+                                </tr>
+                                 <tr class="border-b">
+                                    <td class="py-2 font-medium text-gray-700">Saldo Final (${nomeMes}):</td>
+                                    <td class="py-2 currency ${saldoFinalMes >= 0 ? 'text-indigo-700' : 'text-red-700'} font-bold">R$ ${saldoFinalMes.toFixed(2).replace(".", ",")}</td>
+                                </tr>
+                                <tr class="border-t-2 border-black">
+                                    <td class="py-3 font-bold text-lg text-blue-800">SALDO FINAL (CAIXA GERAL):</td>
+                                    <td class="py-3 currency ${saldoTotalGeral >= 0 ? 'text-blue-800' : 'text-red-700'} font-bold text-lg">
+                                        R$ ${saldoTotalGeral.toFixed(2).replace(".", ",")}
+                                    </td>
+                                </tr>
+                           </tbody>
+                        </table>
                     </div>
-                    
                 </div>
             </body>
             </html>
         `;
 
-        // 5. Abrir numa nova janela
+        // 4. Abrir numa nova janela
         const relatorioJanela = window.open("", "_blank");
+
         if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
+            console.error("Falha ao abrir janela de relatório. Provável bloqueador de pop-up.");
             showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
             return;
         }
@@ -1613,129 +1600,115 @@ gerarRelatorioBtn.addEventListener("click", () => {
         relatorioJanela.document.close();
     
     } catch (error) {
-        console.error("Erro CRÍTICO ao gerar relatório:", error);
-        showToast("Erro inesperado ao gerar relatório. Verifique a consola (F12).", "error");
+        console.error("Erro ao gerar relatório:", error);
+        showToast("Ocorreu um erro inesperado ao gerar o relatório.", "error");
     }
 });
 
+// --- ANIVERSARIANTES ---
 
-// --- ABA DE ANIVERSARIANTES ---
 function renderAniversariantes() {
     if (localMembros.length === 0) {
         listaAniversariantesAtual.innerHTML = '<p class="text-gray-500 p-4">Nenhum membro cadastrado.</p>';
-        listaAniversariantesProximos.innerHTML = '';
+        listaAniversariantesProximos.innerHTML = '<p class="text-gray-500 p-4">Nenhum membro cadastrado.</p>';
         return;
     }
-
+    
     const hoje = new Date();
     const mesAtual = hoje.getMonth(); // 0-11
     tituloAniversariantesAtual.textContent = `Aniversariantes de ${MESES_DO_ANO[mesAtual]}`;
     
-    // 1. Agrupar membros por mês
-    const aniversariantesPorMes = {};
-    for (let i = 0; i < 12; i++) {
-        aniversariantesPorMes[i] = [];
-    }
+    const membrosPorMes = new Array(12).fill(null).map(() => []);
     
+    // 1. Agrupa membros por mês
     localMembros.forEach(membro => {
         const dataNasc = getDateFromInput(membro.dataNascimento);
         if (dataNasc) {
             const mes = dataNasc.getUTCMonth();
-            const dia = dataNasc.getUTCDate();
-            aniversariantesPorMes[mes].push({ ...membro, dia });
+            membrosPorMes[mes].push({
+                nome: membro.nome,
+                dia: dataNasc.getUTCDate(), // Dia (1-31)
+                dataObj: dataNasc
+            });
         }
     });
 
-    // 2. Renderizar Mês Atual
-    const aniversariantesDoMes = aniversariantesPorMes[mesAtual];
-    // Ordenar por dia
-    aniversariantesDoMes.sort((a, b) => a.dia - b.dia);
-    
+    // 2. Renderiza Mês Atual
+    const aniversariantesDoMes = membrosPorMes[mesAtual];
     if (aniversariantesDoMes.length === 0) {
-        listaAniversariantesAtual.innerHTML = `<p class="text-gray-500 p-4">Nenhum aniversariante em ${MESES_DO_ANO[mesAtual]}.</p>`;
+         listaAniversariantesAtual.innerHTML = `<p class="text-gray-500 p-4">Nenhum aniversariante neste mês.</p>`;
     } else {
+        // Ordena por dia
+        aniversariantesDoMes.sort((a, b) => a.dia - b.dia);
         listaAniversariantesAtual.innerHTML = aniversariantesDoMes.map(m => `
-            <div class="py-3 flex justify-between items-center">
+            <div class="py-3 flex items-center space-x-3">
+                <div class="bg-blue-100 text-blue-700 font-bold p-2 w-10 h-10 flex items-center justify-center rounded-full text-sm">
+                    ${m.dia}
+                </div>
                 <div>
                     <p class="font-medium text-gray-800">${m.nome}</p>
-                    <p class="text-sm text-gray-500">${m.funcao || 'Membro'}</p>
                 </div>
-                <div class="text-lg font-bold text-blue-600">${String(m.dia).padStart(2, '0')}</div>
             </div>
         `).join('');
     }
     
-    // 3. Renderizar Próximos Meses
-    listaAniversariantesProximos.innerHTML = "";
+    // 3. Renderiza Próximos Meses
+    listaAniversariantesProximos.innerHTML = ""; // Limpa
+    let proximosMesesHTML = "";
+    
     for (let i = 1; i < 12; i++) {
-        const proximoMesIndex = (mesAtual + i) % 12;
-        const mesNome = MESES_DO_ANO[proximoMesIndex];
-        const aniversariantesDoProximoMes = aniversariantesPorMes[proximoMesIndex];
+        const indexMes = (mesAtual + i) % 12;
+        const mes = MESES_DO_ANO[indexMes];
+        const aniversariantes = membrosPorMes[indexMes];
         
-        // Só mostra o mês se tiver aniversariantes
-        if (aniversariantesDoProximoMes.length > 0) {
-            // Ordenar por dia
-             aniversariantesDoProximoMes.sort((a, b) => a.dia - b.dia);
-             
-             const listaHTML = aniversariantesDoProximoMes.map(m => `
-                <li class="flex justify-between items-center text-sm py-1">
-                    <span class="text-gray-700">${m.nome}</span>
-                    <span class="font-medium text-gray-600">${String(m.dia).padStart(2, '0')}/${String(proximoMesIndex + 1).padStart(2, '0')}</span>
-                </li>
-             `).join('');
-             
-             listaAniversariantesProximos.innerHTML += `
-                <div>
-                    <h4 class="font-semibold text-gray-700 text-md mb-1 pb-1 border-b">${mesNome}</h4>
-                    <ul class="divide-y divide-gray-100">${listaHTML}</ul>
+        if (aniversariantes.length > 0) {
+            // Ordena por dia
+            aniversariantes.sort((a, b) => a.dia - b.dia);
+            
+            proximosMesesHTML += `
+                <div class="py-2">
+                    <h4 class="font-semibold text-gray-700 text-md mb-2 border-b pb-1">${mes}</h4>
+                    <ul class="space-y-1">
+                        ${aniversariantes.map(m => `
+                            <li class="flex items-center space-x-2 text-sm">
+                                <span class="font-medium text-gray-600 w-6">${m.dia}:</span>
+                                <span class="text-gray-800">${m.nome}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
                 </div>
-             `;
+            `;
         }
     }
     
-    if (listaAniversariantesProximos.innerHTML === "") {
+    if(proximosMesesHTML === "") {
         listaAniversariantesProximos.innerHTML = '<p class="text-gray-500 p-4">Nenhum aniversariante nos próximos meses.</p>';
+    } else {
+        listaAniversariantesProximos.innerHTML = proximosMesesHTML;
     }
 }
 
-// Relatório de Aniversariantes
+// Botão Relatório Aniversariantes
 gerarRelatorioAniversariantesBtn.addEventListener("click", () => {
-     try {
-        const hoje = new Date();
-        const mesAtual = hoje.getMonth();
-        const anoAtual = hoje.getFullYear();
+    try {
+        const mesAtualHTML = listaAniversariantesAtual.innerHTML;
+        const proximosMesesHTML = listaAniversariantesProximos.innerHTML;
+        const tituloMesAtual = tituloAniversariantesAtual.textContent;
         
-        let relatorioHTML = `
+         let relatorioHTML = `
             <html>
             <head>
                 <title>Relatório de Aniversariantes</title>
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
-                    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .no-print { display: none; } }
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .no-print { display: none; }
+                    }
                     body { font-family: sans-serif; }
                     h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
-                    h2 { font-size: 20px; font-weight: 600; color: #1d4ed8; margin-top: 24px; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; }
-                    /* Estilos do app replicados para consistência */
-                    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
-                    .flex { display: flex; }
-                    .justify-between { justify-content: space-between; }
-                    .items-center { align-items: center; }
-                    .font-medium { font-weight: 500; }
-                    .text-gray-800 { color: #1f2937; }
-                    .text-sm { font-size: 0.875rem; }
-                    .text-gray-500 { color: #6b7280; }
-                    .text-lg { font-size: 1.125rem; }
-                    .font-bold { font-weight: 700; }
-                    .text-blue-600 { color: #2563eb; }
-                    .divide-y > :not([hidden]) ~ :not([hidden]) { border-top-width: 1px; border-color: #e5e7eb; }
-                    .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
-                    .font-semibold { font-weight: 600; }
-                    .text-gray-700 { color: #374151; }
-                    .text-md { font-size: 1rem; }
-                    .mb-1 { margin-bottom: 0.25rem; }
-                    .pb-1 { padding-bottom: 0.25rem; }
-                    .border-b { border-bottom-width: 1px; }
-                    .divide-y-100 > :not([hidden]) ~ :not([hidden]) { border-color: #f3f4f6; }
+                    h2 { font-size: 20px; font-weight: 600; color: #1d4ed8; margin-top: 24px; }
+                    h3 { font-size: 18px; font-weight: 600; color: #1e3a8a; margin-top: 16px; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; }
                 </style>
             </head>
             <body class="bg-gray-100 p-8">
@@ -1745,14 +1718,18 @@ gerarRelatorioAniversariantesBtn.addEventListener("click", () => {
                         <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
                     </div>
                     <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
-                    
+
                     <!-- Mês Vigente -->
-                    <h2 id="titulo-aniversariantes-atual">${tituloAniversariantesAtual.textContent}</h2>
-                    <div class="divide-y divide-gray-200 mt-4">${listaAniversariantesAtual.innerHTML}</div>
+                    <h2>${tituloMesAtual}</h2>
+                    <div class="divide-y divide-gray-200 mt-4">
+                        ${mesAtualHTML}
+                    </div>
                     
                     <!-- Próximos Meses -->
-                    <h2 id="titulo-aniversariantes-proximos" class="mt-8">Próximos Meses</h2>
-                    <div class="space-y-4 mt-4">${listaAniversariantesProximos.innerHTML}</div>
+                     <h2>Próximos Meses</h2>
+                     <div class="space-y-4 mt-4">
+                        ${proximosMesesHTML}
+                     </div>
                 </div>
             </body>
             </html>
@@ -1763,13 +1740,12 @@ gerarRelatorioAniversariantesBtn.addEventListener("click", () => {
             showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
             return;
         }
-
         relatorioJanela.document.write(relatorioHTML);
         relatorioJanela.document.close();
-        
-    } catch (error) {
-        console.error("Erro ao gerar relatório de aniversariantes:", error);
-        showToast("Erro inesperado ao gerar relatório.", "error");
+
+    } catch(e) {
+        console.error("Erro ao gerar relatório de aniversariantes:", e);
+        showToast("Erro ao gerar relatório.", "error");
     }
 });
 
@@ -1778,6 +1754,7 @@ gerarRelatorioAniversariantesBtn.addEventListener("click", () => {
 
 // Controla o estado de loading de um botão
 function toggleButtonLoading(button, isLoading, defaultText) {
+    if (!button) return;
     if (isLoading) {
         button.disabled = true;
         button.innerHTML = `<span class="spinner"></span>Aguarde...`;
@@ -1804,49 +1781,23 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// Calcula Idade
-function calcularIdade(dataNascimento) {
-    if (!dataNascimento) return null;
-    try {
-        const dataNasc = getDateFromInput(dataNascimento); // Usa a função robusta
-        if (!dataNasc) return null;
-        
-        const hoje = new Date();
-        let idade = hoje.getFullYear() - dataNasc.getUTCFullYear();
-        const m = hoje.getMonth() - dataNasc.getUTCMonth();
-        
-        if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getUTCDate())) {
-            idade--;
-        }
-        return idade;
-    } catch(e) {
-        console.error("Erro ao calcular idade:", e);
-        return null;
-    }
-}
-
 
 // Função de formatação de data
 function formatarData(dataString) {
-    // Se for um Timestamp do Firebase, converte para Date
     if (dataString && typeof dataString.toDate === 'function') {
         dataString = dataString.toDate();
     }
-    // Se for um objeto Date
     else if (dataString instanceof Date) {
-         // Não faz nada, já é um Date
+         // Não faz nada
     }
-    // Se for uma string (ex: '2025-11-01')
     else if (typeof dataString === 'string' && dataString.includes('-')) {
-         dataString = getDateFromInput(dataString); // Usa a função robusta
+         dataString = getDateFromInput(dataString); 
     } 
-    // Se for inválido ou nulo
     else {
-        return 'N/A'; // Retorna 'N/A' se a data for inválida
+        return 'N/A'; 
     }
     
     try {
-        // Formata para dd/mm/aaaa
         return dataString.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
     } catch (e) {
         console.warn("Erro ao formatar data:", dataString, e);
@@ -1857,20 +1808,16 @@ function formatarData(dataString) {
 // Converte string 'aaaa-mm-dd' ou Timestamp para um Date UTC
 function getDateFromInput(dataInput) {
     try {
-        // Se for um Timestamp do Firebase
         if (dataInput && typeof dataInput.toDate === 'function') {
-            return dataInput.toDate(); // Retorna o objeto Date
+            return dataInput.toDate();
         }
-        // Se já for um objeto Date
         if (dataInput instanceof Date) {
             return dataInput;
         }
-        // Se for uma string (ex: '2025-11-01')
         if (typeof dataInput === 'string' && dataInput.includes('-')) {
             const parts = dataInput.split('-');
             if (parts.length === 3) {
                 // Ano, Mês (base 0), Dia
-                // Garante que seja UTC para evitar problemas de fuso
                 return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
             }
         }
@@ -1878,8 +1825,25 @@ function getDateFromInput(dataInput) {
         console.error("Data inválida:", dataInput, e);
         return null;
     }
-    // Fallback para data inválida ou formato desconhecido
     return null;
+}
+
+// Calcula a idade
+function calcularIdade(dataNascimento) {
+    if (!dataNascimento) return null;
+    
+    // Corrigido: dataNTascimento -> dataNascimento
+    const dataNasc = getDateFromInput(dataNascimento); 
+    if (!dataNasc) return null;
+    
+    const hoje = new Date();
+    let idade = hoje.getFullYear() - dataNasc.getUTCFullYear();
+    const m = hoje.getMonth() - dataNasc.getUTCMonth();
+    
+    if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getUTCDate())) {
+        idade--;
+    }
+    return idade;
 }
 
 
