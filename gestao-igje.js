@@ -7,12 +7,14 @@ import {
     signOut,
     onAuthStateChanged,
     EmailAuthProvider,
-    reauthenticateWithCredential
+    reauthenticateWithCredential,
+    getDoc, // Adicionada importação para getDoc
+    doc // Adicionada importação para doc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
     getFirestore,
     setDoc,
-    doc,
+    // doc, // Já importado do auth, mas pode ser importado daqui também
     addDoc,
     collection,
     onSnapshot,
@@ -54,6 +56,7 @@ let localDizimos = [];
 let localOfertas = [];
 let localFinanceiro = [];
 let unsubMembros, unsubDizimos, unsubOfertas, unsubFinanceiro;
+let userRole = 'membro'; // Padrão
 
 // Objeto para guardar os dados da exclusão
 let itemParaExcluir = {
@@ -213,16 +216,21 @@ registerForm.addEventListener("submit", async (e) => {
 
     // Regras de negócio
     const usuariosAutorizados = {
-        "gabriel angelino": "21964597378",
-        "lorrane": "21979626240",
-        "vitoria": "21988611788" // Adicionado
+        "gabriel angelino": { telefone: "21964597378", role: "admin" },
+        "lorrane": { telefone: "21979626240", role: "admin" },
+        "vitoria": { telefone: "21988611788", role: "membro" }
     };
+    
+    const usuarioAuth = usuariosAutorizados[nomeLimpo];
 
-    if (usuariosAutorizados[nomeLimpo] !== telefoneLimpo) {
+    if (!usuarioAuth || usuarioAuth.telefone !== telefoneLimpo) {
          registerError.textContent = "Nome e Telefone não correspondem a um utilizador autorizado.";
          toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
          return;
     }
+    
+    // Se chegou aqui, o usuário é válido. Atribui a função (role).
+    const role = usuarioAuth.role;
     
     try {
         // Criar o usuário na Autenticação
@@ -234,6 +242,7 @@ registerForm.addEventListener("submit", async (e) => {
             nome: nome.trim(),
             telefone: telefoneLimpo,
             email: email,
+            role: role, // Salva a "função"
             createdAt: Timestamp.now()
         });
         
@@ -284,14 +293,39 @@ logoutButton.addEventListener("click", async () => {
 });
 
 // Observador do estado de autenticação (principal)
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
         // Usuário está logado
         userId = user.uid; // Definido globalmente
         userEmailDisplay.textContent = user.email;
+        
+        // ** (NOVO) BUSCAR A FUNÇÃO (ROLE) DO UTILIZADOR **
+        try {
+            const userProfileRef = doc(db, "dadosIgreja", "ADCA-CG", "perfisUtilizadores", user.uid);
+            const docSnap = await getDoc(userProfileRef);
+
+            if (docSnap.exists()) {
+                userRole = docSnap.data().role || 'membro'; // Pega a "função", senão 'membro'
+            } else {
+                // Perfil não encontrado, define como membro por segurança
+                userRole = 'membro';
+                console.warn("Perfil de utilizador não encontrado no Firestore. Acesso de 'membro' atribuído.");
+            }
+        } catch (error) {
+            console.error("Erro ao buscar função do utilizador:", error);
+            userRole = 'membro'; // Define como membro por segurança em caso de erro
+        }
+        
+        console.log("Função (Role) do Utilizador:", userRole);
+
+        // ** (NOVO) CONTROLAR A INTERFACE COM BASE NA FUNÇÃO **
+        controlarVisibilidadeAbas(userRole);
+
+        // Mostrar o app
         authScreen.style.display = "none";
         appContent.style.display = "block";
-        loadAllData(); // Carrega os dados
+        
+        loadAllData(userRole); // Carrega os dados (passando a função)
         
         // Define as datas dos formulários para hoje
         document.getElementById("dizimo-data").valueAsDate = new Date();
@@ -309,12 +343,54 @@ onAuthStateChanged(auth, (user) => {
     } else {
         // Usuário está deslogado
         userId = null;
+        userRole = 'membro'; // Reseta a função
         authScreen.style.display = "flex";
         appContent.style.display = "none";
         clearAllTables(); // Limpa dados da tela
         stopAllListeners(); // Para de ouvir dados
     }
 });
+
+// ** (NOVA FUNÇÃO) Controla quais abas são visíveis **
+function controlarVisibilidadeAbas(role) {
+    // Abas que só o ADMIN pode ver
+    const abasAdmin = [
+        "tab-btn-dashboard",
+        "tab-btn-dizimos",
+        "tab-btn-ofertas",
+        "tab-btn-financeiro"
+    ];
+    
+    // Abas que TODOS podem ver
+    const abasTodos = [
+        "tab-btn-cadastrar-membro",
+        "tab-btn-visualizar-membros",
+        "tab-btn-aniversariantes"
+    ];
+    
+    if (role === 'admin') {
+        // Admin vê tudo
+        [...abasAdmin, ...abasTodos].forEach(id => {
+            const tab = document.getElementById(id);
+            if (tab) tab.style.display = "flex";
+        });
+        // Define o Dashboard como a aba ativa para o admin
+        changeTab('dashboard', true); 
+    } else {
+        // Membro (Vitoria) vê acesso restrito
+        abasAdmin.forEach(id => {
+            const tab = document.getElementById(id);
+            if (tab) tab.style.display = "none"; // Esconde
+        });
+        abasTodos.forEach(id => {
+            const tab = document.getElementById(id);
+            if (tab) tab.style.display = "flex"; // Mostra
+        });
+        // Define o 'Cadastrar Membro' como a aba ativa para o membro
+        changeTab('cadastrar-membro', true); 
+    }
+}
+
 
 // --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
 async function reauthenticate(password) {
@@ -343,30 +419,55 @@ async function reauthenticate(password) {
 
 // --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
 tabButtons.forEach(button => {
-    button.addEventListener("click", () => {
-        const targetTab = button.dataset.tab;
-
-        // Desativa todos
-        tabButtons.forEach(btn => btn.classList.remove("active"));
-        tabContents.forEach(content => content.classList.remove("active")); 
-
-        // Ativa o clicado
-        button.classList.add("active");
-        document.getElementById(targetTab).classList.add("active");
-
-        // Atualiza dados se a aba for o dashboard
-        if (targetTab === 'dashboard') {
-            updateDashboard();
-        }
-        // Atualiza dados se a aba for aniversariantes
-        if (targetTab === 'aniversariantes') {
-            renderAniversariantes();
-        }
-        
-        // Atualiza ícones quando muda de aba
-        lucide.createIcons();
+    button.addEventListener("click", (e) => {
+        changeTab(e.currentTarget.dataset.tab);
     });
 });
+
+// Função de troca de aba (agora chamada internamente)
+function changeTab(targetTab, force = false) {
+     // Se a aba estiver escondida (ex: 'dashboard' para 'membro'), não faz nada
+    const targetButton = document.getElementById(`tab-btn-${targetTab}`);
+    if (!targetButton || (targetButton.style.display === "none" && !force)) {
+        // Se a aba ativa foi escondida, muda para a primeira visível
+        if (document.querySelector(".app-tab-button.active").style.display === "none") {
+             const firstVisibleTab = document.querySelector(".app-tab-button[style*='display: flex']");
+             if (firstVisibleTab) {
+                 changeTab(firstVisibleTab.dataset.tab, true);
+             }
+        }
+        return;
+    }
+
+    // Desativa todos
+    tabButtons.forEach(btn => btn.classList.remove("active"));
+    tabContents.forEach(content => content.classList.remove("active"));
+
+    // Ativa o clicado
+    if (targetButton) {
+        targetButton.classList.add("active");
+    }
+    const targetContent = document.getElementById(targetTab);
+    if(targetContent) {
+        targetContent.classList.add("active");
+    } else {
+        console.error(`Conteúdo da aba "${targetTab}" não encontrado.`);
+        return;
+    }
+
+    // Atualiza dados se a aba for o dashboard (e o user for admin)
+    if (targetTab === 'dashboard' && userRole === 'admin') {
+        updateDashboard();
+    }
+    // Atualiza dados se a aba for aniversariantes
+    if (targetTab === 'aniversariantes') {
+        renderAniversariantes();
+    }
+
+    // Atualiza ícones quando muda de aba
+    lucide.createIcons();
+}
+
 
 // --- FORMULÁRIO DE MEMBROS (CADASTRO) ---
 estadoCivilSelect.addEventListener("change", () => {
@@ -650,24 +751,38 @@ formFinanceiro.addEventListener("submit", async (e) => {
 
 
 // --- CARREGAMENTO E RENDERIZAÇÃO DE DADOS ---
-function loadAllData() {
+function loadAllData(role) { // Recebe a "função"
     if (!userId) return;
-    console.log("Carregando dados partilhados...");
-    dashboardLoading.innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
+    console.log(`Carregando dados partilhados como: ${role}`);
+    
+    if (role === 'admin') {
+        dashboardLoading.innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
+    }
 
     stopAllListeners();
-    let loadsPending = 4; // Membros, Dizimos, Ofertas, Financeiro
+    
+    // ** (NOVO) Lógica de carregamento baseada na função **
+    
+    let loadsPending = 1; // Todos carregam membros
+    
+    // Admin carrega tudo
+    if (role === 'admin') {
+        loadsPending = 4; // Membros, Dizimos, Ofertas, Financeiro
+    }
     
     const onDataLoaded = () => {
         loadsPending--;
         if (loadsPending === 0) {
             console.log("Todos os dados carregados.");
-            dashboardLoading.innerHTML = "";
-            updateDashboard();
-            renderAniversariantes(); // Processa aniversariantes após membros carregarem
+            if (role === 'admin') {
+                dashboardLoading.innerHTML = "";
+                updateDashboard();
+            }
+            renderAniversariantes(); // Processa aniversariantes
         }
     };
     
+    // 1. Membros (Todos carregam)
     try {
         const qMembros = query(collection(db, "dadosIgreja", "ADCA-CG", "membros"));
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
@@ -676,35 +791,38 @@ function loadAllData() {
             renderMembros(localMembros);
             populateMembrosSelect(localMembros);
             onDataLoaded();
-        }, (error) => { console.error("Erro ao ouvir membros:", error.message); onDataLoaded(); });
+        }, (error) => { console.error("Erro ao ouvir membros:", error); onDataLoaded(); });
     } catch (e) { console.error("Erro ao criar query de membros:", e); onDataLoaded(); }
 
-    try {
-        const qDizimos = query(collection(db, "dadosIgreja", "ADCA-CG", "dizimos"));
-        unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
-            localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderFiltroDizimos();
-            onDataLoaded();
-        }, (error) => { console.error("Erro ao ouvir dízimos:", error.message); onDataLoaded(); });
-    } catch (e) { console.error("Erro ao criar query de dízimos:", e); onDataLoaded(); }
+    // 2. Dados Financeiros (Apenas Admin)
+    if (role === 'admin') {
+        try {
+            const qDizimos = query(collection(db, "dadosIgreja", "ADCA-CG", "dizimos"));
+            unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
+                localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderFiltroDizimos();
+                onDataLoaded();
+            }, (error) => { console.error("Erro ao ouvir dízimos:", error.message); onDataLoaded(); });
+        } catch (e) { console.error("Erro ao criar query de dízimos:", e); onDataLoaded(); }
 
-    try {
-        const qOfertas = query(collection(db, "dadosIgreja", "ADCA-CG", "ofertas"));
-        unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
-            localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderFiltroOfertas();
-            onDataLoaded();
-        }, (error) => { console.error("Erro ao ouvir ofertas:", error.message); onDataLoaded(); });
-    } catch (e) { console.error("Erro ao criar query de ofertas:", e); onDataLoaded(); }
+        try {
+            const qOfertas = query(collection(db, "dadosIgreja", "ADCA-CG", "ofertas"));
+            unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
+                localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderFiltroOfertas();
+                onDataLoaded();
+            }, (error) => { console.error("Erro ao ouvir ofertas:", error.message); onDataLoaded(); });
+        } catch (e) { console.error("Erro ao criar query de ofertas:", e); onDataLoaded(); }
 
-    try {
-        const qFinanceiro = query(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
-        unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
-            localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderFiltroFinanceiro(); 
-            onDataLoaded();
-        }, (error) => { console.error("Erro ao ouvir financeiro:", error.message); onDataLoaded(); });
-    } catch (e) { console.error("Erro ao criar query de financeiro:", e); onDataLoaded(); }
+        try {
+            const qFinanceiro = query(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
+            unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
+                localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderFiltroFinanceiro(); 
+                onDataLoaded();
+            }, (error) => { console.error("Erro ao ouvir financeiro:", error.message); onDataLoaded(); });
+        } catch (e) { console.error("Erro ao criar query de financeiro:", e); onDataLoaded(); }
+    }
 }
 
 // Parar todos os listeners
@@ -726,13 +844,13 @@ function clearAllTables() {
     saldoTotalFinanceiro.textContent = "R$ 0,00";
     entradasMesFinanceiro.textContent = "R$ 0,00";
     saidasMesFinanceiro.textContent = "R$ 0,00";
-    saldoMesFinanceiroAba.textContent = "R$ 0,00"; // Novo
+    saldoMesFinanceiroAba.textContent = "R$ 0,00";
     saldoDashboard.textContent = "R$ 0,00";
     entradasDashboard.textContent = "R$ 0,00";
     saidasDashboard.textContent = "R$ 0,00";
-    saldoMesDashboard.textContent = "R$ 0,00"; // Novo
-    listaAniversariantesAtual.innerHTML = ""; // Novo
-    listaAniversariantesProximos.innerHTML = ""; // Novo
+    saldoMesDashboard.textContent = "R$ 0,00";
+    listaAniversariantesAtual.innerHTML = "";
+    listaAniversariantesProximos.innerHTML = "";
 }
 
 
@@ -851,7 +969,6 @@ filtroOfertaAno.addEventListener("change", renderFiltroOfertas);
 filtroFinanceiroMes.addEventListener("change", renderFiltroFinanceiro);
 filtroFinanceiroAno.addEventListener("change", renderFiltroFinanceiro);
 
-// (NOVO) Função atualizada para calcular Entradas/Saídas do Mês
 function renderFiltroFinanceiro() {
     const mes = parseInt(filtroFinanceiroMes.value);
     const ano = parseInt(filtroFinanceiroAno.value);
@@ -1074,7 +1191,6 @@ function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
     if (!membro) return;
     
-    // CORRIGIDO: Adicionadas verificações (setElementText) para evitar o erro
     setElementText("modal-detalhes-nome", membro.nome);
     setElementText("modal-detalhes-funcao", membro.funcao);
     setElementText("modal-detalhes-email", membro.email);
@@ -1095,7 +1211,6 @@ function showMembroDetalhesModal(id) {
     setElementText("modal-detalhes-igreja-anterior", membro.igrejaAnterior);
     setElementText("modal-detalhes-cargo-anterior", membro.cargoAnterior);
     
-    // Oculta/mostra campo cônjuge
     const conjugeDetalhesEl = document.getElementById("conjuge-detalhes-container");
     if (conjugeDetalhesEl) {
         if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
@@ -1382,7 +1497,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
 
                     <!-- Resumo do Mês (Alinhado à Esquerda) -->
                     <div class="mb-8 p-6 rounded-lg bg-gray-50 border border-gray-200">
-                         <h2 class="text-xl font-semibold text-blue-700 mb-4 -mt-2" style="border: none;">Resumo do Mês (${nomeMes})</h2>
+                         <h2 class="text-xl font-semibold text-blue-700 mb-4 -mt-2" style="border: none; text-align: left;">Resumo do Mês (${nomeMes})</h2>
                          <div class="summary-grid" style="grid-template-columns: 1fr 1fr 1fr;">
                             <div class="summary-card bg-green-100 text-left">
                                 <div class="summary-card-title text-green-800">ENTRADAS (MÊS)</div>
@@ -1399,7 +1514,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                          </div>
                     </div>
                     
-                    <!-- Dízimos (Corrigido) -->
+                    <!-- Dízimos -->
                     <h2>Registos de Dízimos (${nomeMes})</h2>
                     <table>
                         <thead><tr><th>Data</th><th>Membro</th><th class="currency-header">Valor (R$)</th></tr></thead>
@@ -1419,7 +1534,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                         </tbody>
                     </table>
                     
-                    <!-- Ofertas (Corrigido) -->
+                    <!-- Ofertas -->
                     <h2>Registos de Ofertas e Outras Entradas (${nomeMes})</h2>
                     <table>
                         <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th class="currency-header">Valor (R$)</th></tr></thead>
@@ -1440,7 +1555,7 @@ gerarRelatorioBtn.addEventListener("click", () => {
                         </tbody>
                     </table>
 
-                    <!-- Saídas (Corrigido) -->
+                    <!-- Saídas -->
                     <h2>Extrato Financeiro - SAÍDAS (${nomeMes})</h2>
                     <table>
                         <thead><tr><th>Data</th><th>Descrição</th><th class="currency-header">Valor (R$)</th></tr></thead>
@@ -1462,8 +1577,8 @@ gerarRelatorioBtn.addEventListener("click", () => {
                     
                     <!-- Resumo Final (Alinhado à Esquerda) -->
                     <div class="mt-8 pt-6 border-t-2">
-                         <h2 class="text-xl font-semibold text-blue-700 mb-4" style="border: none;">Resumo Financeiro Final</h2>
-                         <div class="resumo-final-grid max-w-lg">
+                         <h2 class="text-xl font-semibold text-blue-700 mb-4" style="border: none; text-align: left;">Resumo Financeiro Final</h2>
+                         <div class="resumo-final-grid max-w-lg" style="text-align: left;">
                             <span class="font-medium text-left">Total de Entradas (${nomeMes}):</span>
                             <span class="currency entrada font-semibold text-left">R$ ${totalEntradasMes.toFixed(2).replace(".", ",")}</span>
                             
@@ -1600,9 +1715,27 @@ gerarRelatorioAniversariantesBtn.addEventListener("click", () => {
                     body { font-family: sans-serif; }
                     h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
                     h2 { font-size: 20px; font-weight: 600; color: #1d4ed8; margin-top: 24px; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; }
-                    .aniversariante-item { display: flex; justify-content: space-between; padding: 8px 4px; border-bottom: 1px solid #e5e7eb; }
-                    .aniversariante-nome { font-size: 16px; font-medium; color: #1f2937; }
-                    .aniversariante-data { font-size: 16px; font-bold; color: #1e40af; }
+                    /* Estilos do app replicados para consistência */
+                    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+                    .flex { display: flex; }
+                    .justify-between { justify-content: space-between; }
+                    .items-center { align-items: center; }
+                    .font-medium { font-weight: 500; }
+                    .text-gray-800 { color: #1f2937; }
+                    .text-sm { font-size: 0.875rem; }
+                    .text-gray-500 { color: #6b7280; }
+                    .text-lg { font-size: 1.125rem; }
+                    .font-bold { font-weight: 700; }
+                    .text-blue-600 { color: #2563eb; }
+                    .divide-y > :not([hidden]) ~ :not([hidden]) { border-top-width: 1px; border-color: #e5e7eb; }
+                    .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+                    .font-semibold { font-weight: 600; }
+                    .text-gray-700 { color: #374151; }
+                    .text-md { font-size: 1rem; }
+                    .mb-1 { margin-bottom: 0.25rem; }
+                    .pb-1 { padding-bottom: 0.25rem; }
+                    .border-b { border-bottom-width: 1px; }
+                    .divide-y-100 > :not([hidden]) ~ :not([hidden]) { border-color: #f3f4f6; }
                 </style>
             </head>
             <body class="bg-gray-100 p-8">
