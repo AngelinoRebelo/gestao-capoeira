@@ -390,9 +390,23 @@
                     </div>
                     <!-- [FIM DA ALTERAÇÃO] -->
 
-                    <input type="text" id="filtro-membros"
-                        class="w-full max-w-sm mb-4 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Filtrar por nome...">
+                    <!-- [INÍCIO DA ALTERAÇÃO] - Agrupando filtro e novo botão -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                        <input type="text" id="filtro-membros"
+                            class="w-full max-w-sm border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Filtrar por nome...">
+                        
+                        <button id="gerar-relatorio-membros-btn"
+                            class="w-full sm:w-auto bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 flex items-center justify-center">
+                            <i data-lucide="printer" class="inline-block w-4 h-4 mr-2"></i>
+                            Gerar Relatório de Membros
+                        </button>
+                    </div>
+                    <!-- [FIM DA ALTERAÇÃO] -->
+                    
+                    <!-- O input antigo foi movido para o bloco acima, esta linha é removida -->
+                    <!-- <input type="text" id="filtro-membros" ... > -->
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
