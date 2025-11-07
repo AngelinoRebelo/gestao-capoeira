@@ -214,7 +214,8 @@ registerForm.addEventListener("submit", async (e) => {
     // Regras de negócio
     const usuariosAutorizados = {
         "gabriel angelino": "21964597378",
-        "lorrane": "21979626240"
+        "lorrane": "21979626240" ,
+        "vitoria": "21988611788"
     };
 
     if (usuariosAutorizados[nomeLimpo] !== telefoneLimpo) {
