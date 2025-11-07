@@ -111,6 +111,7 @@ const financeiroSubmitBtn = document.getElementById("financeiro-submit-btn");
 // Listas e Tabelas
 const listaMembros = document.getElementById("lista-membros");
 const filtroMembros = document.getElementById("filtro-membros");
+const totalMembrosDisplay = document.getElementById("total-membros-display"); // [ALTERAÇÃO APLICADA]
 const listaFinanceiro = document.getElementById("lista-financeiro");
 const saldoTotalFinanceiro = document.getElementById("saldo-total-financeiro");
 const listaDizimos = document.getElementById("lista-dizimos");
@@ -673,6 +674,14 @@ function loadAllData() {
         unsubMembros = onSnapshot(qMembros, (snapshot) => {
             localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             localMembros.sort((a, b) => a.nome.localeCompare(b.nome));
+
+            // [ALTERAÇÃO APLICADA]
+            // Atualiza o contador de total de membros
+            if (totalMembrosDisplay) {
+                totalMembrosDisplay.textContent = localMembros.length;
+            }
+            // [FIM DA ALTERAÇÃO]
+
             renderMembros(localMembros);
             populateMembrosSelect(localMembros);
             onDataLoaded();
@@ -731,6 +740,13 @@ function clearAllTables() {
     entradasDashboard.textContent = "R$ 0,00";
     saidasDashboard.textContent = "R$ 0,00";
     saldoMesDashboard.textContent = "R$ 0,00";
+    
+    // [ALTERAÇÃO APLICADA]
+    if (totalMembrosDisplay) {
+        totalMembrosDisplay.textContent = "0";
+    }
+    // [FIM DA ALTERAÇÃO]
+    
     listaAniversariantesAtual.innerHTML = "";
     listaAniversariantesProximos.innerHTML = "";
 }
