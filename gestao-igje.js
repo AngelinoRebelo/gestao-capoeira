@@ -496,6 +496,9 @@ formEditMembro.addEventListener("submit", async (e) => {
         return;
     }
     
+    // [ALTERAÇÃO] Captura os dados antigos ANTES de atualizar
+    const membroOriginal = localMembros.find(m => m.id === membroParaEditarId);
+
     // 2. Coletar dados do formulário
     const dadosAtualizados = {
         nome: document.getElementById("edit-nome").value,
@@ -524,12 +527,14 @@ formEditMembro.addEventListener("submit", async (e) => {
         const docRef = doc(db, "dadosIgreja", "ADCA-CG", "membros", membroParaEditarId);
         await updateDoc(docRef, dadosAtualizados);
         
-        // [NOVO] Registrar Log
+        // [ALTERAÇÃO] Registrar Log com dados antigos E novos
         await registrarLog("Membro Atualizado", { 
             membroId: membroParaEditarId, 
-            nome: dadosAtualizados.nome 
+            nome: dadosAtualizados.nome,
+            dadosAntigos: membroOriginal,  // <--- ADICIONADO
+            dadosNovos: dadosAtualizados    // <--- ADICIONADO
         });
-
+        
         // Sucesso
         doCloseMembroEditModal(); 
         showToast("Membro atualizado com sucesso!", "success");
