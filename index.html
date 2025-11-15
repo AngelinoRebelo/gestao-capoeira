@@ -24,6 +24,15 @@
     <!-- Tela de Autenticação (Login/Cadastro) -->
     <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gray-200 p-4">
         <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+            
+            <!-- [NOVO] INÍCIO DA SEÇÃO DO LOGO (LOGIN) -->
+            <div class="flex flex-col items-center mb-6">
+                <img src="https://i.postimg.cc/NF8psJ8b/adca.png" 
+                     alt="Logo ADCA" 
+                     class="h-20 w-auto mb-4 rounded-lg">
+            </div>
+            <!-- [NOVO] FIM DA SEÇÃO DO LOGO (LOGIN) -->
+
             <!-- Abas de Login / Cadastro -->
             <div class="flex border-b mb-4">
                 <button id="auth-login-tab-button"
@@ -98,7 +107,14 @@
         <!-- Cabeçalho -->
         <header class="bg-blue-600 text-white shadow-md">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-                <h1 class="text-2xl font-bold">GESTÃO ADCA - CAPOEIRA GRANDE</h1>
+                <!-- [NOVO] Bloco do Logo e Título -->
+                <div class="flex items-center gap-3">
+                    <img src="https://i.postimg.cc/NF8psJ8b/adca.png" 
+                         alt="Logo" 
+                         class="h-10 w-auto rounded-md hidden sm:block">
+                    <h1 class="text-2xl font-bold">GESTÃO ADCA - CAPOEIRA GRANDE</h1>
+                </div>
+                <!-- Fim do Bloco do Logo -->
                 <div>
                     <span id="user-email-display" class="text-sm mr-4"></span>
                     <button id="logout-button"
