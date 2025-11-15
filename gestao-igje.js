@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {
     getAuth,
-    createUserWithEmailAndPassword,
+    createUserWithEmailAndPassword, // (REMOVIDO) Não é mais usado aqui, mas mantido para referência futura
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
@@ -11,7 +11,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
     getFirestore,
-    setDoc,
+    setDoc, // (REMOVIDO) Não é mais usado aqui, mas mantido para referência futura
     doc,
     addDoc,
     collection,
@@ -98,17 +98,17 @@ let membroParaEditarId = null;
 const authScreen = document.getElementById("auth-screen");
 const appContent = document.getElementById("app-content");
 const loginForm = document.getElementById("login-form");
-const registerForm = document.getElementById("register-form");
+// (REMOVIDO) const registerForm = document.getElementById("register-form");
 const loginError = document.getElementById("login-error");
-const registerError = document.getElementById("register-error");
+// (REMOVIDO) const registerError = document.getElementById("register-error");
 const userEmailDisplay = document.getElementById("user-email-display");
 const logoutButton = document.getElementById("logout-button");
 const loginSubmitBtn = document.getElementById("login-submit-btn");
-const registerSubmitBtn = document.getElementById("register-submit-btn");
-const loginTabButton = document.getElementById("auth-login-tab-button");
-const registerTabButton = document.getElementById("auth-register-tab-button");
-const loginTab = document.getElementById("auth-login-tab");
-const registerTab = document.getElementById("auth-register-tab");
+// (REMOVIDO) const registerSubmitBtn = document.getElementById("register-submit-btn");
+// (REMOVIDO) const loginTabButton = document.getElementById("auth-login-tab-button");
+// (REMOVIDO) const registerTabButton = document.getElementById("auth-register-tab-button");
+// (REMOVIDO) const loginTab = document.getElementById("auth-login-tab");
+// (REMOVIDO) const registerTab = document.getElementById("auth-register-tab");
 
 // Abas da Aplicação
 const tabButtons = document.querySelectorAll(".app-tab-button");
@@ -204,87 +204,23 @@ const MESES_DO_ANO = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho"
 
 // --- CONTROLE DE AUTENTICAÇÃO ---
 
-// Abas de Autenticação
+// Abas de Autenticação (REMOVIDO)
+/*
 loginTabButton.addEventListener("click", () => {
-    loginTabButton.classList.add("active");
-    registerTabButton.classList.remove("active");
-    loginTab.classList.add("active");
-    registerTab.classList.remove("active");
-    loginError.textContent = "";
-    registerError.textContent = "";
+    // ...
 });
 
 registerTabButton.addEventListener("click", () => {
-    registerTabButton.classList.add("active");
-    loginTabButton.classList.remove("active");
-    registerTab.classList.add("active");
-    loginTab.classList.remove("active");
-    loginError.textContent = "";
-    registerError.textContent = "";
+    // ...
 });
+*/
 
-// [CORREÇÃO] Processar Cadastro (Código que estava faltando)
+// [CORREÇÃO] Processar Cadastro (REMOVIDO)
+/*
 registerForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    registerError.textContent = "";
-    toggleButtonLoading(registerSubmitBtn, true, "Cadastrar");
-    
-    const nome = document.getElementById("register-name").value;
-    const telefoneInput = document.getElementById("register-phone").value;
-    const email = document.getElementById("register-email").value;
-    const password = document.getElementById("register-password").value;
-
-    if (!nome || !telefoneInput) {
-        registerError.textContent = "Nome e Telefone são obrigatórios.";
-        toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
-        return;
-    }
-    
-    const nomeLimpo = nome.trim().toLowerCase();
-    const telefoneLimpo = telefoneInput.replace(/\D/g, ''); // Remove não-números
-
-    // Regras de negócio
-    const usuariosAutorizados = {
-        "gabriel angelino": "21964597378",
-        "lorrane": "21979626240" ,
-        "vitoria": "21988611788"
-    };
-
-    if (usuariosAutorizados[nomeLimpo] !== telefoneLimpo) {
-         registerError.textContent = "Nome e Telefone não correspondem a um utilizador autorizado.";
-         toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
-         return;
-    }
-    
-    try {
-        // Criar o usuário na Autenticação
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        // Salvar dados do perfil no Firestore
-        await setDoc(doc(db, "dadosIgreja", "ADCA-CG", "perfisUtilizadores", user.uid), {
-            nome: nome.trim(),
-            telefone: telefoneLimpo,
-            email: email,
-            createdAt: Timestamp.now()
-        });
-
-        // [NOVO] Registrar Log
-        await registrarLog("Usuário Criado", { novoUserId: user.uid, email: email, nome: nome.trim() });
-        
-    } catch (error) {
-        console.error("Erro no cadastro:", error.code, error.message);
-        if (error.code === 'auth/email-already-in-use') {
-            registerError.textContent = "Este email já está cadastrado. Tente fazer login.";
-        } else if (error.code === 'auth/weak-password') {
-            registerError.textContent = "Senha fraca. A senha deve ter no mínimo 6 caracteres.";
-        } else {
-            registerError.textContent = "Erro ao cadastrar. Verifique o email e a senha.";
-        }
-    } finally {
-        toggleButtonLoading(registerSubmitBtn, false, "Cadastrar");
-    }
+    // ...
 });
+*/
 
 
 // [CORREÇÃO] Processar Login (Código que estava faltando)
@@ -496,9 +432,6 @@ formEditMembro.addEventListener("submit", async (e) => {
         return;
     }
     
-    // [ALTERAÇÃO] Captura os dados antigos ANTES de atualizar
-    const membroOriginal = localMembros.find(m => m.id === membroParaEditarId);
-
     // 2. Coletar dados do formulário
     const dadosAtualizados = {
         nome: document.getElementById("edit-nome").value,
@@ -527,14 +460,12 @@ formEditMembro.addEventListener("submit", async (e) => {
         const docRef = doc(db, "dadosIgreja", "ADCA-CG", "membros", membroParaEditarId);
         await updateDoc(docRef, dadosAtualizados);
         
-        // [ALTERAÇÃO] Registrar Log com dados antigos E novos
+        // [NOVO] Registrar Log
         await registrarLog("Membro Atualizado", { 
             membroId: membroParaEditarId, 
-            nome: dadosAtualizados.nome,
-            dadosAntigos: membroOriginal,  // <--- ADICIONADO
-            dadosNovos: dadosAtualizados    // <--- ADICIONADO
+            nome: dadosAtualizados.nome 
         });
-        
+
         // Sucesso
         doCloseMembroEditModal(); 
         showToast("Membro atualizado com sucesso!", "success");
