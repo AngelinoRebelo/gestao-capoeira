@@ -48,6 +48,34 @@ try {
     document.body.innerHTML = "<p>Erro crítico ao conectar ao banco de dados. Verifique a configuração do Firebase.</p>";
 }
 
+// --- [NOVO] FUNÇÃO DE LOG ---
+/**
+ * Registra uma ação no log do Firestore.
+ * @param {string} acao - Ação realizada (ex: "Membro Criado", "Exclusão Dízimo").
+ * @param {object} detalhes - Objeto com informações relevantes (ex: { membroId: '...' }).
+ */
+async function registrarLog(acao, detalhes = {}) {
+    if (!auth || !auth.currentUser) {
+        console.warn("Tentativa de log sem usuário autenticado.");
+        return;
+    }
+    
+    try {
+        const logCollectionRef = collection(db, "dadosIgreja", "ADCA-CG", "logs");
+        await addDoc(logCollectionRef, {
+            timestamp: Timestamp.now(),
+            userId: auth.currentUser.uid,
+            userEmail: auth.currentUser.email,
+            acao: acao,
+            detalhes: detalhes // Armazena o objeto de detalhes
+        });
+    } catch (error) {
+        console.error("Falha ao registrar log:", error);
+        // Não notifica o usuário para não interromper o fluxo principal
+    }
+}
+// --- FIM DA FUNÇÃO DE LOG ---
+
 // Variáveis de estado global
 let localMembros = [];
 let localDizimos = [];
@@ -240,6 +268,9 @@ registerForm.addEventListener("submit", async (e) => {
             email: email,
             createdAt: Timestamp.now()
         });
+
+        // [NOVO] Registrar Log
+        await registrarLog("Usuário Criado", { novoUserId: user.uid, email: email, nome: nome.trim() });
         
     } catch (error) {
         console.error("Erro no cadastro:", error.code, error.message);
@@ -413,7 +444,13 @@ formMembro.addEventListener("submit", async (e) => {
 
     try {
         const docRef = collection(db, "dadosIgreja", "ADCA-CG", "membros");
-        await addDoc(docRef, dadosMembro);
+        const novoDoc = await addDoc(docRef, dadosMembro);
+
+        // [NOVO] Registrar Log
+        await registrarLog("Membro Criado", { 
+            membroId: novoDoc.id, 
+            nome: dadosMembro.nome 
+        });
 
         formMembro.reset();
         conjugeContainer.classList.add("hidden"); // Esconde o campo cônjuge
@@ -487,6 +524,12 @@ formEditMembro.addEventListener("submit", async (e) => {
         const docRef = doc(db, "dadosIgreja", "ADCA-CG", "membros", membroParaEditarId);
         await updateDoc(docRef, dadosAtualizados);
         
+        // [NOVO] Registrar Log
+        await registrarLog("Membro Atualizado", { 
+            membroId: membroParaEditarId, 
+            nome: dadosAtualizados.nome 
+        });
+
         // Sucesso
         doCloseMembroEditModal(); 
         showToast("Membro atualizado com sucesso!", "success");
@@ -545,6 +588,15 @@ formDizimo.addEventListener("submit", async (e) => {
 
         await batch.commit();
 
+        // [NOVO] Registrar Log
+        await registrarLog("Dízimo Criado", {
+            dizimoId: dizimoDocRef.id,
+            financeiroId: financeiroDocRef.id,
+            membroId: membroId,
+            membroNome: membroNome,
+            valor: valor
+        });
+
         formDizimo.reset();
         document.getElementById("dizimo-data").valueAsDate = new Date();
         showToast("Dízimo registado com sucesso!", "success");
@@ -600,6 +652,15 @@ formOferta.addEventListener("submit", async (e) => {
 
         await batch.commit();
 
+        // [NOVO] Registrar Log
+        await registrarLog("Oferta/Entrada Criada", {
+            ofertaId: ofertaDocRef.id,
+            financeiroId: financeiroDocRef.id,
+            tipo: tipo,
+            descricao: descricao,
+            valor: valor
+        });
+
         formOferta.reset();
         document.getElementById("oferta-data").valueAsDate = new Date();
         showToast("Entrada registada com sucesso!", "success");
@@ -631,7 +692,7 @@ formFinanceiro.addEventListener("submit", async (e) => {
 
     try {
         const colRef = collection(db, "dadosIgreja", "ADCA-CG", "financeiro");
-        await addDoc(colRef, {
+        const novoDoc = await addDoc(colRef, {
             tipo: "saida",
             descricao: descricao,
             valor: valor * -1, // Salva saídas como valor negativo
@@ -639,6 +700,13 @@ formFinanceiro.addEventListener("submit", async (e) => {
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
             origemId: null, 
             origemTipo: null
+        });
+
+        // [NOVO] Registrar Log
+        await registrarLog("Saída Criada", {
+            financeiroId: novoDoc.id,
+            descricao: descricao,
+            valor: valor * -1 // Salva o valor como negativo
         });
 
         formFinanceiro.reset();
@@ -1255,6 +1323,8 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
     try {
         const batch = writeBatch(db);
         const basePath = "dadosIgreja/ADCA-CG";
+        let logAcao = "";
+        let logDetalhes = {};
         
         if (itemParaExcluir.tipo === 'financeiro') {
             const finDocRef = doc(db, basePath, "financeiro", itemParaExcluir.id);
@@ -1267,6 +1337,9 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
                  const origemDocRef = doc(db, basePath, origemCollection, finData.origemId);
                  batch.delete(origemDocRef);
             }
+            
+            logAcao = "Exclusão Financeiro";
+            logDetalhes = { financeiroId: itemParaExcluir.id, detalhesExcluidos: finData };
         
         } else if (itemParaExcluir.tipo === 'dizimo') {
             const dizimoDocRef = doc(db, basePath, "dizimos", itemParaExcluir.id);
@@ -1279,6 +1352,9 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
                 batch.delete(finDocRef);
             }
 
+            logAcao = "Exclusão Dízimo";
+            logDetalhes = { dizimoId: itemParaExcluir.id, detalhesExcluidos: dizimoData };
+
         } else if (itemParaExcluir.tipo === 'oferta') {
             const ofertaDocRef = doc(db, basePath, "ofertas", itemParaExcluir.id);
             const ofertaData = localOfertas.find(o => o.id === itemParaExcluir.id);
@@ -1290,20 +1366,38 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
                 batch.delete(finDocRef);
             }
             
+            logAcao = "Exclusão Oferta";
+            logDetalhes = { ofertaId: itemParaExcluir.id, detalhesExcluidos: ofertaData };
+            
         } else if (itemParaExcluir.tipo === 'membro') {
             const membroDocRef = doc(db, basePath, "membros", itemParaExcluir.id);
-            await deleteDoc(membroDocRef);
+            const membroData = localMembros.find(m => m.id === itemParaExcluir.id); // Captura os dados ANTES de excluir
+
+            await deleteDoc(membroDocRef); // Ação sem batch
             
             deleteConfirmModal.style.display = "none";
             showToast("Membro excluído com sucesso.", "success");
+
+            // [NOVO] Registrar Log
+            await registrarLog("Exclusão Membro", { 
+                membroId: itemParaExcluir.id,
+                detalhesExcluidos: membroData
+            });
+            
             toggleButtonLoading(deleteSubmitBtn, false, "Excluir Permanentemente");
-            return;
+            return; // Sair da função
         }
 
+        // Somente para operações em batch
         await batch.commit();
         
         deleteConfirmModal.style.display = "none";
         showToast("Registo excluído com sucesso.", "success");
+
+        // [NOVO] Registrar log APÓS o commit do batch ser bem-sucedido
+        if (logAcao) {
+            await registrarLog(logAcao, logDetalhes);
+        }
 
     } catch (error) {
         console.error("Erro ao excluir registo:", error);
