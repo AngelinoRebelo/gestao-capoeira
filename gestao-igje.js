@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {
     getAuth,
+    createUserWithEmailAndPassword, // (REMOVIDO) Não é mais usado aqui, mas mantido para referência futura
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
@@ -10,6 +11,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
     getFirestore,
+    setDoc, // (REMOVIDO) Não é mais usado aqui, mas mantido para referência futura
     doc,
     addDoc,
     collection,
@@ -17,6 +19,8 @@ import {
     query,
     deleteDoc,
     Timestamp,
+    getDocs,
+    where,
     writeBatch,
     updateDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -38,15 +42,17 @@ try {
     auth = getAuth(app);
     db = getFirestore(app);
     console.log("Firebase inicializado com sucesso.");
-} catch (error) {
+} catch (error)
+{
     console.error("Erro ao inicializar o Firebase:", error);
     document.body.innerHTML = "<p>Erro crítico ao conectar ao banco de dados. Verifique a configuração do Firebase.</p>";
 }
 
-// --- [FUNÇÃO DE LOG ATUALIZADA] ---
+// --- [NOVO] FUNÇÃO DE LOG ---
 /**
- * Registra uma ação no log do Firestore na coleção centralizada.
- * Agora suporta logs detalhados de diff (antes/depois).
+ * Registra uma ação no log do Firestore.
+ * @param {string} acao - Ação realizada (ex: "Membro Criado", "Exclusão Dízimo").
+ * @param {object} detalhes - Objeto com informações relevantes (ex: { membroId: '...' }).
  */
 async function registrarLog(acao, detalhes = {}) {
     if (!auth || !auth.currentUser) {
@@ -55,18 +61,17 @@ async function registrarLog(acao, detalhes = {}) {
     }
     
     try {
-        // Usa a mesma coleção 'logs' que o site de visualização monitora
         const logCollectionRef = collection(db, "dadosIgreja", "ADCA-CG", "logs");
         await addDoc(logCollectionRef, {
             timestamp: Timestamp.now(),
             userId: auth.currentUser.uid,
             userEmail: auth.currentUser.email,
             acao: acao,
-            detalhes: detalhes
+            detalhes: detalhes // Armazena o objeto de detalhes
         });
-        console.log(`Log registrado: ${acao}`);
     } catch (error) {
         console.error("Falha ao registrar log:", error);
+        // Não notifica o usuário para não interromper o fluxo principal
     }
 }
 // --- FIM DA FUNÇÃO DE LOG ---
@@ -87,16 +92,23 @@ let itemParaExcluir = {
 // ID do membro a ser editado
 let membroParaEditarId = null;
 
-// --- REFERÊNCIAS DO DOM ---
+// --- REFERÊNCIAS DO DOM (AGRUPADAS) ---
 
 // Autenticação
 const authScreen = document.getElementById("auth-screen");
 const appContent = document.getElementById("app-content");
 const loginForm = document.getElementById("login-form");
+// (REMOVIDO) const registerForm = document.getElementById("register-form");
 const loginError = document.getElementById("login-error");
+// (REMOVIDO) const registerError = document.getElementById("register-error");
 const userEmailDisplay = document.getElementById("user-email-display");
 const logoutButton = document.getElementById("logout-button");
 const loginSubmitBtn = document.getElementById("login-submit-btn");
+// (REMOVIDO) const registerSubmitBtn = document.getElementById("register-submit-btn");
+// (REMOVIDO) const loginTabButton = document.getElementById("auth-login-tab-button");
+// (REMOVIDO) const registerTabButton = document.getElementById("auth-register-tab-button");
+// (REMOVIDO) const loginTab = document.getElementById("auth-login-tab");
+// (REMOVIDO) const registerTab = document.getElementById("auth-register-tab");
 
 // Abas da Aplicação
 const tabButtons = document.querySelectorAll(".app-tab-button");
@@ -127,7 +139,7 @@ const financeiroSubmitBtn = document.getElementById("financeiro-submit-btn");
 // Listas e Tabelas
 const listaMembros = document.getElementById("lista-membros");
 const filtroMembros = document.getElementById("filtro-membros");
-const totalMembrosDisplay = document.getElementById("total-membros-display");
+const totalMembrosDisplay = document.getElementById("total-membros-display"); // [CORREÇÃO]
 const listaFinanceiro = document.getElementById("lista-financeiro");
 const saldoTotalFinanceiro = document.getElementById("saldo-total-financeiro");
 const listaDizimos = document.getElementById("lista-dizimos");
@@ -168,6 +180,8 @@ const deleteSubmitBtn = document.getElementById("delete-submit-btn");
 const gerarRelatorioBtn = document.getElementById("gerar-relatorio-btn");
 const relatorioGeralMes = document.getElementById("relatorio-geral-mes");
 const relatorioGeralAno = document.getElementById("relatorio-geral-ano");
+
+// [CORREÇÃO] Referência para o novo botão
 const gerarRelatorioMembrosBtn = document.getElementById("gerar-relatorio-membros-btn");
 
 // Aniversariantes
@@ -176,16 +190,40 @@ const listaAniversariantesProximos = document.getElementById("lista-aniversarian
 const tituloAniversariantesAtual = document.getElementById("titulo-aniversariantes-atual");
 const gerarRelatorioAniversariantesBtn = document.getElementById("gerar-relatorio-aniversariantes-btn");
 
-// Toast e Utils
+
+// Toast
 const toastContainer = document.getElementById("toast-container");
+
+// Resumo Financeiro do Mês (Aba Financeiro)
 const entradasMesFinanceiro = document.getElementById("entradas-mes-financeiro");
 const saidasMesFinanceiro = document.getElementById("saidas-mes-financeiro");
 const saldoMesFinanceiroAba = document.getElementById("saldo-mes-financeiro-aba");
-const MESES_DO_ANO = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
+// Meses para formatação
+const MESES_DO_ANO = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
 // --- CONTROLE DE AUTENTICAÇÃO ---
 
+// Abas de Autenticação (REMOVIDO)
+/*
+loginTabButton.addEventListener("click", () => {
+    // ...
+});
+
+registerTabButton.addEventListener("click", () => {
+    // ...
+});
+*/
+
+// [CORREÇÃO] Processar Cadastro (REMOVIDO)
+/*
+registerForm.addEventListener("submit", async (e) => {
+    // ...
+});
+*/
+
+
+// [CORREÇÃO] Processar Login (Código que estava faltando)
 loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     loginError.textContent = "";
@@ -196,6 +234,7 @@ loginForm.addEventListener("submit", async (e) => {
 
     try {
         await signInWithEmailAndPassword(auth, email, password);
+        // O onAuthStateChanged vai tratar de mostrar o app
     } catch (error) {
         console.error("Erro no login:", error.code, error.message);
         loginError.textContent = "Email ou senha inválidos.";
@@ -204,51 +243,66 @@ loginForm.addEventListener("submit", async (e) => {
     }
 });
 
+// [CORREÇÃO] Processar Logout (Código que estava faltando)
 logoutButton.addEventListener("click", async () => {
     try {
         await signOut(auth);
+        // O onAuthStateChanged vai tratar de esconder o app
     } catch (error) {
         console.error("Erro ao sair:", error);
         showToast("Erro ao sair.", "error");
     }
 });
 
+// [CORREÇÃO] Observador do estado de autenticação (Código que estava faltando)
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        userId = user.uid;
+        // Usuário está logado
+        userId = user.uid; // Definido globalmente
         userEmailDisplay.textContent = user.email;
         authScreen.style.display = "none";
         appContent.style.display = "block";
-        loadAllData();
+        loadAllData(); // Carrega os dados
         
+        // Define as datas dos formulários para hoje
         document.getElementById("dizimo-data").valueAsDate = new Date();
         document.getElementById("oferta-data").valueAsDate = new Date();
         document.getElementById("fin-data").valueAsDate = new Date();
         
+        // Popula os filtros de data
         const hoje = new Date();
         popularFiltros(filtroDizimoMes, filtroDizimoAno, hoje);
         popularFiltros(filtroOfertaMes, filtroOfertaAno, hoje);
         popularFiltros(filtroFinanceiroMes, filtroFinanceiroAno, hoje);
         popularFiltros(relatorioGeralMes, relatorioGeralAno, hoje);
 
+
     } else {
+        // Usuário está deslogado
         userId = null;
         authScreen.style.display = "flex";
         appContent.style.display = "none";
-        clearAllTables();
-        stopAllListeners();
+        clearAllTables(); // Limpa dados da tela
+        stopAllListeners(); // Para de ouvir dados
     }
 });
 
+// --- FUNÇÃO AUXILIAR DE REAUTENTICAÇÃO ---
 async function reauthenticate(password) {
     const user = auth.currentUser;
-    if (!user) throw new Error("Usuário não está logado.");
-    
+    if (!user) {
+        throw new Error("Usuário não está logado.");
+    }
+    if (!user.email) {
+         throw new Error("Usuário não tem email associado (ex: anônimo).");
+    }
+
     try {
         const credential = EmailAuthProvider.credential(user.email, password);
         await reauthenticateWithCredential(user, credential);
-        return true;
+        return true; // Reautenticação bem-sucedida
     } catch (error) {
+        console.error("Erro ao reautenticar:", error.code);
         if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
             throw new Error("Senha incorreta.");
         } else {
@@ -257,25 +311,43 @@ async function reauthenticate(password) {
     }
 }
 
-// --- CONTROLE DE NAVEGAÇÃO POR ABAS ---
+
+// --- CONTROLE DE NAVEGAÇÃO POR ABAS (APP) ---
 tabButtons.forEach(button => {
     button.addEventListener("click", () => {
         const targetTab = button.dataset.tab;
+
+        // Desativa todos
         tabButtons.forEach(btn => btn.classList.remove("active"));
         tabContents.forEach(content => content.classList.remove("active")); 
+
+        // Ativa o clicado
         button.classList.add("active");
         document.getElementById(targetTab).classList.add("active");
-        if (targetTab === 'dashboard') updateDashboard();
-        if (targetTab === 'aniversariantes') renderAniversariantes();
+
+        // Atualiza dados se a aba for o dashboard
+        if (targetTab === 'dashboard') {
+            updateDashboard();
+        }
+        // Atualiza dados se a aba for aniversariantes
+        if (targetTab === 'aniversariantes') {
+            renderAniversariantes();
+        }
+        
+        // Atualiza ícones quando muda de aba
         lucide.createIcons();
     });
 });
 
 // --- FORMULÁRIO DE MEMBROS (CADASTRO) ---
 estadoCivilSelect.addEventListener("change", () => {
-    if (estadoCivilSelect.value === 'Casado(a)') conjugeContainer.classList.remove("hidden");
-    else conjugeContainer.classList.add("hidden");
+    if (estadoCivilSelect.value === 'Casado(a)') {
+        conjugeContainer.classList.remove("hidden");
+    } else {
+        conjugeContainer.classList.add("hidden");
+    }
 });
+
 
 formMembro.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -283,6 +355,7 @@ formMembro.addEventListener("submit", async (e) => {
 
     toggleButtonLoading(membroSubmitBtn, true, "Salvar Membro");
 
+    // Coleta de todos os campos
     const dadosMembro = {
         nome: document.getElementById("nome").value,
         dataNascimento: document.getElementById("data-nascimento").value,
@@ -303,21 +376,20 @@ formMembro.addEventListener("submit", async (e) => {
         dataChegada: document.getElementById("data-chegada").value,
         igrejaAnterior: document.getElementById("igreja-anterior").value,
         cargoAnterior: document.getElementById("cargo-anterior").value,
-        createdAt: new Date().toISOString()
     };
 
     try {
         const docRef = collection(db, "dadosIgreja", "ADCA-CG", "membros");
         const novoDoc = await addDoc(docRef, dadosMembro);
 
-        // [LOG ATUALIZADO] Salva todos os dados
+        // [NOVO] Registrar Log
         await registrarLog("Membro Criado", { 
             membroId: novoDoc.id, 
-            ...dadosMembro 
+            nome: dadosMembro.nome 
         });
 
         formMembro.reset();
-        conjugeContainer.classList.add("hidden");
+        conjugeContainer.classList.add("hidden"); // Esconde o campo cônjuge
         showToast("Membro salvo com sucesso!", "success");
     } catch (error) {
         console.error("Erro ao salvar membro: ", error);
@@ -329,8 +401,11 @@ formMembro.addEventListener("submit", async (e) => {
 
 // --- FORMULÁRIO DE MEMBROS (EDIÇÃO) ---
 editEstadoCivilSelect.addEventListener("change", () => {
-    if (editEstadoCivilSelect.value === 'Casado(a)') editConjugeContainer.classList.remove("hidden");
-    else editConjugeContainer.classList.add("hidden");
+    if (editEstadoCivilSelect.value === 'Casado(a)') {
+        editConjugeContainer.classList.remove("hidden");
+    } else {
+        editConjugeContainer.classList.add("hidden");
+    }
 });
 
 formEditMembro.addEventListener("submit", async (e) => {
@@ -347,58 +422,57 @@ formEditMembro.addEventListener("submit", async (e) => {
         return;
     }
 
+    // 1. Reautenticar
     try {
         await reauthenticate(password);
-        
-        // 1. Captura dados ANTIGOS para o log (Clone)
-        const membroAntigo = localMembros.find(m => m.id === membroParaEditarId);
-        const dadosAntigos = membroAntigo ? { ...membroAntigo } : {};
-
-        // 2. Prepara os NOVOS dados
-        const dadosAtualizados = {
-            nome: document.getElementById("edit-nome").value,
-            dataNascimento: document.getElementById("edit-data-nascimento").value,
-            telefone: document.getElementById("edit-telefone").value,
-            email: document.getElementById("edit-email").value,
-            cpf: document.getElementById("edit-cpf").value,
-            rg: document.getElementById("edit-rg").value,
-            naturalidade: document.getElementById("edit-naturalidade").value,
-            endereco: document.getElementById("edit-endereco").value,
-            nomePai: document.getElementById("edit-nome-pai").value,
-            nomeMae: document.getElementById("edit-nome-mae").value,
-            estadoCivil: document.getElementById("edit-estado-civil").value,
-            conjuge: (document.getElementById("edit-estado-civil").value === 'Casado(a)') ? document.getElementById("edit-conjuge").value : "",
-            profissao: document.getElementById("edit-profissao").value,
-            escolaridade: document.getElementById("edit-escolaridade").value,
-            funcao: document.getElementById("edit-funcao").value,
-            dataBatismo: document.getElementById("edit-data-batismo").value,
-            dataChegada: document.getElementById("edit-data-chegada").value,
-            igrejaAnterior: document.getElementById("edit-igreja-anterior").value,
-            cargoAnterior: document.getElementById("edit-cargo-anterior").value,
-            updatedAt: new Date().toISOString()
-        };
-
-        // Cria objeto final mesclado para o log
-        const dadosNovos = { ...dadosAntigos, ...dadosAtualizados };
-
-        // 3. Atualiza no Firestore
+    } catch (error) {
+        console.error(error);
+        editMembroError.textContent = error.message; // Exibe "Senha incorreta."
+        toggleButtonLoading(editMembroSubmitBtn, false, "Salvar Alterações");
+        return;
+    }
+    
+    // 2. Coletar dados do formulário
+    const dadosAtualizados = {
+        nome: document.getElementById("edit-nome").value,
+        dataNascimento: document.getElementById("edit-data-nascimento").value,
+        telefone: document.getElementById("edit-telefone").value,
+        email: document.getElementById("edit-email").value,
+        cpf: document.getElementById("edit-cpf").value,
+        rg: document.getElementById("edit-rg").value,
+        naturalidade: document.getElementById("edit-naturalidade").value,
+        endereco: document.getElementById("edit-endereco").value,
+        nomePai: document.getElementById("edit-nome-pai").value,
+        nomeMae: document.getElementById("edit-nome-mae").value,
+        estadoCivil: document.getElementById("edit-estado-civil").value,
+        conjuge: (document.getElementById("edit-estado-civil").value === 'Casado(a)') ? document.getElementById("edit-conjuge").value : "",
+        profissao: document.getElementById("edit-profissao").value,
+        escolaridade: document.getElementById("edit-escolaridade").value,
+        funcao: document.getElementById("edit-funcao").value,
+        dataBatismo: document.getElementById("edit-data-batismo").value,
+        dataChegada: document.getElementById("edit-data-chegada").value,
+        igrejaAnterior: document.getElementById("edit-igreja-anterior").value,
+        cargoAnterior: document.getElementById("edit-cargo-anterior").value,
+    };
+    
+    // 3. Atualizar no Firebase
+    try {
         const docRef = doc(db, "dadosIgreja", "ADCA-CG", "membros", membroParaEditarId);
         await updateDoc(docRef, dadosAtualizados);
         
-        // [LOG ATUALIZADO] Registra diff com dados antigos e novos
+        // [NOVO] Registrar Log
         await registrarLog("Membro Atualizado", { 
             membroId: membroParaEditarId, 
-            nome: dadosAtualizados.nome,
-            dadosAntigos: dadosAntigos,
-            dadosNovos: dadosNovos
+            nome: dadosAtualizados.nome 
         });
 
+        // Sucesso
         doCloseMembroEditModal(); 
         showToast("Membro atualizado com sucesso!", "success");
     
     } catch (error) {
          console.error("Erro ao atualizar membro:", error);
-         editMembroError.textContent = error.message || "Erro ao salvar os dados.";
+         editMembroError.textContent = "Erro ao salvar os dados.";
     } finally {
         toggleButtonLoading(editMembroSubmitBtn, false, "Salvar Alterações");
     }
@@ -435,7 +509,7 @@ formDizimo.addEventListener("submit", async (e) => {
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            financeiroId: financeiroDocRef.id
+            financeiroId: financeiroDocRef.id // Link
         });
 
         batch.set(financeiroDocRef, {
@@ -444,12 +518,13 @@ formDizimo.addEventListener("submit", async (e) => {
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            origemId: dizimoDocRef.id,
+            origemId: dizimoDocRef.id, // Link
             origemTipo: "dizimo"
         });
 
         await batch.commit();
 
+        // [NOVO] Registrar Log
         await registrarLog("Dízimo Criado", {
             dizimoId: dizimoDocRef.id,
             financeiroId: financeiroDocRef.id,
@@ -469,7 +544,7 @@ formDizimo.addEventListener("submit", async (e) => {
     }
 });
 
-// --- FORMULÁRIO DE OFERTAS ---
+// --- FORMULÁRIO DE OFERTAS / OUTRAS ENTRADAS ---
 formOferta.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!userId) return;
@@ -498,7 +573,7 @@ formOferta.addEventListener("submit", async (e) => {
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            financeiroId: financeiroDocRef.id
+            financeiroId: financeiroDocRef.id // Link
         });
 
         batch.set(financeiroDocRef, {
@@ -507,12 +582,13 @@ formOferta.addEventListener("submit", async (e) => {
             valor: valor,
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
-            origemId: ofertaDocRef.id,
+            origemId: ofertaDocRef.id, // Link
             origemTipo: "oferta"
         });
 
         await batch.commit();
 
+        // [NOVO] Registrar Log
         await registrarLog("Oferta/Entrada Criada", {
             ofertaId: ofertaDocRef.id,
             financeiroId: financeiroDocRef.id,
@@ -531,6 +607,7 @@ formOferta.addEventListener("submit", async (e) => {
         toggleButtonLoading(ofertaSubmitBtn, false, "Registar Entrada");
     }
 });
+
 
 // --- FORMULÁRIO FINANCEIRO (SAÍDAS) ---
 formFinanceiro.addEventListener("submit", async (e) => {
@@ -554,17 +631,18 @@ formFinanceiro.addEventListener("submit", async (e) => {
         const novoDoc = await addDoc(colRef, {
             tipo: "saida",
             descricao: descricao,
-            valor: valor * -1,
+            valor: valor * -1, // Salva saídas como valor negativo
             data: data,
             timestamp: Timestamp.fromDate(new Date(`${data}T12:00:00`)),
             origemId: null, 
             origemTipo: null
         });
 
+        // [NOVO] Registrar Log
         await registrarLog("Saída Criada", {
             financeiroId: novoDoc.id,
             descricao: descricao,
-            valor: valor * -1
+            valor: valor * -1 // Salva o valor como negativo
         });
 
         formFinanceiro.reset();
@@ -579,58 +657,82 @@ formFinanceiro.addEventListener("submit", async (e) => {
 });
 
 
-// --- CARREGAMENTO E LISTENERS ---
+// --- CARREGAMENTO E RENDERIZAÇÃO DE DADOS ---
 function loadAllData() {
     if (!userId) return;
+    console.log("Carregando dados partilhados...");
     dashboardLoading.innerHTML = '<div class="spinner !border-t-blue-600 !border-gray-300 w-5 h-5"></div> Carregando dados...';
 
     stopAllListeners();
-    let loadsPending = 4; 
+    let loadsPending = 4; // Membros, Dizimos, Ofertas, Financeiro
     
     const onDataLoaded = () => {
         loadsPending--;
         if (loadsPending === 0) {
+            console.log("Todos os dados carregados.");
             dashboardLoading.innerHTML = "";
             updateDashboard();
-            renderAniversariantes();
+            renderAniversariantes(); // Renderiza aniversariantes após dados carregados
         }
     };
     
-    unsubMembros = onSnapshot(query(collection(db, "dadosIgreja", "ADCA-CG", "membros")), (snap) => {
-        localMembros = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        localMembros.sort((a, b) => a.nome.localeCompare(b.nome));
-        if (totalMembrosDisplay) totalMembrosDisplay.textContent = localMembros.length;
-        renderMembros(localMembros);
-        populateMembrosSelect(localMembros);
-        onDataLoaded();
-    });
+    try {
+        const qMembros = query(collection(db, "dadosIgreja", "ADCA-CG", "membros"));
+        unsubMembros = onSnapshot(qMembros, (snapshot) => {
+            localMembros = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            localMembros.sort((a, b) => a.nome.localeCompare(b.nome));
 
-    unsubDizimos = onSnapshot(query(collection(db, "dadosIgreja", "ADCA-CG", "dizimos")), (snap) => {
-        localDizimos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderFiltroDizimos();
-        onDataLoaded();
-    });
+            // [CORREÇÃO]
+            // Atualiza o contador de total de membros
+            if (totalMembrosDisplay) {
+                totalMembrosDisplay.textContent = localMembros.length;
+            }
+            // [FIM DA CORREÇÃO]
 
-    unsubOfertas = onSnapshot(query(collection(db, "dadosIgreja", "ADCA-CG", "ofertas")), (snap) => {
-        localOfertas = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderFiltroOfertas();
-        onDataLoaded();
-    });
+            renderMembros(localMembros);
+            populateMembrosSelect(localMembros);
+            onDataLoaded();
+        }, (error) => { console.error("Erro ao ouvir membros:", error.message); onDataLoaded(); });
+    } catch (e) { console.error("Erro ao criar query de membros:", e); onDataLoaded(); }
 
-    unsubFinanceiro = onSnapshot(query(collection(db, "dadosIgreja", "ADCA-CG", "financeiro")), (snap) => {
-        localFinanceiro = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderFiltroFinanceiro(); 
-        onDataLoaded();
-    });
+    try {
+        const qDizimos = query(collection(db, "dadosIgreja", "ADCA-CG", "dizimos"));
+        unsubDizimos = onSnapshot(qDizimos, (snapshot) => {
+            localDizimos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderFiltroDizimos();
+            onDataLoaded();
+        }, (error) => { console.error("Erro ao ouvir dízimos:", error.message); onDataLoaded(); });
+    } catch (e) { console.error("Erro ao criar query de dízimos:", e); onDataLoaded(); }
+
+    try {
+        const qOfertas = query(collection(db, "dadosIgreja", "ADCA-CG", "ofertas"));
+        unsubOfertas = onSnapshot(qOfertas, (snapshot) => {
+            localOfertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderFiltroOfertas();
+            onDataLoaded();
+        }, (error) => { console.error("Erro ao ouvir ofertas:", error.message); onDataLoaded(); });
+    } catch (e) { console.error("Erro ao criar query de ofertas:", e); onDataLoaded(); }
+
+    try {
+        const qFinanceiro = query(collection(db, "dadosIgreja", "ADCA-CG", "financeiro"));
+        unsubFinanceiro = onSnapshot(qFinanceiro, (snapshot) => {
+            localFinanceiro = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderFiltroFinanceiro(); 
+            onDataLoaded();
+        }, (error) => { console.error("Erro ao ouvir financeiro:", error.message); onDataLoaded(); });
+    } catch (e) { console.error("Erro ao criar query de financeiro:", e); onDataLoaded(); }
 }
 
+// Parar todos os listeners
 function stopAllListeners() {
     if (unsubMembros) unsubMembros();
     if (unsubDizimos) unsubDizimos();
     if (unsubOfertas) unsubOfertas();
     if (unsubFinanceiro) unsubFinanceiro();
+    console.log("Listeners interrompidos.");
 }
 
+// Limpar tabelas ao deslogar
 function clearAllTables() {
     listaMembros.innerHTML = "";
     listaDizimos.innerHTML = "";
@@ -645,28 +747,40 @@ function clearAllTables() {
     entradasDashboard.textContent = "R$ 0,00";
     saidasDashboard.textContent = "R$ 0,00";
     saldoMesDashboard.textContent = "R$ 0,00";
-    if (totalMembrosDisplay) totalMembrosDisplay.textContent = "0";
+    
+    // [CORREÇÃO]
+    if (totalMembrosDisplay) {
+        totalMembrosDisplay.textContent = "0";
+    }
+    // [FIM DA CORREÇÃO]
+    
     listaAniversariantesAtual.innerHTML = "";
     listaAniversariantesProximos.innerHTML = "";
 }
 
-// --- RENDERIZAÇÃO ---
 
+// Renderizar Tabela de Membros
 filtroMembros.addEventListener("input", (e) => {
     const termo = e.target.value.toLowerCase();
-    renderMembros(localMembros.filter(m => m.nome.toLowerCase().includes(termo)));
+    const membrosFiltrados = localMembros.filter(m => m.nome.toLowerCase().includes(termo));
+    renderMembros(membrosFiltrados);
 });
 
 function renderMembros(membros) {
     listaMembros.innerHTML = "";
-    if (membros.length === 0) return listaMembros.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhum membro encontrado.</td></tr>';
-    
+    if (membros.length === 0) {
+        listaMembros.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhum membro encontrado.</td></tr>'; // Colspan 5
+        return;
+    }
     membros.forEach(membro => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50";
+        const idade = calcularIdade(membro.dataNascimento); // Calcula a idade
         tr.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap"><a href="#" class="text-blue-600 hover:text-blue-800 font-medium" data-id="${membro.id}">${membro.nome}</a></td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${calcularIdade(membro.dataNascimento) || 'N/A'}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <a href="#" class="text-blue-600 hover:text-blue-800 font-medium" data-id="${membro.id}">${membro.nome}</a>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${idade || 'N/A'}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.funcao || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.telefone || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${membro.email || ''}</td>
@@ -679,40 +793,54 @@ function renderMembros(membros) {
     });
 }
 
+// Popular Select de Membros
 function populateMembrosSelect(membros) {
     dizimoMembroSelect.innerHTML = '<option value="">Selecione o Membro</option>';
-    membros.forEach(m => {
+    membros.forEach(membro => {
         const option = document.createElement("option");
-        option.value = m.id;
-        option.textContent = m.nome;
+        option.value = membro.id;
+        option.textContent = membro.nome;
         dizimoMembroSelect.appendChild(option);
     });
 }
 
+// Renderizar Tabela Financeiro (Extrato)
 function renderFinanceiro(transacoes) {
     listaFinanceiro.innerHTML = "";
-    if (transacoes.length === 0) return listaFinanceiro.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum lançamento no caixa para este mês/ano.</td></tr>';
+
+    if (transacoes.length === 0) {
+        listaFinanceiro.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum lançamento no caixa para este mês/ano.</td></tr>';
+        return;
+    }
     
     transacoes.forEach(transacao => {
+        const valor = transacao.valor;
+        const corValor = valor > 0 ? "text-green-600" : "text-red-600";
+        const sinal = valor > 0 ? "+" : "";
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatarData(transacao.data)}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${transacao.descricao}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${transacao.valor > 0 ? "text-green-600" : "text-red-600"}">
-            ${transacao.valor > 0 ? "+" : ""} R$ ${Math.abs(transacao.valor).toFixed(2).replace(".", ",")}
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${corValor}">
+            ${sinal} R$ ${Math.abs(valor).toFixed(2).replace(".", ",")}
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm">
-            <button data-id="${transacao.id}" class="delete-btn text-red-500 hover:text-red-700" data-tipo="financeiro"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            <button data-id="${transacao.id}" class="delete-btn text-red-500 hover:text-red-700" data-tipo="financeiro">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
         </td>
     `;
         listaFinanceiro.appendChild(tr);
     });
+
     adicionarListenersExcluir();
     lucide.createIcons();
 }
 
-// Filtros
+// --- FILTROS E RENDERIZAÇÃO DE DÍZIMOS E OFERTAS ---
 const anoAtual = new Date().getFullYear();
+
 function popularFiltros(selectMes, selectAno, dataDefault) {
     selectMes.innerHTML = "";
     MESES_DO_ANO.forEach((mes, index) => {
@@ -724,15 +852,25 @@ function popularFiltros(selectMes, selectAno, dataDefault) {
     });
 
     selectAno.innerHTML = "";
-    for (let i = 2027; i >= 2023; i--) {
+    // Corrigido: Loop para incluir anos futuros até 2027
+    const anoInicial = Math.min(anoAtual - 2, 2023); // Começa 2 anos atrás ou 2023
+    const anoFinal = 2027;
+    
+    for (let i = anoFinal; i >= anoInicial; i--) {
         const option = document.createElement("option");
         option.value = i;
         option.textContent = i;
         if (i === dataDefault.getFullYear()) option.selected = true;
-        selectAno.appendChild(option);
+        // Adiciona anos passados no início
+        if (i < dataDefault.getFullYear()) {
+            selectAno.prepend(option);
+        } else {
+            selectAno.appendChild(option);
+        }
     }
 }
 
+// Event Listeners dos Filtros
 filtroDizimoMes.addEventListener("change", renderFiltroDizimos);
 filtroDizimoAno.addEventListener("change", renderFiltroDizimos);
 filtroOfertaMes.addEventListener("change", renderFiltroOfertas);
@@ -740,30 +878,58 @@ filtroOfertaAno.addEventListener("change", renderFiltroOfertas);
 filtroFinanceiroMes.addEventListener("change", renderFiltroFinanceiro);
 filtroFinanceiroAno.addEventListener("change", renderFiltroFinanceiro);
 
+// (NOVO) Função atualizada para calcular Entradas/Saídas do Mês
 function renderFiltroFinanceiro() {
     const mes = parseInt(filtroFinanceiroMes.value);
     const ano = parseInt(filtroFinanceiroAno.value);
 
+    // 1. Filtrar os dados
     const dadosFiltrados = localFinanceiro.filter(d => {
         const data = getDateFromInput(d.data);
-        return data && data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
-    }).sort((a, b) => getDateFromInput(b.data) - getDateFromInput(a.data));
+        if (!data) return false;
+        return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
+    });
 
+    // 2. Ordenar os dados filtrados (mais recente primeiro)
+    dadosFiltrados.sort((a, b) => {
+        const dataA = getDateFromInput(a.data);
+        const dataB = getDateFromInput(b.data);
+        if (!dataA) return 1;
+        if (!dataB) return -1;
+        return dataB - dataA;
+    });
+
+    // 3. Renderizar a tabela com os dados filtrados
     renderFinanceiro(dadosFiltrados);
     
-    const entradasMes = dadosFiltrados.filter(t => t.valor > 0).reduce((acc, t) => acc + t.valor, 0);
-    const saidasMes = dadosFiltrados.filter(t => t.valor < 0).reduce((acc, t) => acc + t.valor, 0);
-    const saldoMes = entradasMes + saidasMes;
+    // 4. (NOVO) Calcular totais do mês filtrado
+    const entradasMes = dadosFiltrados
+        .filter(t => t.valor > 0)
+        .reduce((acc, t) => acc + t.valor, 0);
 
+    const saidasMes = dadosFiltrados
+        .filter(t => t.valor < 0)
+        .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
+        
+    const saldoMes = entradasMes + saidasMes; // Soma (saídas são negativas)
+
+    // 5. (NOVO) Atualizar o resumo do mês na aba Financeiro
     entradasMesFinanceiro.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
     saidasMesFinanceiro.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
+    
+    // Corrigido: Atualiza o novo cartão de Saldo do Mês
     saldoMesFinanceiroAba.textContent = `R$ ${saldoMes.toFixed(2).replace(".", ",")}`;
-    saldoMesFinanceiroAba.className = `text-2xl font-bold ${saldoMes >= 0 ? "text-indigo-700" : "text-red-700"}`;
+    const corSaldoMes = saldoMes >= 0 ? "text-indigo-700" : "text-red-700";
+    saldoMesFinanceiroAba.className = `text-2xl font-bold ${corSaldoMes}`;
 
-    const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
-    saldoTotalFinanceiro.className = `text-2xl font-bold ${saldoTotal >= 0 ? "text-blue-700" : "text-red-700"}`;
+
+    // 6. Calcular e renderizar o SALDO TOTAL (usando todos os dados)
+    const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
+    const corSaldoTotal = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
+    saldoTotalFinanceiro.className = `text-2xl font-bold ${corSaldoTotal}`;
     saldoTotalFinanceiro.textContent = `R$ ${saldoTotal.toFixed(2).replace(".", ",")}`;
 }
+
 
 function renderFiltroDizimos() {
     const mes = parseInt(filtroDizimoMes.value);
@@ -771,24 +937,52 @@ function renderFiltroDizimos() {
 
     const dadosFiltrados = localDizimos.filter(d => {
         const data = getDateFromInput(d.data);
-        return data && data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
-    }).sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+        if (!data) return false;
+        return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
+    });
+
+    dadosFiltrados.sort((a, b) => {
+        const dataA = getDateFromInput(a.data);
+        const dataB = getDateFromInput(b.data);
+        if (!dataA) return 1;
+        if (!dataB) return -1;
+        return dataA - dataB;
+    });
 
     listaDizimos.innerHTML = "";
-    if (dadosFiltrados.length === 0) listaDizimos.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registado para este mês/ano.</td></tr>';
-    else {
-        dadosFiltrados.forEach(dizimo => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatarData(dizimo.data)}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${dizimo.membroNome}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">R$ ${dizimo.valor.toFixed(2).replace(".", ",")}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm"><button data-id="${dizimo.id}" class="delete-btn text-red-500 hover:text-red-700" data-tipo="dizimo"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>`;
-            listaDizimos.appendChild(tr);
-        });
-        const total = dadosFiltrados.reduce((acc, d) => acc + d.valor, 0);
-        listaDizimos.innerHTML += `<tr class="bg-gray-100 font-bold border-t-2"><td colspan="2" class="px-6 py-3 text-right text-sm">Total do Mês:</td><td class="px-6 py-3 text-sm text-green-700">R$ ${total.toFixed(2).replace(".", ",")}</td><td></td></tr>`;
+    if (dadosFiltrados.length === 0) {
+        listaDizimos.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum dízimo registado para este mês/ano.</td></tr>';
+        return;
     }
+
+    dadosFiltrados.forEach(dizimo => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatarData(dizimo.data)}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${dizimo.membroNome}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">R$ ${dizimo.valor.toFixed(2).replace(".", ",")}</td>
+         <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <button data-id="${dizimo.id}" class="delete-btn text-red-500 hover:text-red-700" data-tipo="dizimo">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </td>
+    `;
+        listaDizimos.appendChild(tr);
+    });
+    
+    // Total do Mês (Dízimos)
+    const totalDizimosMes = dadosFiltrados.reduce((acc, dizimo) => acc + (dizimo.valor || 0), 0);
+    const trTotal = document.createElement("tr");
+    trTotal.className = "bg-gray-100 font-bold border-t-2"; 
+    trTotal.innerHTML = `
+        <td colspan="2" class="px-6 py-3 text-right text-sm text-gray-800 uppercase tracking-wider">Total do Mês:</td>
+        <td class="px-6 py-3 whitespace-nowrap text-sm text-green-700 font-medium">
+            R$ ${totalDizimosMes.toFixed(2).replace(".", ",")}
+        </td>
+        <td class="px-6 py-3"></td>
+    `;
+    listaDizimos.appendChild(trTotal);
+
     adicionarListenersExcluir();
     lucide.createIcons();
 }
@@ -799,62 +993,116 @@ function renderFiltroOfertas() {
 
     const dadosFiltrados = localOfertas.filter(d => {
         const data = getDateFromInput(d.data);
-        return data && data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
-    }).sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
+        if (!data) return false;
+        return data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
+    });
+
+    dadosFiltrados.sort((a, b) => {
+        const dataA = getDateFromInput(a.data);
+        const dataB = getDateFromInput(b.data);
+        if (!dataA) return 1;
+        if (!dataB) return -1;
+        return dataA - dataB;
+    });
 
     listaOfertas.innerHTML = "";
-    if (dadosFiltrados.length === 0) listaOfertas.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhuma oferta registada para este mês/ano.</td></tr>';
-    else {
-        dadosFiltrados.forEach(oferta => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatarData(oferta.data)}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${oferta.tipo}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${oferta.descricao}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">R$ ${oferta.valor.toFixed(2).replace(".", ",")}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm"><button data-id="${oferta.id}" class="delete-btn text-red-500 hover:text-red-700" data-tipo="oferta"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>`;
-            listaOfertas.appendChild(tr);
-        });
-        const total = dadosFiltrados.reduce((acc, o) => acc + o.valor, 0);
-        listaOfertas.innerHTML += `<tr class="bg-gray-100 font-bold border-t-2"><td colspan="3" class="px-6 py-3 text-right text-sm">Total do Mês:</td><td class="px-6 py-3 text-sm text-green-700">R$ ${total.toFixed(2).replace(".", ",")}</td><td></td></tr>`;
+    if (dadosFiltrados.length === 0) {
+        listaOfertas.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhuma oferta registada para este mês/ano.</td></tr>';
+        return;
     }
+
+    dadosFiltrados.forEach(oferta => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${formatarData(oferta.data)}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${oferta.tipo}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${oferta.descricao}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">R$ ${oferta.valor.toFixed(2).replace(".", ",")}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <button data-id="${oferta.id}" class="delete-btn text-red-500 hover:text-red-700" data-tipo="oferta">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </td>
+    `;
+        listaOfertas.appendChild(tr);
+    });
+    
+    // Total do Mês (Ofertas)
+    const totalOfertasMes = dadosFiltrados.reduce((acc, oferta) => acc + (oferta.valor || 0), 0);
+    const trTotal = document.createElement("tr");
+    trTotal.className = "bg-gray-100 font-bold border-t-2";
+    trTotal.innerHTML = `
+        <td colspan="3" class="px-6 py-3 text-right text-sm text-gray-800 uppercase tracking-wider">Total do Mês:</td>
+        <td class="px-6 py-3 whitespace-nowrap text-sm text-green-700 font-medium">
+            R$ ${totalOfertasMes.toFixed(2).replace(".", ",")}
+        </td>
+        <td class="px-6 py-3"></td>
+    `;
+    listaOfertas.appendChild(trTotal);
+
     adicionarListenersExcluir();
     lucide.createIcons();
 }
 
+
+// --- ATUALIZAÇÃO DO DASHBOARD ---
 function updateDashboard() {
-    if (!localFinanceiro) return;
-    const saldoTotal = localFinanceiro.reduce((acc, t) => acc + t.valor, 0);
-    saldoDashboard.className = `text-3xl font-bold ${saldoTotal >= 0 ? "text-blue-700" : "text-red-700"} mt-1`;
+    if (!localFinanceiro || !localMembros) return;
+
+    // 1. Saldo Total
+    const saldoTotal = localFinanceiro.reduce((acc, transacao) => acc + transacao.valor, 0);
+    const corSaldo = saldoTotal >= 0 ? "text-blue-700" : "text-red-700";
+    saldoDashboard.className = `text-3xl font-bold ${corSaldo} mt-1`;
     saldoDashboard.textContent = `R$ ${saldoTotal.toFixed(2).replace(".", ",")}`;
 
-    const hoje = new Date();
+    // 2. Transações do Mês Atual
+    const mesCorrente = new Date().getMonth();
+    const anoCorrente = new Date().getFullYear();
+
     const transacoesMes = localFinanceiro.filter(t => {
         const data = getDateFromInput(t.data);
-        return data && data.getUTCMonth() === hoje.getMonth() && data.getUTCFullYear() === hoje.getFullYear();
+        if (!data) return false;
+        return data.getUTCMonth() === mesCorrente && data.getUTCFullYear() === anoCorrente;
     });
 
-    const entradas = transacoesMes.filter(t => t.valor > 0).reduce((acc, t) => acc + t.valor, 0);
-    const saidas = transacoesMes.filter(t => t.valor < 0).reduce((acc, t) => acc + t.valor, 0);
-    const saldoMes = entradas + saidas;
+    const entradasMes = transacoesMes
+        .filter(t => t.valor > 0)
+        .reduce((acc, t) => acc + t.valor, 0);
 
-    entradasDashboard.textContent = `R$ ${entradas.toFixed(2).replace(".", ",")}`;
-    saidasDashboard.textContent = `R$ ${Math.abs(saidas).toFixed(2).replace(".", ",")}`;
+    const saidasMes = transacoesMes
+        .filter(t => t.valor < 0)
+        .reduce((acc, t) => acc + t.valor, 0); // Já é negativo
+        
+    const saldoMes = entradasMes + saidasMes;
+
+    entradasDashboard.textContent = `R$ ${entradasMes.toFixed(2).replace(".", ",")}`;
+    saidasDashboard.textContent = `R$ ${Math.abs(saidasMes).toFixed(2).replace(".", ",")}`;
+    
+    // 3. (Novo) Saldo do Mês
     saldoMesDashboard.textContent = `R$ ${saldoMes.toFixed(2).replace(".", ",")}`;
-    saldoMesDashboard.className = `text-3xl font-bold ${saldoMes >= 0 ? "text-indigo-700" : "text-red-700"} mt-1`;
+    const corSaldoMes = saldoMes >= 0 ? "text-indigo-700" : "text-red-700";
+    saldoMesDashboard.className = `text-3xl font-bold ${corSaldoMes} mt-1`;
 }
 
-// --- MODAIS ---
+// --- CONTROLO DOS MODAIS (JANELAS POP-UP) ---
 
+// Função auxiliar para definir textContent se o elemento existir
 function setElementText(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text || 'N/A';
+    const element = document.getElementById(id);
+    if (element) {
+        element.textContent = text || 'N/A';
+    } else {
+        // Este aviso é importante para debugging de dessincronização HTML/JS
+        console.warn(`Elemento com ID "${id}" não encontrado no HTML.`);
+    }
 }
 
+// Modal Detalhes do Membro
 function showMembroDetalhesModal(id) {
     const membro = localMembros.find(m => m.id === id);
     if (!membro) return;
     
+    // Corrigido: Adicionadas verificações (setElementText) para evitar o erro
     setElementText("modal-detalhes-nome", membro.nome);
     setElementText("modal-detalhes-funcao", membro.funcao);
     setElementText("modal-detalhes-email", membro.email);
@@ -875,10 +1123,14 @@ function showMembroDetalhesModal(id) {
     setElementText("modal-detalhes-igreja-anterior", membro.igrejaAnterior);
     setElementText("modal-detalhes-cargo-anterior", membro.cargoAnterior);
     
-    const conjEl = document.getElementById("conjuge-detalhes-container");
-    if (conjEl) {
-        if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) conjEl.classList.remove("hidden");
-        else conjEl.classList.add("hidden");
+    // Oculta/mostra campo cônjuge
+    const conjugeDetalhesEl = document.getElementById("conjuge-detalhes-container");
+    if (conjugeDetalhesEl) {
+        if (membro.estadoCivil === 'Casado(a)' && membro.conjuge) {
+            conjugeDetalhesEl.classList.remove("hidden");
+        } else {
+            conjugeDetalhesEl.classList.add("hidden");
+        }
     }
 
     membroParaEditarId = id; 
@@ -889,6 +1141,7 @@ function showMembroDetalhesModal(id) {
 }
 closeMembroModal.onclick = () => membroDetalhesModal.style.display = "none";
 
+// Modal Editar Membro
 function showMembroEditModal() {
     const membro = localMembros.find(m => m.id === membroParaEditarId);
     if (!membro) return;
@@ -913,8 +1166,12 @@ function showMembroEditModal() {
     document.getElementById("edit-igreja-anterior").value = membro.igrejaAnterior || '';
     document.getElementById("edit-cargo-anterior").value = membro.cargoAnterior || '';
     
-    if (membro.estadoCivil === 'Casado(a)') editConjugeContainer.classList.remove("hidden");
-    else editConjugeContainer.classList.add("hidden");
+    // Mostra/oculta cônjuge na edição
+    if (membro.estadoCivil === 'Casado(a)') {
+        editConjugeContainer.classList.remove("hidden");
+    } else {
+        editConjugeContainer.classList.add("hidden");
+    }
     
     document.getElementById("edit-membro-password").value = "";
     document.getElementById("edit-membro-error").textContent = "";
@@ -933,7 +1190,7 @@ closeMembroEditModal.onclick = doCloseMembroEditModal;
 cancelEditMembroBtn.onclick = doCloseMembroEditModal;
 
 
-// Exclusão
+// Modal Universal de Exclusão
 function showDeleteModal() {
     deleteErrorMsg.textContent = "";
     deleteCascadeWarning.textContent = "";
@@ -941,9 +1198,11 @@ function showDeleteModal() {
 
     if (itemParaExcluir.tipo === 'financeiro') {
         const fin = localFinanceiro.find(f => f.id === itemParaExcluir.id);
-        if (fin && fin.origemId) deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o Dízimo ou Oferta original associado.";
+        if (fin && fin.origemId) {
+            deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o Dízimo ou Oferta original associado a este lançamento.";
+        }
     } else if (itemParaExcluir.tipo === 'dizimo' || itemParaExcluir.tipo === 'oferta') {
-        deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o lançamento no Caixa associado.";
+        deleteCascadeWarning.textContent = "Aviso: Isto também excluirá o lançamento no Caixa associado a este registo.";
     } else if (itemParaExcluir.tipo === 'membro') {
         deleteCascadeWarning.textContent = "Aviso: Excluir um membro NÃO apaga seus registos financeiros.";
         membroDetalhesModal.style.display = "none";
@@ -957,22 +1216,24 @@ closeDeleteModal.onclick = () => deleteConfirmModal.style.display = "none";
 cancelDeleteBtn.onclick = () => deleteConfirmModal.style.display = "none";
 
 function adicionarListenersExcluir() {
-     document.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.removeEventListener("click", handleDeleteClick); 
-        btn.addEventListener("click", handleDeleteClick);
+     document.querySelectorAll(".delete-btn").forEach(button => {
+        button.removeEventListener("click", handleDeleteClick); 
+        button.addEventListener("click", handleDeleteClick);
     });
 }
 
 function handleDeleteClick(e) {
     e.stopPropagation(); 
-    itemParaExcluir.id = e.currentTarget.dataset.id;
-    itemParaExcluir.tipo = e.currentTarget.dataset.tipo;
+    const button = e.currentTarget;
+    itemParaExcluir.id = button.dataset.id;
+    itemParaExcluir.tipo = button.dataset.tipo;
     showDeleteModal();
 }
 
+// Processar a Exclusão (Formulário do Modal)
 deleteConfirmForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!userId || !itemParaExcluir.id) return;
+    if (!userId || !itemParaExcluir.id || !itemParaExcluir.tipo) return;
 
     toggleButtonLoading(deleteSubmitBtn, true, "Excluir Permanentemente");
     const password = document.getElementById("delete-password").value;
@@ -984,54 +1245,95 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
         return;
     }
 
+    // 1. Reautenticar
     try {
         await reauthenticate(password);
-        
+    } catch (error) {
+        console.error(error);
+        deleteErrorMsg.textContent = error.message;
+        toggleButtonLoading(deleteSubmitBtn, false, "Excluir Permanentemente");
+        return;
+    }
+
+    // 2. Executar a Exclusão
+    try {
         const batch = writeBatch(db);
         const basePath = "dadosIgreja/ADCA-CG";
-        let logAcao = "", logDetalhes = {};
+        let logAcao = "";
+        let logDetalhes = {};
         
         if (itemParaExcluir.tipo === 'financeiro') {
-            const fin = localFinanceiro.find(f => f.id === itemParaExcluir.id);
-            batch.delete(doc(db, basePath, "financeiro", itemParaExcluir.id)); 
-            if (fin && fin.origemId && fin.origemTipo) {
-                 batch.delete(doc(db, basePath, fin.origemTipo === 'dizimo' ? 'dizimos' : 'ofertas', fin.origemId));
+            const finDocRef = doc(db, basePath, "financeiro", itemParaExcluir.id);
+            const finData = localFinanceiro.find(f => f.id === itemParaExcluir.id);
+            
+            batch.delete(finDocRef); 
+
+            if (finData && finData.origemId && finData.origemTipo) {
+                 const origemCollection = finData.origemTipo === 'dizimo' ? 'dizimos' : 'ofertas';
+                 const origemDocRef = doc(db, basePath, origemCollection, finData.origemId);
+                 batch.delete(origemDocRef);
             }
+            
             logAcao = "Exclusão Financeiro";
-            logDetalhes = { financeiroId: itemParaExcluir.id, detalhesExcluidos: fin };
+            logDetalhes = { financeiroId: itemParaExcluir.id, detalhesExcluidos: finData };
         
         } else if (itemParaExcluir.tipo === 'dizimo') {
-            const dizimo = localDizimos.find(d => d.id === itemParaExcluir.id);
-            batch.delete(doc(db, basePath, "dizimos", itemParaExcluir.id)); 
-            if (dizimo && dizimo.financeiroId) batch.delete(doc(db, basePath, "financeiro", dizimo.financeiroId));
+            const dizimoDocRef = doc(db, basePath, "dizimos", itemParaExcluir.id);
+            const dizimoData = localDizimos.find(d => d.id === itemParaExcluir.id);
+            
+            batch.delete(dizimoDocRef); 
+            
+            if (dizimoData && dizimoData.financeiroId) {
+                const finDocRef = doc(db, basePath, "financeiro", dizimoData.financeiroId);
+                batch.delete(finDocRef);
+            }
+
             logAcao = "Exclusão Dízimo";
-            logDetalhes = { dizimoId: itemParaExcluir.id, detalhesExcluidos: dizimo };
+            logDetalhes = { dizimoId: itemParaExcluir.id, detalhesExcluidos: dizimoData };
 
         } else if (itemParaExcluir.tipo === 'oferta') {
-            const oferta = localOfertas.find(o => o.id === itemParaExcluir.id);
-            batch.delete(doc(db, basePath, "ofertas", itemParaExcluir.id)); 
-            if (oferta && oferta.financeiroId) batch.delete(doc(db, basePath, "financeiro", oferta.financeiroId));
+            const ofertaDocRef = doc(db, basePath, "ofertas", itemParaExcluir.id);
+            const ofertaData = localOfertas.find(o => o.id === itemParaExcluir.id);
+
+            batch.delete(ofertaDocRef); 
+
+            if (ofertaData && ofertaData.financeiroId) {
+                const finDocRef = doc(db, basePath, "financeiro", ofertaData.financeiroId);
+                batch.delete(finDocRef);
+            }
+            
             logAcao = "Exclusão Oferta";
-            logDetalhes = { ofertaId: itemParaExcluir.id, detalhesExcluidos: oferta };
+            logDetalhes = { ofertaId: itemParaExcluir.id, detalhesExcluidos: ofertaData };
             
         } else if (itemParaExcluir.tipo === 'membro') {
-            // Membro não usa batch aqui para simplificar a lógica isolada
-            const membro = localMembros.find(m => m.id === itemParaExcluir.id);
-            await deleteDoc(doc(db, basePath, "membros", itemParaExcluir.id));
-            
-            await registrarLog("Exclusão Membro", { membroId: itemParaExcluir.id, detalhesExcluidos: membro });
+            const membroDocRef = doc(db, basePath, "membros", itemParaExcluir.id);
+            const membroData = localMembros.find(m => m.id === itemParaExcluir.id); // Captura os dados ANTES de excluir
+
+            await deleteDoc(membroDocRef); // Ação sem batch
             
             deleteConfirmModal.style.display = "none";
             showToast("Membro excluído com sucesso.", "success");
+
+            // [NOVO] Registrar Log
+            await registrarLog("Exclusão Membro", { 
+                membroId: itemParaExcluir.id,
+                detalhesExcluidos: membroData
+            });
+            
             toggleButtonLoading(deleteSubmitBtn, false, "Excluir Permanentemente");
-            return;
+            return; // Sair da função
         }
 
+        // Somente para operações em batch
         await batch.commit();
-        if(logAcao) await registrarLog(logAcao, logDetalhes);
         
         deleteConfirmModal.style.display = "none";
         showToast("Registo excluído com sucesso.", "success");
+
+        // [NOVO] Registrar log APÓS o commit do batch ser bem-sucedido
+        if (logAcao) {
+            await registrarLog(logAcao, logDetalhes);
+        }
 
     } catch (error) {
         console.error("Erro ao excluir registo:", error);
@@ -1041,20 +1343,27 @@ deleteConfirmForm.addEventListener("submit", async (e) => {
     }
 });
 
+// Fecha modais se clicar fora do conteúdo
 window.onclick = function (event) {
-    if (event.target == membroDetalhesModal) membroDetalhesModal.style.display = "none";
-    if (event.target == deleteConfirmModal) deleteConfirmModal.style.display = "none";
-    if (event.target == membroEditModal) doCloseMembroEditModal(); 
+    if (event.target == membroDetalhesModal) {
+        membroDetalhesModal.style.display = "none";
+    }
+    if (event.target == deleteConfirmModal) {
+        deleteConfirmModal.style.display = "none";
+    }
+     if (event.target == membroEditModal) {
+        doCloseMembroEditModal(); 
+    }
 }
 
-// --- RELATÓRIOS ---
-
+// --- GERAÇÃO DE RELATÓRIO (MENSAL) ---
 gerarRelatorioBtn.addEventListener("click", () => {
     try {
         const mes = parseInt(relatorioGeralMes.value);
         const ano = parseInt(relatorioGeralAno.value);
         const nomeMes = MESES_DO_ANO[mes];
         
+        // 1. Filtrar todos os dados para o mês/ano selecionado
         const dizimosDoMes = localDizimos.filter(d => {
             const data = getDateFromInput(d.data);
             return data && data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
@@ -1070,116 +1379,565 @@ gerarRelatorioBtn.addEventListener("click", () => {
             return data && data.getUTCMonth() === mes && data.getUTCFullYear() === ano;
         });
 
+        // 2. Calcular Totais do Mês
         const totalDizimos = dizimosDoMes.reduce((acc, d) => acc + (d.valor || 0), 0);
         const totalOfertas = ofertasDoMes.reduce((acc, o) => acc + (o.valor || 0), 0);
-        const totalEntradas = totalDizimos + totalOfertas;
+        const totalEntradasMes = totalDizimos + totalOfertas;
+        
         const saidasDoMes = financDoMes.filter(f => f.valor < 0);
-        saidasDoMes.sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
-        const totalSaidas = saidasDoMes.reduce((acc, s) => acc + (s.valor || 0), 0);
-        const saldoMes = totalEntradas + totalSaidas;
+        const totalSaidasMes = saidasDoMes.reduce((acc, s) => acc + (s.valor || 0), 0); // Já é negativo
+        
+        const saldoMes = totalEntradasMes + totalSaidasMes;
+        
+        // 3. Calcular Saldo Geral (Total)
         const saldoGeral = localFinanceiro.reduce((acc, t) => acc + (t.valor || 0), 0);
+        
+        // 4. Ordenar Saídas para o extrato
+        saidasDoMes.sort((a, b) => getDateFromInput(a.data) - getDateFromInput(b.data));
 
-        const html = `
-            <html><head><title>Relatório Financeiro - ${nomeMes}/${ano}</title>
-            <style>
-                body{font-family:sans-serif;padding:20px} h1{color:#1e40af;border-bottom:2px solid #3b82f6}
-                table{width:100%;border-collapse:collapse;margin:20px 0} th,td{border:1px solid #ddd;padding:8px}
-                th{background:#f3f4f6} .green{color:green} .red{color:red} .right{text-align:right}
-            </style></head><body>
-            <h1>Relatório Financeiro - ${nomeMes}/${ano}</h1>
-            <p>Gerado em: ${new Date().toLocaleString()}</p>
-            
-            <h3>Resumo</h3>
-            <p>Entradas: <span class="green">${formatarMoeda(totalEntradas)}</span></p>
-            <p>Saídas: <span class="red">${formatarMoeda(totalSaidas)}</span></p>
-            <p><strong>Saldo do Mês: <span class="${saldoMes>=0?'green':'red'}">${formatarMoeda(saldoMes)}</span></strong></p>
-            <p><strong>Saldo Geral em Caixa: ${formatarMoeda(saldoGeral)}</strong></p>
-            
-            <h3>Dízimos</h3>
-            <table><tr><th>Data</th><th>Membro</th><th class="right">Valor</th></tr>
-            ${dizimosDoMes.map(d=>`<tr><td>${formatarData(d.data)}</td><td>${d.membroNome}</td><td class="right green">${formatarMoeda(d.valor)}</td></tr>`).join('')}
-            </table>
-            
-            <h3>Ofertas</h3>
-            <table><tr><th>Data</th><th>Tipo</th><th>Desc.</th><th class="right">Valor</th></tr>
-            ${ofertasDoMes.map(o=>`<tr><td>${formatarData(o.data)}</td><td>${o.tipo}</td><td>${o.descricao}</td><td class="right green">${formatarMoeda(o.valor)}</td></tr>`).join('')}
-            </table>
-            
-            <h3>Saídas</h3>
-            <table><tr><th>Data</th><th>Desc.</th><th class="right">Valor</th></tr>
-            ${saidasDoMes.map(s=>`<tr><td>${formatarData(s.data)}</td><td>${s.descricao}</td><td class="right red">${formatarMoeda(s.valor)}</td></tr>`).join('')}
-            </table>
-            </body></html>`;
-            
-        const win = window.open("","_blank");
-        win.document.write(html);
-        win.document.close();
-    } catch (e) {
-        console.error(e);
-        showToast("Erro ao gerar relatório.", "error");
+
+        // 5. Construir o HTML do Relatório
+        let relatorioHTML = `
+            <html>
+            <head>
+                <title>Relatório Financeiro Mensal - ${nomeMes} ${ano}</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <style>
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .no-print { display: none; }
+                    }
+                    body { font-family: sans-serif; }
+                    h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
+                    h2 { font-size: 20px; font-weight: 600; color: #1d4ed8; margin-top: 24px; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                    th, td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; font-size: 14px; }
+                    th { background-color: #f3f4f6; font-weight: 600; }
+                    .currency { text-align: right; font-weight: 500; }
+                    .currency-header { text-align: right; }
+                    .entrada { color: #15803d; }
+                    .saida { color: #b91c1c; }
+                    .total { font-weight: bold; font-size: 16px; }
+                    .summary-box { background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-top: 16px; }
+                    /* Corrigido: Alinhamento à esquerda */
+                    .summary-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #d1d5db; text-align: left; }
+                    .summary-item:last-child { border-bottom: none; }
+                    .summary-label { font-weight: 600; color: #1f2937; text-align: left; }
+                    .summary-value { font-weight: 600; text-align: right; }
+                    .summary-title { font-size: 1.125rem; font-weight: 600; color: #1e40af; margin-bottom: 8px; text-align: left; }
+                </style>
+            </head>
+            <body class="bg-gray-100 p-8">
+                <div class="container mx-auto bg-white p-10 rounded shadow-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1>Relatório Financeiro Mensal</h1>
+                        <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">Mês de Referência: <span class="font-medium">${nomeMes} de ${ano}</span></p>
+                    <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+
+                    <!-- Resumo do Mês (Alinhado à Esquerda) -->
+                    <div class="summary-box">
+                        <h2 class="summary-title">Resumo do Mês (${nomeMes})</h2>
+                        <div class="summary-item">
+                            <span class="summary-label">Entradas (Mês):</span>
+                            <span class="summary-value entrada">${formatarMoeda(totalEntradasMes)}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Saídas (Mês):</span>
+                            <span class="summary-value saida">${formatarMoeda(totalSaidasMes)}</span>
+                        </div>
+                        <div class="summary-item total">
+                            <span class="summary-label">Saldo (Mês):</span>
+                            <span class="summary-value ${saldoMes >= 0 ? 'entrada' : 'saida'}">${formatarMoeda(saldoMes)}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Dízimos -->
+                    <h2>Registos de Dízimos (${nomeMes})</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Membro</th>
+                                <th class="currency-header">Valor (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${dizimosDoMes.map(d => `
+                                <tr>
+                                    <td>${formatarData(d.data)}</td>
+                                    <td>${d.membroNome}</td>
+                                    <td class="currency entrada">${formatarMoeda(d.valor || 0)}</td>
+                                </tr>
+                            `).join('')}
+                            ${dizimosDoMes.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhum dízimo registado neste mês.</td></tr>' : ''}
+                            <tr class="bg-gray-50 font-bold">
+                                <td colspan="2" class="text-right">Total Dízimos (Mês):</td>
+                                <td class="currency entrada">${formatarMoeda(totalDizimos)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Ofertas -->
+                    <h2>Registos de Ofertas e Outras Entradas (${nomeMes})</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Descrição</th>
+                                <th class="currency-header">Valor (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${ofertasDoMes.map(o => `
+                                <tr>
+                                    <td>${formatarData(o.data)}</td>
+                                    <td>${o.tipo}</td>
+                                    <td>${o.descricao}</td>
+                                    <td class="currency entrada">${formatarMoeda(o.valor || 0)}</td>
+                                </tr>
+                            `).join('')}
+                            ${ofertasDoMes.length === 0 ? '<tr><td colspan="4" class="text-center text-gray-500 py-4">Nenhuma oferta registada neste mês.</td></tr>' : ''}
+                             <tr class="bg-gray-50 font-bold">
+                                <td colspan="3" class="text-right">Total Ofertas (Mês):</td>
+                                <td class="currency entrada">${formatarMoeda(totalOfertas)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Extrato Financeiro - SAÍDAS -->
+                    <h2>Extrato Financeiro - SAÍDAS (${nomeMes})</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th class="currency-header">Valor (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                             ${saidasDoMes.map(f => `
+                                <tr>
+                                    <td>${formatarData(f.data)}</td>
+                                    <td>${f.descricao}</td>
+                                    <td class="currency saida">${formatarMoeda(f.valor || 0)}</td>
+                                </tr>
+                            `).join('')}
+                            ${saidasDoMes.length === 0 ? '<tr><td colspan="3" class="text-center text-gray-500 py-4">Nenhuma saída registada neste mês.</td></tr>' : ''}
+                            <tr class="bg-gray-50 font-bold">
+                                <td colspan="2" class="text-right">Total Saídas (Mês):</td>
+                                <td class="currency saida">${formatarMoeda(totalSaidasMes)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Resumo Final (Alinhado à Esquerda) -->
+                    <div class="summary-box mt-8">
+                         <h2 class="summary-title">Resumo Financeiro Final</h2>
+                         <div class="summary-item">
+                            <span class="summary-label">Total de Entradas (${nomeMes}):</span>
+                            <span class="summary-value entrada">${formatarMoeda(totalEntradasMes)}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Total de Saídas (${nomeMes}):</span>
+                            <span class="summary-value saida">${formatarMoeda(totalSaidasMes)}</span>
+                        </div>
+                        <div class="summary-item total">
+                            <span class="summary-label">Saldo Final (${nomeMes}):</span>
+                            <span class="summary-value ${saldoMes >= 0 ? 'entrada' : 'saida'}">${formatarMoeda(saldoMes)}</span>
+                        </div>
+                         <div class="summary-item total border-t-2 border-blue-200 mt-2 pt-2">
+                            <span class="summary-label text-blue-800">SALDO FINAL (CAIXA GERAL):</span>
+                            <span class="summary-value ${saldoGeral >= 0 ? 'text-blue-800' : 'saida'}">${formatarMoeda(saldoGeral)}</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </body>
+            </html>
+        `;
+
+        // 6. Abrir numa nova janela
+        const relatorioJanela = window.open("", "_blank");
+        if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
+            console.error("Falha ao abrir janela de relatório. Provável bloqueador de pop-up.");
+            showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
+            return;
+        }
+
+        relatorioJanela.document.write(relatorioHTML);
+        relatorioJanela.document.close();
+    
+    } catch (error) {
+        // Pega qualquer erro que possa ter acontecido
+        console.error("Erro ao gerar relatório:", error);
+        // Corrigido: `totalEntradas` para `totalEntradasMes` (erro de digitação)
+        showToast("Ocorreu um erro inesperado ao gerar o relatório.", "error");
     }
 });
 
+
+// [CORREÇÃO] Relatório Geral de Membros
 gerarRelatorioMembrosBtn.addEventListener("click", () => {
-    if(localMembros.length===0) return showToast("Sem membros.","warning");
-    const win = window.open("","_blank");
-    win.document.write(`
-        <html><head><title>Membros</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#eee}</style></head><body>
-        <h1>Lista de Membros (${localMembros.length})</h1>
-        <table><thead><tr><th>Nome</th><th>Função</th><th>Telefone</th></tr></thead><tbody>
-        ${localMembros.map(m=>`<tr><td>${m.nome}</td><td>${m.funcao||''}</td><td>${m.telefone||''}</td></tr>`).join('')}
-        </tbody></table></body></html>
-    `);
-    win.document.close();
+    try {
+        if (localMembros.length === 0) {
+            showToast("Nenhum membro cadastrado para gerar relatório.", "warning");
+            return;
+        }
+
+        // Os membros em localMembros já estão ordenados por nome (definido no loadAllData)
+        
+        let relatorioHTML = `
+            <html>
+            <head>
+                <title>Relatório Geral de Membros</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <style>
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .no-print { display: none; }
+                    }
+                    body { font-family: sans-serif; }
+                    h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 12px; } /* Fonte menor para caber mais info */
+                    th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: left; }
+                    th { background-color: #f3f4f6; font-weight: 600; }
+                    tr:nth-child(even) { background-color: #f9fafb; }
+                    .total-row { background-color: #f3f4f6; font-weight: bold; font-size: 14px; }
+                </style>
+            </head>
+            <body class="bg-gray-100 p-8">
+                <div class="container mx-auto bg-white p-10 rounded shadow-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1>Relatório Geral de Membros</h1>
+                        <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Idade</th>
+                                <th>Função/Ministério</th>
+                                <th>Telefone</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${localMembros.map(membro => `
+                                <tr>
+                                    <td>${membro.nome || ''}</td>
+                                    <td>${calcularIdade(membro.dataNascimento) || 'N/A'}</td>
+                                    <td>${membro.funcao || ''}</td>
+                                    <td>${membro.telefone || ''}</td>
+                                    <td>${membro.email || ''}</td>
+                                </tr>
+                            `).join('')}
+                            <tr class="total-row">
+                                <td colspan="4" class="text-right">Total de Membros:</td>
+                                <td class="text-left">${localMembros.length}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </body>
+            </html>
+        `;
+
+        const relatorioJanela = window.open("", "_blank");
+        if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
+            showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
+            return;
+        }
+        relatorioJanela.document.write(relatorioHTML);
+        relatorioJanela.document.close();
+
+    } catch (error) {
+        console.error("Erro ao gerar relatório de membros:", error);
+        showToast("Erro ao gerar relatório de membros.", "error");
+    }
 });
 
+
+// --- ABA DE ANIVERSARIANTES ---
+function renderAniversariantes() {
+    if (localMembros.length === 0) {
+        listaAniversariantesAtual.innerHTML = '<p class="text-gray-500 p-4">Nenhum membro cadastrado.</p>';
+        listaAniversariantesProximos.innerHTML = '<p class="text-gray-500 p-4">Nenhum membro cadastrado.</p>';
+        return;
+    }
+    
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth(); // 0-11
+    tituloAniversariantesAtual.textContent = `Aniversariantes de ${MESES_DO_ANO[mesAtual]}`;
+    
+    const aniversariantesPorMes = {};
+    for (let i = 0; i < 12; i++) {
+        aniversariantesPorMes[i] = [];
+    }
+
+    // 1. Agrupa membros por mês de aniversário
+    localMembros.forEach(membro => {
+        const dataNasc = getDateFromInput(membro.dataNascimento);
+        if (dataNasc) {
+            const mes = dataNasc.getUTCMonth(); // 0-11
+            const dia = dataNasc.getUTCDate();
+            aniversariantesPorMes[mes].push({ ...membro, dia });
+        }
+    });
+
+    // 2. Ordena aniversariantes dentro de cada mês pelo dia
+    for (let mes in aniversariantesPorMes) {
+        aniversariantesPorMes[mes].sort((a, b) => a.dia - b.dia);
+    }
+    
+    // 3. Renderiza o Mês Vigente
+    const aniversariantesAtuais = aniversariantesPorMes[mesAtual];
+    if (aniversariantesAtuais.length === 0) {
+         listaAniversariantesAtual.innerHTML = `<div class="p-4 text-center text-gray-500">Nenhum aniversariante este mês.</div>`;
+    } else {
+        listaAniversariantesAtual.innerHTML = aniversariantesAtuais.map(m => `
+            <div class="py-3 px-2 flex justify-between items-center hover:bg-gray-50 rounded">
+                <div>
+                    <div class="font-medium text-gray-800">${m.nome}</div>
+                    <div class="text-sm text-gray-500">Função: ${m.funcao || 'N/A'}</div>
+                </div>
+                <div class="text-lg font-bold text-blue-600">${String(m.dia).padStart(2, '0')}</div>
+            </div>
+        `).join('');
+    }
+    
+    // 4. Renderiza os Próximos Meses
+    listaAniversariantesProximos.innerHTML = ""; // Limpa
+    let mesesOrdenados = [];
+    for (let i = 1; i < 12; i++) {
+        mesesOrdenados.push((mesAtual + i) % 12);
+    }
+    
+    let encontrouProximos = false;
+    mesesOrdenados.forEach(mesIndex => {
+        const aniversariantesDoMes = aniversariantesPorMes[mesIndex];
+        if (aniversariantesDoMes.length > 0) {
+            encontrouProximos = true;
+            const mesDiv = document.createElement('div');
+            mesDiv.innerHTML = `<h4 class="font-semibold text-gray-700 border-b pb-1 mb-2">${MESES_DO_ANO[mesIndex]}</h4>`;
+            
+            const listaUl = document.createElement('ul');
+            listaUl.className = "divide-y divide-gray-100";
+            listaUl.innerHTML = aniversariantesDoMes.map(m => `
+                <li class="py-2 px-1 flex justify-between items-center">
+                    <span class="text-sm text-gray-700">${m.nome}</span>
+                    <span class="text-sm font-medium text-gray-600">${String(m.dia).padStart(2, '0')}</span>
+                </li>
+            `).join('');
+            
+            mesDiv.appendChild(listaUl);
+            listaAniversariantesProximos.appendChild(mesDiv);
+        }
+    });
+    
+    if (!encontrouProximos) {
+         listaAniversariantesProximos.innerHTML = `<p class="text-gray-500 p-4">Nenhum aniversariante nos próximos meses.</p>`;
+    }
+}
+
+// Relatório de Aniversariantes
 gerarRelatorioAniversariantesBtn.addEventListener("click", () => {
-    const win = window.open("","_blank");
-    const style = `<style>body{font-family:sans-serif} .month{font-size:18px;font-weight:bold;margin-top:20px;border-bottom:1px solid #ccc} .item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee}</style>`;
-    const content = document.getElementById('lista-aniversariantes-atual').innerHTML + document.getElementById('lista-aniversariantes-proximos').innerHTML;
-    win.document.write(`<html><head><title>Aniversariantes</title>${style}</head><body><h1>Aniversariantes</h1>${content}</body></html>`);
-    win.document.close();
+    try {
+        const hoje = new Date();
+        const mesAtual = hoje.getMonth();
+        const nomeMesAtual = MESES_DO_ANO[mesAtual];
+        
+        const htmlAtual = document.getElementById('lista-aniversariantes-atual').innerHTML;
+        const htmlProximos = document.getElementById('lista-aniversariantes-proximos').innerHTML;
+        
+        let relatorioHTML = `
+            <html>
+            <head>
+                <title>Relatório de Aniversariantes</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <style>
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .no-print { display: none; }
+                    }
+                    body { font-family: sans-serif; }
+                    h1 { font-size: 24px; font-weight: bold; color: #1e40af; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; }
+                    h2 { font-size: 20px; font-weight: 600; color: #1d4ed8; margin-top: 24px; border-bottom: 1px solid #93c5fd; padding-bottom: 4px; }
+                    /* Estilos do Mês Vigente (copiados do .js) */
+                    .aniversariante-atual { border-bottom: 1px solid #e5e7eb; padding: 12px 8px; display: flex; justify-content: space-between; align-items: center; }
+                    .aniversariante-atual-nome { font-weight: 500; color: #1f2937; }
+                    .aniversariante-atual-funcao { font-size: 14px; color: #6b7280; }
+                    .aniversariante-atual-dia { font-size: 20px; font-weight: 700; color: #2563eb; }
+                    /* Estilos dos Próximos Meses (copiados do .js) */
+                    .proximo-mes-titulo { font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 8px; margin-top: 16px; font-size: 18px; }
+                    .proximo-mes-lista { list-style: none; padding-left: 0; }
+                    .proximo-mes-item { padding: 8px 4px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; }
+                    .proximo-mes-nome { font-size: 14px; color: #374151; }
+                    .proximo-mes-dia { font-size: 14px; font-weight: 500; color: #4b5563; }
+                </style>
+            </head>
+            <body class="bg-gray-100 p-8">
+                <div class="container mx-auto bg-white p-10 rounded shadow-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1>Relatório de Aniversariantes</h1>
+                        <button onclick="window.print()" class="no-print bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700">Imprimir</button>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-6">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+                    
+                    <!-- Mês Vigente -->
+                    <h2 class="text-xl font-semibold text-blue-700 mb-4">${tituloAniversariantesAtual.textContent}</h2>
+                    <div class="divide-y divide-gray-200">
+                        ${listaAniversariantesAtual.innerHTML}
+                    </div>
+                    
+                    <!-- Próximos Meses -->
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 mt-8">Próximos Meses</h2>
+                    <div class="space-y-4">
+                        ${listaAniversariantesProximos.innerHTML}
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
+        
+        // Substitui classes do Tailwind por estilos inline (para impressão)
+        relatorioHTML = relatorioHTML.replace(/class="py-3 px-2 flex justify-between items-center hover:bg-gray-50 rounded"/g, 'style="border-bottom: 1px solid #e5e7eb; padding: 12px 8px; display: flex; justify-content: space-between; align-items: center;"');
+        relatorioHTML = relatorioHTML.replace(/class="font-medium text-gray-800"/g, 'style="font-weight: 500; color: #1f2937;"');
+        relatorioHTML = relatorioHTML.replace(/class="text-sm text-gray-500"/g, 'style="font-size: 14px; color: #6b7280;"');
+        relatorioHTML = relatorioHTML.replace(/class="text-lg font-bold text-blue-600"/g, 'style="font-size: 20px; font-weight: 700; color: #2563eb;"');
+        relatorioHTML = relatorioHTML.replace(/class="font-semibold text-gray-700 border-b pb-1 mb-2"/g, 'style="font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 8px; margin-top: 16px; font-size: 18px;"');
+        relatorioHTML = relatorioHTML.replace(/class="divide-y divide-gray-100"/g, 'style="list-style: none; padding-left: 0;"');
+        relatorioHTML = relatorioHTML.replace(/class="py-2 px-1 flex justify-between items-center"/g, 'style="padding: 8px 4px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6;"');
+        relatorioHTML = relatorioHTML.replace(/class="text-sm text-gray-700"/g, 'style="font-size: 14px; color: #374151;"');
+        relatorioHTML = relatorioHTML.replace(/class="text-sm font-medium text-gray-600"/g, 'style="font-size: 14px; font-weight: 500; color: #4b5563;"');
+
+
+        const relatorioJanela = window.open("", "_blank");
+        if (!relatorioJanela || relatorioJanela.closed || typeof relatorioJanela.closed == 'undefined') {
+            showToast("Falha ao abrir relatório. Desative o bloqueador de pop-ups.", "error");
+            return;
+        }
+        relatorioJanela.document.write(relatorioHTML);
+        relatorioJanela.document.close();
+        
+    } catch(error) {
+        console.error("Erro ao gerar relatório de aniversariantes:", error);
+        showToast("Erro ao gerar relatório de aniversariantes.", "error");
+    }
 });
 
-// Utils
-function toggleButtonLoading(btn, loading, text) {
-    if(loading) { btn.disabled=true; btn.innerHTML='<span class="spinner"></span> ...'; }
-    else { btn.disabled=false; btn.innerHTML=text; }
+
+// --- FUNÇÕES UTILITÁRIAS ---
+
+// Controla o estado de loading de um botão
+function toggleButtonLoading(button, isLoading, defaultText) {
+    if (isLoading) {
+        button.disabled = true;
+        button.innerHTML = `<span class="spinner"></span>Aguarde...`;
+    } else {
+        button.disabled = false;
+        button.innerHTML = defaultText;
+    }
 }
 
-function showToast(msg, type='success') {
-    const t = document.createElement("div");
-    t.className = `toast toast-${type}`;
-    t.textContent = msg;
-    toastContainer.appendChild(t);
-    setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3000);
+// Mostra um toast de notificação
+function showToast(message, type = 'success') {
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    toastContainer.appendChild(toast);
+
+    // Remove o toast após 3 segundos
+    setTimeout(() => {
+        toast.style.animation = "slideOut 0.3s ease-out forwards";
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3000);
 }
 
-function formatarData(d) {
-    const date = getDateFromInput(d);
-    return date ? date.toLocaleDateString('pt-BR',{timeZone:'UTC'}) : 'N/A';
+
+// Função de formatação de data
+function formatarData(dataString) {
+    if (dataString && typeof dataString.toDate === 'function') {
+        dataString = dataString.toDate();
+    }
+    else if (dataString instanceof Date) {
+         // Não faz nada, já é um Date
+    }
+    else if (typeof dataString === 'string' && dataString.includes('-')) {
+         dataString = getDateFromInput(dataString);
+    } 
+    else {
+        return 'N/A';
+    }
+    
+    try {
+        return dataString.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+    } catch (e) {
+        console.warn("Erro ao formatar data:", dataString, e);
+        return 'N/A';
+    }
 }
 
-function getDateFromInput(d) {
-    if(!d) return null;
-    if(d.toDate) return d.toDate();
-    if(d instanceof Date) return d;
-    if(typeof d==='string' && d.includes('-')) {
-        const p = d.split('-');
-        return new Date(Date.UTC(p[0], p[1]-1, p[2]));
+// Converte string 'aaaa-mm-dd' ou Timestamp para um Date UTC
+function getDateFromInput(dataInput) {
+    try {
+        if (dataInput && typeof dataInput.toDate === 'function') {
+            return dataInput.toDate();
+        }
+        if (dataInput instanceof Date) {
+            return dataInput;
+        }
+        if (typeof dataInput === 'string' && dataInput.includes('-')) {
+            const parts = dataInput.split('-');
+            if (parts.length === 3) {
+                return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+            }
+        }
+    } catch (e) {
+        console.error("Data inválida:", dataInput, e);
+        return null;
     }
     return null;
 }
 
-function calcularIdade(d) {
-    const date = getDateFromInput(d);
-    if(!date) return null;
-    const diff = Date.now() - date.getTime();
-    return Math.abs(new Date(diff).getUTCFullYear() - 1970);
+// Calcula idade
+function calcularIdade(dataNascimento) {
+    // Corrigido: erro de digitação de 'dataNTascimento' para 'dataNascimento'
+    if (!dataNascimento) return null; 
+    
+    const dataNasc = getDateFromInput(dataNascimento);
+    if (!dataNasc) return null;
+
+    const hoje = new Date();
+    let idade = hoje.getUTCFullYear() - dataNasc.getUTCFullYear();
+    const m = hoje.getUTCMonth() - dataNasc.getUTCFullYear();
+    
+    if (m < 0 || (m === 0 && hoje.getUTCDate() < dataNasc.getUTCDate())) {
+        idade--;
+    }
+    return idade;
 }
 
-function formatarMoeda(v) {
-    return (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+// Formatar Moeda (para Relatório)
+function formatarMoeda(valor) {
+    if (typeof valor !== 'number') {
+        valor = 0;
+    }
+    const formatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+    // Remove o "R$" negativo (ex: -R$ 100) e coloca o sinal antes (ex: R$ -100)
+    if (valor < 0) {
+        return `R$ -${formatado.replace('R$', '').replace('-', '')}`;
+    }
+    return formatado;
 }
 
+
+// Inicializa ícones Lucide
 lucide.createIcons();
